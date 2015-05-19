@@ -41,14 +41,14 @@ next section.
 Operating model
 ---------------
 
-The idea behind pam_openssh_x509 is to make managed x509 certificates
-accessible for OpenSSH public key authentication. Contrary to other approaches
-the source code of OpenSSH remains untouched, making it relatively independent
-from changes to OpenSSH. It also supports components usually found in larger
-enterprises, creating an integrated solution for the OpenSSH key management.
-Therefore it circumvents the installation and maintenance of an extensive
-software layer for managing OpenSSH key material. Yet, it raises the security
-level of the keys and reduces costs.
+The idea behind pam_openssh_x509 is to make managed x509 certificates accessible
+for OpenSSH public key authentication. Contrary to other approaches the source
+code of OpenSSH remains untouched, making it relatively independent from changes
+to OpenSSH. It also supports components usually found in larger enterprises,
+creating an integrated solution for the OpenSSH key management. Therefore it
+circumvents the installation and maintenance of an extensive software layer for
+managing OpenSSH key material. Yet, it raises the security level of the keys and
+reduces costs.
 
 The operating model consists of the following components:
 
@@ -108,7 +108,7 @@ pam_openssh_x509_base.so
 
  * Checks access permissions through LDAP groups.
  * Validates x509 certificate.
- * Converts the public key to into the OpenSSH key format.
+ * Converts the public key into the OpenSSH key format.
  * Creates and updates the data transfer object passed to downstream modules
    with all determined information.
 
@@ -123,8 +123,8 @@ pam_openssh_x509_validate.so
 
 
 The base module collects all the information needed to synchronize keys and
-grant or revoke server access. All data is stored in a data transfer object
-that is made accessible for downstream modules.
+grant or revoke server access. All data is stored in a data transfer object that
+is made accessible for downstream modules.
 
 The audit module is a passive component that only logs the content of the data
 transfer object.
@@ -179,7 +179,7 @@ Contact
 Questions? Suggestions? Just wanna say Hi?
 Reach us over the following channels:
 
-* IRC: #pam_openssh_x509 @ freenode  or /query flix
+* IRC: #pam_openssh_x509 @freenode or /query flix
 * E-Mail: seroland86@gmail.com
 * Github: https://github.com/flix-
 

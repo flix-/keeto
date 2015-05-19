@@ -71,9 +71,9 @@ OpenSSH
 
 1) Install OpenSSH with PAM support.
 
-2) We are running a second instance of OpenSSH here in order to fall back
-   to the standard one without pam_openssh_x509 support. Configuration goes
-   into a new directory:
+2) We are running a second instance of OpenSSH here in order to fall back to the
+   standard one without pam_openssh_x509 support. Configuration goes into a new
+   directory:
    $ mkdir /usr/local/etc/ssh
 
 3) Copy sshd_config:
@@ -127,9 +127,8 @@ OpenLDAP
      dn: ou=groups,dc=ssh,dc=hq
      dn: ou=people,dc=ssh,dc=hq
 
-   The groups tree will hold objects that represent the OpenSSH servers
-   whereas the person tree holds the person objects including their x509
-   certificates.
+   The groups tree will hold objects that represent the OpenSSH servers whereas
+   the person tree holds the person objects including their x509 certificates.
 
 6) Add user 'pox509-test-user' with x509 certificate to person tree:
    $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
