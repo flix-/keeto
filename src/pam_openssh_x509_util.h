@@ -18,6 +18,7 @@
 #ifndef PAM_OPENSSH_X509_UTIL_H
 #define PAM_OPENSSH_X509_UTIL_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <openssl/evp.h>
@@ -25,7 +26,7 @@
 #include <openssl/x509.h>
 
 /* type declarations */
-struct pam_openssh_x509_info {
+struct pox509_info {
     char *uid;
     char *authorized_keys_file;
     char *ssh_keytype;
@@ -50,15 +51,19 @@ void LOG_MSG(const char *fmt, ...);
 void LOG_SUCCESS(const char *fmt, ...);
 void LOG_FAIL(const char *fmt, ...);
 void FATAL(const char *fmt, ...);
-long int config_lookup(const enum pox509_sections sec, const char *key);
+int config_lookup(const enum pox509_sections sec, const char *key);
 int set_log_facility(const char *log_facility);
-void init_data_transfer_object(struct pam_openssh_x509_info *x509_info);
-int is_readable_file(const char *file);
-int is_valid_uid(const char *uid);
-void substitute_token(char token, char *subst, char *src, char *dst, size_t dst_length);
-void create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length);
-void check_access_permission(char *group_dn, char *identifier, struct pam_openssh_x509_info *x509_info);
-void validate_x509(X509 *x509, char *cacerts_dir, struct pam_openssh_x509_info *x509_info);
-void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pam_openssh_x509_info *x509_info);
+void init_data_transfer_object(struct pox509_info *x509_info);
+bool is_readable_file(const char *file);
+bool is_valid_uid(const char *uid);
+void substitute_token(char token, char *subst, char *src, char *dst,
+                      size_t dst_length);
+void create_ldap_search_filter(char *rdn, char *uid, char *dst,
+                               size_t dst_length);
+void check_access_permission(char *group_dn, char *identifier,
+                             struct pox509_info *x509_info);
+void validate_x509(X509 *x509, char *cacerts_dir,
+                   struct pox509_info *x509_info);
+void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info);
 #endif
 

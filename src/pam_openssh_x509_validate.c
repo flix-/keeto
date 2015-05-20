@@ -16,6 +16,7 @@
  */
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +26,8 @@
 
 #include "pam_openssh_x509_util.h"
 
-static int 
-authorized(struct pam_openssh_x509_info *x509_info)
+static bool
+is_authorized(struct pox509_info *x509_info)
 {
     return (x509_info->has_access == 1 &&
             x509_info->has_valid_cert == 1);
@@ -35,7 +36,7 @@ authorized(struct pam_openssh_x509_info *x509_info)
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
-    struct pam_openssh_x509_info *x509_info = NULL;
+    struct pox509_info *x509_info = NULL;
     int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
     if (rc != PAM_SUCCESS) {
         FATAL("pam_get_data()");
@@ -53,7 +54,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         goto auth_success;
     }
 
-    if (authorized(x509_info)) {
+    if (is_authorized(x509_info)) {
         LOG_MSG("access granted!");
         LOG_MSG("synchronizing keys");
         if (x509_info->ssh_keytype == NULL || x509_info->ssh_key == NULL) {
@@ -62,19 +63,23 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         /* write key to authorized_keys file */
         FILE *fd_auth_keys = fopen(x509_info->authorized_keys_file, "w");
         if (fd_auth_keys == NULL) {
-            FATAL("cannot open '%s' for writing", x509_info->authorized_keys_file);
+            FATAL("cannot open '%s' for writing",
+                  x509_info->authorized_keys_file);
         }
-        fwrite(x509_info->ssh_keytype, strlen(x509_info->ssh_keytype), 1, fd_auth_keys);
+        fwrite(x509_info->ssh_keytype, strlen(x509_info->ssh_keytype), 1,
+               fd_auth_keys);
         fwrite(" ", 1, 1, fd_auth_keys);
         fwrite(x509_info->ssh_key, strlen(x509_info->ssh_key), 1, fd_auth_keys);
         fwrite("\n", 1, 1, fd_auth_keys);
         fclose(fd_auth_keys);
     } else {
         LOG_MSG("access denied!");
-        LOG_MSG("truncating authorized_keys file (%s)", x509_info->authorized_keys_file);
+        LOG_MSG("truncating authorized_keys file (%s)",
+                x509_info->authorized_keys_file);
         FILE *fd_auth_keys = fopen(x509_info->authorized_keys_file, "w");
         if (fd_auth_keys == NULL) {
-            LOG_FAIL("truncation of '%s' failed", x509_info->authorized_keys_file);
+            LOG_FAIL("truncation of '%s' failed",
+                     x509_info->authorized_keys_file);
             goto auth_err;
         }
         fclose(fd_auth_keys);

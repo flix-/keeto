@@ -18,6 +18,8 @@
 #ifndef PAM_OPENSSH_X509_CHECK_H
 #define PAM_OPENSSH_X509_CHECK_H
 
+#include <stdbool.h>
+
 #include <check.h>
 
 /* type declarations */
@@ -49,7 +51,7 @@ struct pox509_test_validate_x509_item {
 
 struct pox509_test_is_valid_uid_item {
     char *uid;
-    char exp_result;
+    bool exp_result;
 };
 
 /* function declarations */

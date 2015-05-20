@@ -16,20 +16,22 @@ Contents of this file
 Introduction
 ------------
 
-This file describes how to setup an environment from scratch to get familiar
-with pam_openssh_x509.
+This file describes how to setup an environment from scratch to get
+familiar with pam_openssh_x509.
 
-Note that in a production environment some steps would be done automatically.
-Examples are the creation and distribution of x509 certificates. In addition,
-components like the LDAP server, the logging facility and the SSH client are
-exchangeable and don't need to be the the same implementations as used here.
+Note that in a production environment some steps would be done
+automatically. Examples are the creation and distribution of x509
+certificates. In addition, components like the LDAP server, the logging
+facility and the SSH client are exchangeable and don't need to be the 
+same implementations as used here.
 
-For a quick setup the 'samples' directory included with the package holds
-configurations needed for the installation steps.
+For a quick setup the 'samples' directory included with the package
+holds configurations needed for the installation steps.
 
-When copying setup instructions below, make sure that the paths are relative to
-the root directory of the package. All steps have been tested on a Raspberry PI
-running Arch Linux. Paths might have to be adjusted for other distributions.
+When copying setup instructions below, make sure that the paths are
+relative to the root directory of the package. All steps have been
+tested on a Raspberry PI running Arch Linux. Paths might have to be
+adjusted for other distributions.
 
 
 Solution stack
@@ -71,9 +73,9 @@ OpenSSH
 
 1) Install OpenSSH with PAM support.
 
-2) We are running a second instance of OpenSSH here in order to fall back to the
-   standard one without pam_openssh_x509 support. Configuration goes into a new
-   directory:
+2) We are running a second instance of OpenSSH here in order to fall
+   back to the standard one without pam_openssh_x509 support.
+   Configuration goes into a new directory:
    $ mkdir /usr/local/etc/ssh
 
 3) Copy sshd_config:
@@ -82,21 +84,23 @@ OpenSSH
 4) Create directory for users public keys:
    $ mkdir /usr/local/etc/ssh/keystore
 
-   In this directory every user gets a subdirectory named after their UID. The
-   authorized_keys file will be stored there.
+   In this directory every user gets a subdirectory named after their
+   UID. The authorized_keys file will be stored there.
 
 5) Create keystore for 'pox509-test-user':
    $ mkdir /usr/local/etc/ssh/keystore/pox509-test-user
 
-   /!\ As the authorized_keys file will be managed by pam_openssh_x509, we have
-   to make sure that noone besides root can change the authorized_keys file.
-   Standard permissions (755) with ownership root:root should be fine.
+   /!\ As the authorized_keys file will be managed by pam_openssh_x509,
+   we have to make sure that noone besides root can change the
+   authorized_keys file. Standard permissions (755) with ownership
+   root:root should be fine.
 
 7) Run OpenSSH:
    $ /usr/bin/sshd -f /usr/local/etc/ssh/sshd_config
 
-8) (optional) Make sure PAM support is disabled for other OpenSSH instances
-   running on the same machine, as they would use the modules as well.
+8) (optional) Make sure PAM support is disabled for other OpenSSH
+   instances running on the same machine, as they would use the modules
+   as well.
 
 
 OpenLDAP
@@ -127,14 +131,16 @@ OpenLDAP
      dn: ou=groups,dc=ssh,dc=hq
      dn: ou=people,dc=ssh,dc=hq
 
-   The groups tree will hold objects that represent the OpenSSH servers whereas
-   the person tree holds the person objects including their x509 certificates.
+   The groups tree will hold objects that represent the OpenSSH servers
+   whereas the person tree holds the person objects including their
+   x509 certificates.
 
 6) Add user 'pox509-test-user' with x509 certificate to person tree:
    $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
      -w test123 -f samples/pam_openssh_x509_test_add_user.ldif
 
-7) Add OpenSSH server with identifier 'pox509-test-server' to groups tree:
+7) Add OpenSSH server with identifier 'pox509-test-server' to groups
+   tree:
    $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
      -w test123 -f samples/pam_openssh_x509_test_add_server.ldif
 
@@ -210,8 +216,9 @@ pam_openssh_x509
 PuTTY-CAC
 ---------
 
-Connect to the OpenSSH server using the private key in 10-ee_user_1_key.pem.
-In production, use the private key inside the Smartcard for signing.
+Connect to the OpenSSH server using the private key in
+10-ee_user_1_key.pem In production, use the private key inside the
+Smartcard for signing.
 
 
 Trusted CA's store

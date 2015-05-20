@@ -38,9 +38,9 @@ static void
 cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
 {
     /*
-     * this cleanup function should normally be called by pam_end().
-     * unfortunately this is not happening for OpenSSH under "normal"
-     * circumstances. the reasons is as follows:
+     * this function should normally be called through pam_end() for
+     * cleanup. unfortunately this is not happening for OpenSSH under
+     * "normal" circumstances. the reasons is as follows:
      *
      * unless UNSUPPORTED_POSIX_THREADS_HACK has been defined during
      * compilation (which in most cases is not) OpenSSH creates a new
@@ -48,20 +48,19 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
      * handle is duplicated into the new process and every information
      * added through pam modules to the handle is only visible in the
      * new process. as the process terminates after the account handling
-     * the original pam handle does not know anything about the previously
-     * registered data structure and cleanup function so that it cannot
-     * be taken into account during pam_end().
+     * the original pam handle does not know anything about the
+     * previously registered data structure and cleanup function so that
+     * it cannot be taken into account during pam_end().
      *
-     * not freeing the data structure results in a memory leak.
-     * as the process terminates immediately and all memory is given
-     * back to the operating system no further workarounds have been
-     * setup.
+     * not freeing the data structure results in a memory leak. as the
+     * process terminates immediately and all memory is given back to
+     * the operating system no further workarounds have been setup.
      *
      * still an implementation follows for the brave people who enabled
      * posix threads in OpenSSH and to be prepared for possible changes
      * in OpenSSH.
      */
-    struct pam_openssh_x509_info *x509_info = data;
+    struct pox509_info *x509_info = data;
     LOG_MSG("freeing x509_info");
     free(x509_info->log_facility);
     free(x509_info->subject);
@@ -92,7 +91,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     init_and_parse_config(&cfg, cfg_file);
 
     /* initialize data transfer object */
-    struct pam_openssh_x509_info *x509_info = malloc(sizeof *x509_info);
+    struct pox509_info *x509_info = malloc(sizeof *x509_info);
     if (x509_info == NULL) {
         FATAL("malloc()");
     }
@@ -117,47 +116,51 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         FATAL("pam_get_user(): (%i)", rc);
     }
     /*
-     * an attacker could provide a malicious uid (e.g. '../keystore/foo') that
-     * can cause problems with the resulting authorized_keys path after token
-     * substitution. to minimize this attack vector the given uid will be tested
-     * against a restrictive regular expression
+     * an attacker could provide a malicious uid
+     * (e.g. '../keystore/foo') that can cause problems with the
+     * resulting authorized_keys path after token substitution.
+     * to minimize this attack vector the given uid will be tested
+     * against a restrictive regular expression.
      */
     if (!is_valid_uid(uid)) {
         FATAL("is_valid_uid(): uid: '%s'", uid);
     }
 
     /*
-     * make uid available in data transfer object. do not point to value in
-     * pam space because if we free our data structure we would free it from
-     * global pam space as well. other modules could rely on it
+     * make uid available in data transfer object. do not point to value
+     * in pam space because if we free our data structure we would free
+     * it from global pam space as well. other modules could rely on it.
      */
     x509_info->uid = strndup(uid, MAX_UID_LENGTH);
     if (x509_info->uid == NULL) {
         FATAL("strndup()");
     }
 
-    /* expand authorized_keys_file option and add to data transfer object */
+    /* expand authorized_keys_file option and add to dto */
     char *expanded_path = malloc(AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
     if (expanded_path == NULL) {
         FATAL("malloc()");
     }
-    substitute_token('u', x509_info->uid, cfg_getstr(cfg, "authorized_keys_file"), expanded_path, AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
+    substitute_token('u', x509_info->uid,
+                     cfg_getstr(cfg, "authorized_keys_file"), expanded_path,
+                     AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
     x509_info->authorized_keys_file = expanded_path;
 
-    /* query ldap server and retrieve access permission and certificate of user */
+    /* query ldap server */
     X509 *x509 = NULL;
-    retrieve_access_permission_and_x509_from_ldap(cfg, x509_info, &x509);
+    retrieve_authorization_and_x509_from_ldap(cfg, x509_info, &x509);
 
-    /* process certificate if one has been found*/
+    /* process certificate if one has been found */
     if (x509 != NULL) {
         /* validate certificate */
         validate_x509(x509, cfg_getstr(cfg, "cacerts_dir"), x509_info);
 
+        /* TODO: own function */
         x509_info->subject = X509_NAME_oneline(X509_get_subject_name(x509), NULL, 0);
         x509_info->serial = BN_bn2hex(ASN1_INTEGER_to_BN(X509_get_serialNumber(x509), 0));
         x509_info->issuer = X509_NAME_oneline(X509_get_issuer_name(x509), NULL, 0);
 
-        /* extract public key and convert to OpenSSH format */
+        /* extract public key and convert into OpenSSH format */
         EVP_PKEY *pkey = X509_get_pubkey(x509);
         if (pkey == NULL) {
             FATAL("X509_get_pubkey(): unable to load public key");

@@ -43,11 +43,13 @@ cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
 }
 
 /*
- * note that value parsing and validation callback functions will only be called
- * during parsing. altering the value later wont incorporate them
+ * note that value parsing and validation callback functions will only
+ * be called during parsing. altering the value later wont incorporate
+ * them.
  */
 static int
-cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value, void *result)
+cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
+                              void *result)
 {
     if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
         FATAL("cfg_str_to_int_parser_libldap(): cfg, opt, value or result == NULL");
@@ -55,7 +57,8 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value, voi
 
     long int result_value = config_lookup(LIBLDAP, value);
     if (result_value == -EINVAL) {
-        cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'", cfg_opt_name(opt), value);
+        cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
+                  cfg_opt_name(opt), value);
         return -1; 
     }
     long int *ptr_result = result;
@@ -73,7 +76,8 @@ cfg_validate_log_facility(cfg_t *cfg, cfg_opt_t *opt)
     const char *log_facility = cfg_opt_getnstr(opt, 0);
     int rc = set_log_facility(log_facility);
     if (rc == -EINVAL) {
-        cfg_error(cfg, "cfg_validate_log_facility(): option: '%s', value: '%s' (value is not a valid syslog facility)", cfg_opt_name(opt), log_facility);
+        cfg_error(cfg, "cfg_validate_log_facility(): option: '%s', value: '%s' (value is not a valid syslog facility)",
+                  cfg_opt_name(opt), log_facility);
         return -1;
     }
     return 0;
@@ -89,7 +93,8 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
     int rc = ldap_is_ldap_url(ldap_uri);
     if (rc == 0) {
-        cfg_error(cfg, "cfg_validate_ldap_uri(): option: '%s', value: '%s' (value is not an ldap uri)", cfg_opt_name(opt), ldap_uri);
+        cfg_error(cfg, "cfg_validate_ldap_uri(): option: '%s', value: '%s' (value is not an ldap uri)",
+                  cfg_opt_name(opt), ldap_uri);
         return -1;
     }
     return 0;
@@ -104,7 +109,8 @@ cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 
     long int starttls = cfg_opt_getnint(opt, 0);
     if (starttls != 0 && starttls != 1) {
-        cfg_error(cfg, "cfg_validate_ldap_starttls(): option: '%s', value: '%li' (value must be either 0 or 1)", cfg_opt_name(opt), starttls);
+        cfg_error(cfg, "cfg_validate_ldap_starttls(): option: '%s', value: '%li' (value must be either 0 or 1)",
+                  cfg_opt_name(opt), starttls);
         return -1;
     }
     return 0;
@@ -119,7 +125,8 @@ cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 
     long int timeout = cfg_opt_getnint(opt, 0);
     if (timeout <= 0) {
-        cfg_error(cfg, "cfg_validate_ldap_search_timeout(): option: '%s', value: '%li' (value must be > 0)", cfg_opt_name(opt), timeout);
+        cfg_error(cfg, "cfg_validate_ldap_search_timeout(): option: '%s', value: '%li' (value must be > 0)",
+                  cfg_opt_name(opt), timeout);
         return -1;
     }
     return 0;
@@ -136,7 +143,8 @@ cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
     /* check if directory exists */
     DIR *cacerts_dir_stream = opendir(cacerts_dir);
     if (cacerts_dir_stream == NULL) {
-        cfg_error(cfg, "cfg_validate_cacerts_dir(): option: '%s', value: '%s' (%s)", cfg_opt_name(opt), cacerts_dir, strerror(errno));
+        cfg_error(cfg, "cfg_validate_cacerts_dir(): option: '%s', value: '%s' (%s)",
+                  cfg_opt_name(opt), cacerts_dir, strerror(errno));
         return -1;
     }
     closedir(cacerts_dir_stream);
@@ -159,14 +167,17 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
         CFG_STR("ldap_bind_dn", "cn=directory_manager,dc=ssh,dc=hq", CFGF_NONE),
         CFG_STR("ldap_pwd", "test123", CFGF_NONE),
         CFG_STR("ldap_base", "ou=people,dc=ssh,dc=hq", CFGF_NONE),
-        CFG_INT_CB("ldap_scope", config_lookup(LIBLDAP, "LDAP_SCOPE_ONE"), CFGF_NONE, &cfg_str_to_int_parser_libldap),
+        CFG_INT_CB("ldap_scope", config_lookup(LIBLDAP, "LDAP_SCOPE_ONE"),
+                   CFGF_NONE, &cfg_str_to_int_parser_libldap),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
-        CFG_INT_CB("ldap_version", config_lookup(LIBLDAP, "LDAP_VERSION3"), CFGF_NONE, &cfg_str_to_int_parser_libldap),
+        CFG_INT_CB("ldap_version", config_lookup(LIBLDAP, "LDAP_VERSION3"),
+                   CFGF_NONE, &cfg_str_to_int_parser_libldap),
         CFG_STR("ldap_attr_rdn_person", "uid", CFGF_NONE),
         CFG_STR("ldap_attr_access", "memberOf", CFGF_NONE),
         CFG_STR("ldap_attr_cert", "userCertificate;binary", CFGF_NONE),
         CFG_STR("ldap_group_identifier", "pox509-test-server", CFGF_NONE),
-        CFG_STR("authorized_keys_file", "/usr/local/etc/ssh/keystore/%u/authorized_keys", CFGF_NONE),
+        CFG_STR("authorized_keys_file",
+                "/usr/local/etc/ssh/keystore/%u/authorized_keys", CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
         CFG_END()
     };
@@ -178,13 +189,15 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     cfg_set_validate_func(*cfg, "log_facility", &cfg_validate_log_facility);
     cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
     cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
-    cfg_set_validate_func(*cfg, "ldap_search_timeout", &cfg_validate_ldap_search_timeout);
+    cfg_set_validate_func(*cfg, "ldap_search_timeout",
+                          &cfg_validate_ldap_search_timeout);
     cfg_set_validate_func(*cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
 
     /* parse config */
     int rc = cfg_parse(*cfg, cfg_file);
     if (rc == CFG_FILE_ERROR) {
-        cfg_error(*cfg, "cfg_parse(): file: '%s', '%s'", cfg_file, strerror(errno));
+        cfg_error(*cfg, "cfg_parse(): file: '%s', '%s'", cfg_file,
+                  strerror(errno));
     }
 }
 

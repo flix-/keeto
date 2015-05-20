@@ -54,50 +54,48 @@ struct pox509_config_lt_item {
     int value;
 };
 
-static struct pox509_config_lt_item syslog_facilities[] =
-    {
-        { "LOG_KERN", LOG_KERN },
-        { "LOG_USER", LOG_USER },
-        { "LOG_MAIL", LOG_MAIL },
-        { "LOG_DAEMON", LOG_DAEMON },
-        { "LOG_AUTH", LOG_AUTH },
-        { "LOG_SYSLOG", LOG_SYSLOG },
-        { "LOG_LPR", LOG_LPR },
-        { "LOG_NEWS", LOG_NEWS },
-        { "LOG_UUCP", LOG_UUCP },
-        { "LOG_CRON", LOG_CRON },
-        { "LOG_AUTHPRIV", LOG_AUTHPRIV },
-        { "LOG_FTP", LOG_FTP },
-        { "LOG_LOCAL0", LOG_LOCAL0 },
-        { "LOG_LOCAL1", LOG_LOCAL1 },
-        { "LOG_LOCAL2", LOG_LOCAL2 },
-        { "LOG_LOCAL3", LOG_LOCAL3 },
-        { "LOG_LOCAL4", LOG_LOCAL4 },
-        { "LOG_LOCAL5", LOG_LOCAL5 },
-        { "LOG_LOCAL6", LOG_LOCAL6 },
-        { "LOG_LOCAL7", LOG_LOCAL7 },
-        /* mark end */
-        { NULL, 0 }
-    };
+static struct pox509_config_lt_item syslog_facility[] = {
+    { "LOG_KERN", LOG_KERN },
+    { "LOG_USER", LOG_USER },
+    { "LOG_MAIL", LOG_MAIL },
+    { "LOG_DAEMON", LOG_DAEMON },
+    { "LOG_AUTH", LOG_AUTH },
+    { "LOG_SYSLOG", LOG_SYSLOG },
+    { "LOG_LPR", LOG_LPR },
+    { "LOG_NEWS", LOG_NEWS },
+    { "LOG_UUCP", LOG_UUCP },
+    { "LOG_CRON", LOG_CRON },
+    { "LOG_AUTHPRIV", LOG_AUTHPRIV },
+    { "LOG_FTP", LOG_FTP },
+    { "LOG_LOCAL0", LOG_LOCAL0 },
+    { "LOG_LOCAL1", LOG_LOCAL1 },
+    { "LOG_LOCAL2", LOG_LOCAL2 },
+    { "LOG_LOCAL3", LOG_LOCAL3 },
+    { "LOG_LOCAL4", LOG_LOCAL4 },
+    { "LOG_LOCAL5", LOG_LOCAL5 },
+    { "LOG_LOCAL6", LOG_LOCAL6 },
+    { "LOG_LOCAL7", LOG_LOCAL7 },
+    /* mark end */
+    { NULL, 0 }
+};
 
-static struct pox509_config_lt_item libldap[] =
-    {
-        { "LDAP_VERSION1", LDAP_VERSION1 },
-        { "LDAP_VERSION2", LDAP_VERSION2 },
-        { "LDAP_VERSION3", LDAP_VERSION3 },
-        { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
-        { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
-        { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
-        { "LDAP_SCOPE_ONE", LDAP_SCOPE_ONE },
-        { "LDAP_SCOPE_SUBTREE", LDAP_SCOPE_SUBTREE },
-        { "LDAP_SCOPE_SUB", LDAP_SCOPE_SUB },
-        { "LDAP_SCOPE_SUBORDINATE", LDAP_SCOPE_SUBORDINATE },
-        { "LDAP_SCOPE_CHILDREN", LDAP_SCOPE_CHILDREN },
-        /* mark end */
-        { NULL, 0 }
-    };
+static struct pox509_config_lt_item libldap[] = {
+    { "LDAP_VERSION1", LDAP_VERSION1 },
+    { "LDAP_VERSION2", LDAP_VERSION2 },
+    { "LDAP_VERSION3", LDAP_VERSION3 },
+    { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
+    { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
+    { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
+    { "LDAP_SCOPE_ONE", LDAP_SCOPE_ONE },
+    { "LDAP_SCOPE_SUBTREE", LDAP_SCOPE_SUBTREE },
+    { "LDAP_SCOPE_SUB", LDAP_SCOPE_SUB },
+    { "LDAP_SCOPE_SUBORDINATE", LDAP_SCOPE_SUBORDINATE },
+    { "LDAP_SCOPE_CHILDREN", LDAP_SCOPE_CHILDREN },
+    /* mark end */
+    { NULL, 0 }
+};
 
-static struct pox509_config_lt_item *config_lt[] = { syslog_facilities, libldap };
+static struct pox509_config_lt_item *config_lt[] = { syslog_facility, libldap };
 static long int pox509_log_facility = DEFAULT_LOG_FACILITY;
 
 static void
@@ -145,7 +143,7 @@ FATAL(const char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
-long int
+int
 config_lookup(const enum pox509_sections sec, const char *key)
 {
     if (key == NULL) {
@@ -186,7 +184,7 @@ set_log_facility(const char *log_facility)
 }
 
 void
-init_data_transfer_object(struct pam_openssh_x509_info *x509_info)
+init_data_transfer_object(struct pox509_info *x509_info)
 {
     if (x509_info == NULL) {
         FATAL("init_data_transfer_object(): x509_info == NULL");
@@ -207,7 +205,7 @@ init_data_transfer_object(struct pam_openssh_x509_info *x509_info)
     x509_info->log_facility = NULL;
 }
 
-int
+bool
 is_readable_file(const char *file)
 {
     if (file == NULL) {
@@ -228,13 +226,13 @@ is_readable_file(const char *file)
     if (rc != 0) {
         goto ret_false;
     }
-    return 1;
+    return true;
 
 ret_false:
-    return 0;
+    return false;
 }
 
-int
+bool
 is_valid_uid(const char *uid)
 {
     if (uid == NULL) {
@@ -250,23 +248,24 @@ is_valid_uid(const char *uid)
     regfree(&regex_uid);
 
     switch (rc) {
-        case 0:
-            return 1;
-        case REG_ESPACE:
-            FATAL("regexec(): out of memory");
-        case REG_NOMATCH:
-        default:
-            return 0;
+    case 0:
+        return true;
+    case REG_ESPACE:
+        FATAL("regexec(): out of memory");
+    case REG_NOMATCH:
+        /* fall through */
+    default:
+        return false;
     }
 }
 
-static int
+static bool
 is_msb_set(unsigned char byte)
 {
     if (byte & 0x80) {
-        return 1;
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
@@ -276,22 +275,21 @@ is_msb_set(unsigned char byte)
  * before calling substitute_token() make sure that you filter values
  * that can lead to unwanted behavior.
  *
- * for example if the substitution value for the token can be chosen
- * by an attacker and the function is used for replacing tokens in a
- * path.
+ * for example if the substitution value for the token can be chosen by
+ * an attacker and the function is used for replacing tokens in a path.
  *
  * consider the following example:
  * path: /etc/ssh/keystore/%u/authorized_keys
  *
- * an attacker could change the path easily if he provides the following:
+ * an attacker can change the path easily if he provides the following:
  * substitution value: ../../../root/.ssh 
  *
  * that would lead to the following path:
  * /etc/ssh/keystore/../../../root/.ssh/authorized_keys
- *
  */
 void
-substitute_token(char token, char *subst, char *src, char *dst, size_t dst_length)
+substitute_token(char token, char *subst, char *src, char *dst,
+                 size_t dst_length)
 {
     if (subst == NULL || src == NULL || dst == NULL) {
         FATAL("substitute_token(): subst, src or dst == NULL");
@@ -345,7 +343,8 @@ create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length)
 }
 
 void
-check_access_permission(char *group_dn, char *identifier, struct pam_openssh_x509_info *x509_info)
+check_access_permission(char *group_dn, char *identifier,
+                        struct pox509_info *x509_info)
 {
     if (group_dn == NULL || identifier == NULL || x509_info == NULL) {
         FATAL("check_access_permission(): group_dn, identifier or x509_info == NULL");
@@ -379,7 +378,7 @@ no_access:
 }
 
 void
-validate_x509(X509 *x509, char *cacerts_dir, struct pam_openssh_x509_info *x509_info)
+validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 {
     if (x509 == NULL || cacerts_dir == NULL || x509_info == NULL) {
         FATAL("validate_x509(): x509, cacerts_dir or x509_info == NULL");
@@ -414,9 +413,9 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pam_openssh_x509_info *x509_
     rc = X509_verify_cert(ctx);
     if (rc != 1) {
         x509_info->has_valid_cert = 0;
-        int cert_error = X509_STORE_CTX_get_error(ctx);
-        const char *cert_error_string = X509_verify_cert_error_string(cert_error);
-        LOG_FAIL("X509_verify_cert(): %d (%s)", cert_error, cert_error_string);
+        int cert_err = X509_STORE_CTX_get_error(ctx);
+        const char *cert_err_string = X509_verify_cert_error_string(cert_err);
+        LOG_FAIL("X509_verify_cert(): %d (%s)", cert_err, cert_err_string);
     } else {
         x509_info->has_valid_cert = 1;
     }
@@ -428,7 +427,7 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pam_openssh_x509_info *x509_
 }
 
 void
-pkey_to_authorized_keys(EVP_PKEY *pkey, struct pam_openssh_x509_info *x509_info)
+pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
 {
     if (pkey == NULL || x509_info == NULL) {
         FATAL("pkey_to_authorized_keys(): pkey or x509_info == NULL");
@@ -436,126 +435,114 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pam_openssh_x509_info *x509_info)
 
     int pkey_type = EVP_PKEY_type(pkey->type);
     switch (pkey_type) {
+    case EVP_PKEY_RSA: {
+        x509_info->ssh_keytype = strdup("ssh-rsa");
+        if (x509_info->ssh_keytype == NULL) {
+            FATAL("strdup()");
+        }
+        RSA *rsa = EVP_PKEY_get1_RSA(pkey);
+        if (rsa == NULL) {
+            FATAL("EVP_PKEY_get1_RSA()");
+        }
 
-        case EVP_PKEY_RSA:
-            {
-                x509_info->ssh_keytype = strdup("ssh-rsa");
-                if (x509_info->ssh_keytype == NULL) {
-                    FATAL("strdup()");
-                }
-                RSA *rsa = EVP_PKEY_get1_RSA(pkey);
-                if (rsa == NULL) {
-                    FATAL("EVP_PKEY_get1_RSA()");
-                }
+        /* create authorized_keys entry */
+        int length_keytype = strlen(x509_info->ssh_keytype);
+        int length_exponent = BN_num_bytes(rsa->e);
+        int length_modulus = BN_num_bytes(rsa->n);
 
-                /* create authorized_keys entry */
-                int length_keytype = strlen(x509_info->ssh_keytype);
-                int length_exponent = BN_num_bytes(rsa->e);
-                int length_modulus = BN_num_bytes(rsa->n);
+        /*
+         * the 4 bytes hold the length of the following value and the 2
+         * extra bytes before the exponent and modulus are possibly
+         * needed to prefix the values with leading zeroes if the most
+         * significant bit of them is set. this is to avoid
+         * misinterpreting the value as a negative number later.
+         */
+        int pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent +
+                              4 + 1 + length_modulus;
 
-                /*
-                 * the 4 bytes hold the length of the following value and the 2 extra bytes before
-                 * the exponent and modulus are possibly needed to prefix the values with leading zeroes if the
-                 * most significant bit of them is set. this is to avoid misinterpreting the value as a
-                 * negative number later.
-                 */
-                int pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent + 4 + 1 + length_modulus;
+        unsigned char blob[pre_length_blob];
+        unsigned char blob_buffer[pre_length_blob];
 
-                unsigned char blob[pre_length_blob];
-                unsigned char blob_buffer[pre_length_blob];
+        unsigned char *blob_p = blob;
+        PUT_32BIT(blob_p, length_keytype);
+        blob_p += 4;
+        memcpy(blob_p, x509_info->ssh_keytype, length_keytype);
+        blob_p += length_keytype;
+        BN_bn2bin(rsa->e, blob_buffer);
 
-                unsigned char *blob_p = blob;
-                PUT_32BIT(blob_p, length_keytype);
-                blob_p += 4;
-                memcpy(blob_p, x509_info->ssh_keytype, length_keytype);
-                blob_p += length_keytype;
-                BN_bn2bin(rsa->e, blob_buffer);
+        /* put length of exponent */
+        if (is_msb_set(blob_buffer[0])) {
+            PUT_32BIT(blob_p, length_exponent + 1);
+            blob_p += 4;
+            *(blob_p++) = 0;
+        } else {
+            PUT_32BIT(blob_p, length_exponent);
+            blob_p += 4;
+        }
+        /* put exponent */
+        memcpy(blob_p, blob_buffer, length_exponent);
+        blob_p += length_exponent;
+        BN_bn2bin(rsa->n, blob_buffer);
 
-                /* put length of exponent */
-                if (is_msb_set(blob_buffer[0])) {
-                    PUT_32BIT(blob_p, length_exponent + 1);
-                    blob_p += 4;
-                    *(blob_p++) = 0;
-                } else {
-                    PUT_32BIT(blob_p, length_exponent);
-                    blob_p += 4;
-                }
-                /* put exponent */
-                memcpy(blob_p, blob_buffer, length_exponent);
-                blob_p += length_exponent;
-                BN_bn2bin(rsa->n, blob_buffer);
+        /* put length of modulus */
+        if (is_msb_set(blob_buffer[0])) {
+            PUT_32BIT(blob_p, length_modulus + 1);
+            blob_p += 4;
+            *(blob_p++) = 0;
+        } else {
+            PUT_32BIT(blob_p, length_modulus);
+            blob_p += 4;
+        }
+        /* put modulus */
+        memcpy(blob_p, blob_buffer, length_modulus);
+        blob_p += length_modulus;
+        int post_length_blob = blob_p - blob;
 
-                /* put length of modulus */
-                if (is_msb_set(blob_buffer[0])) {
-                    PUT_32BIT(blob_p, length_modulus + 1);
-                    blob_p += 4;
-                    *(blob_p++) = 0;
-                } else {
-                    PUT_32BIT(blob_p, length_modulus);
-                    blob_p += 4;
-                }
-                /* put modulus */
-                memcpy(blob_p, blob_buffer, length_modulus);
-                blob_p += length_modulus;
-                int post_length_blob = blob_p - blob;
+        /* encode base64 */
 
-                /* encode base64 */
+        /* create base64 bio */
+        BIO *bio_base64 = BIO_new(BIO_f_base64());
+        if (bio_base64 == NULL) {
+            FATAL("BIO_new()");
+        }
+        BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
 
-                /* create base64 bio */
-                BIO *bio_base64 = BIO_new(BIO_f_base64());
-                if (bio_base64 == NULL) {
-                    FATAL("BIO_new()");
-                }
-                BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
+        /* create memory bio */
+        BIO *bio_mem = BIO_new(BIO_s_mem());
+        if (bio_mem == NULL) {
+            FATAL("BIO_new()");
+        }
+        /* create bio chain base64->mem */
+        bio_base64 = BIO_push(bio_base64, bio_mem);
+        BIO_write(bio_base64, blob, post_length_blob);
+        int rc = BIO_flush(bio_base64);
+        if (rc != 1) {
+            FATAL("BIO_flush()");
+        }
+        char *tmp_result = NULL;
+        long data_out = BIO_get_mem_data(bio_base64, &tmp_result);
 
-                /* create memory bio */
-                BIO *bio_mem = BIO_new(BIO_s_mem());
-                if (bio_mem == NULL) {
-                    FATAL("BIO_new()");
-                }
-                /* create bio chain base64->mem */
-                bio_base64 = BIO_push(bio_base64, bio_mem);
-                BIO_write(bio_base64, blob, post_length_blob);
-                int rc = BIO_flush(bio_base64);
-                if (rc != 1) {
-                    FATAL("BIO_flush()");
-                }
-                char *tmp_result = NULL;
-                long data_out = BIO_get_mem_data(bio_base64, &tmp_result);
+        /* store key */
+        x509_info->ssh_key = malloc(data_out + 1);
+        if (x509_info->ssh_key != NULL) {
+            memcpy(x509_info->ssh_key, tmp_result, data_out);
+            x509_info->ssh_key[data_out] = '\0';
+        }
 
-                /* store key */
-                x509_info->ssh_key = malloc(data_out + 1);
-                if (x509_info->ssh_key != NULL) {
-                    memcpy(x509_info->ssh_key, tmp_result, data_out);
-                    x509_info->ssh_key[data_out] = '\0';
-                }
+        /* cleanup structures */
+        BIO_free_all(bio_base64);
+        RSA_free(rsa);
 
-                /* cleanup structures */
-                BIO_free_all(bio_base64);
-                RSA_free(rsa);
-
-                break;
-            }
-
-        case EVP_PKEY_DSA:
-            {
-                FATAL("DSA is not supported yet");
-            }
-
-        case EVP_PKEY_DH:
-            {
-                FATAL("DH is not supported yet");
-            }
-
-        case EVP_PKEY_EC:
-            {
-                FATAL("EC is not supported yet");
-            }
-
-        default:
-            {
-                FATAL("unsupported public key type (%i)", pkey->type);
-            }
+        break;
+    }
+    case EVP_PKEY_DSA:
+        FATAL("DSA is not supported yet");
+    case EVP_PKEY_DH:
+        FATAL("DH is not supported yet");
+    case EVP_PKEY_EC:
+        FATAL("EC is not supported yet");
+    default:
+        FATAL("unsupported public key type (%i)", pkey->type);
     }
 }
 

@@ -26,6 +26,8 @@
 /* type declarations */
 
 /* function declarations */
-void retrieve_access_permission_and_x509_from_ldap(cfg_t *cfg, struct pam_openssh_x509_info *x509_info, X509 **x509);
+void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
+                                               struct pox509_info *x509_info,
+                                               X509 **x509);
 #endif
 

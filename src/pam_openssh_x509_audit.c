@@ -57,7 +57,7 @@ log_char(char *attr, char value)
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
-    struct pam_openssh_x509_info *x509_info = NULL;
+    struct pox509_info *x509_info = NULL;
     int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
     if (rc != PAM_SUCCESS) {
         FATAL("pam_get_data()");
