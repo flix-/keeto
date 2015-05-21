@@ -49,12 +49,12 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value) )
 
-struct pox509_config_lt_item {
+struct pox509_config_entry {
     char *name;
     int value;
 };
 
-static struct pox509_config_lt_item syslog_facility[] = {
+static struct pox509_config_entry syslog_facility[] = {
     { "LOG_KERN", LOG_KERN },
     { "LOG_USER", LOG_USER },
     { "LOG_MAIL", LOG_MAIL },
@@ -79,7 +79,7 @@ static struct pox509_config_lt_item syslog_facility[] = {
     { NULL, 0 }
 };
 
-static struct pox509_config_lt_item libldap[] = {
+static struct pox509_config_entry libldap[] = {
     { "LDAP_VERSION1", LDAP_VERSION1 },
     { "LDAP_VERSION2", LDAP_VERSION2 },
     { "LDAP_VERSION3", LDAP_VERSION3 },
@@ -95,8 +95,8 @@ static struct pox509_config_lt_item libldap[] = {
     { NULL, 0 }
 };
 
-static struct pox509_config_lt_item *config_lt[] = { syslog_facility, libldap };
-static long int pox509_log_facility = DEFAULT_LOG_FACILITY;
+static struct pox509_config_entry *config_lt[] = { syslog_facility, libldap };
+static int pox509_log_facility = DEFAULT_LOG_FACILITY;
 
 static void
 LOG(char *prefix, const char *fmt, va_list ap)
@@ -107,7 +107,7 @@ LOG(char *prefix, const char *fmt, va_list ap)
 }
 
 void
-LOG_MSG(const char *fmt, ...)
+log_msg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -116,7 +116,7 @@ LOG_MSG(const char *fmt, ...)
 }
 
 void
-LOG_SUCCESS(const char *fmt, ...)
+log_success(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -125,7 +125,7 @@ LOG_SUCCESS(const char *fmt, ...)
 }
 
 void
-LOG_FAIL(const char *fmt, ...)
+log_fail(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -134,7 +134,7 @@ LOG_FAIL(const char *fmt, ...)
 }
 
 void
-FATAL(const char *fmt, ...)
+fatal(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -147,17 +147,16 @@ int
 config_lookup(const enum pox509_sections sec, const char *key)
 {
     if (key == NULL) {
-        FATAL("config_lookup(): key == NULL");
+        fatal("config_lookup(): key == NULL");
     }
 
     if (sec != SYSLOG && sec != LIBLDAP) {
         goto ret_no_value;
     }
 
-    struct pox509_config_lt_item *lookup_ptr = NULL;
+    struct pox509_config_entry *lookup_ptr = NULL;
     for (lookup_ptr = config_lt[sec]; lookup_ptr->name != NULL; lookup_ptr++) {
-        int rc = strcasecmp(lookup_ptr->name, key);
-        if (rc == 0) {
+        if(strcasecmp(lookup_ptr->name, key) == 0) {
             return lookup_ptr->value;
         }
     }
@@ -171,10 +170,10 @@ int
 set_log_facility(const char *log_facility)
 {
     if (log_facility == NULL) {
-        FATAL("set_log_facility(): log_facility == NULL");
+        fatal("set_log_facility(): log_facility == NULL");
     }
 
-    long int value = config_lookup(SYSLOG, log_facility);
+    int value = config_lookup(SYSLOG, log_facility);
     if (value == -EINVAL) {
         return -EINVAL;
     }
@@ -187,7 +186,7 @@ void
 init_data_transfer_object(struct pox509_info *x509_info)
 {
     if (x509_info == NULL) {
-        FATAL("init_data_transfer_object(): x509_info == NULL");
+        fatal("init_data_transfer_object(): x509_info == NULL");
     }
 
     memset(x509_info, 0, sizeof *x509_info);
@@ -209,7 +208,7 @@ bool
 is_readable_file(const char *file)
 {
     if (file == NULL) {
-        FATAL("is_readable_file(): file == NULL");
+        fatal("is_readable_file(): file == NULL");
     }
 
     struct stat stat_buffer;
@@ -236,13 +235,13 @@ bool
 is_valid_uid(const char *uid)
 {
     if (uid == NULL) {
-        FATAL("is_valid_uid(): uid == NULL");
+        fatal("is_valid_uid(): uid == NULL");
     }
 
     regex_t regex_uid;
     int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
     if (rc != 0) {
-        FATAL("could not compile regex");
+        fatal("could not compile regex");
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
@@ -251,7 +250,7 @@ is_valid_uid(const char *uid)
     case 0:
         return true;
     case REG_ESPACE:
-        FATAL("regexec(): out of memory");
+        fatal("regexec(): out of memory");
     case REG_NOMATCH:
         /* fall through */
     default:
@@ -292,7 +291,7 @@ substitute_token(char token, char *subst, char *src, char *dst,
                  size_t dst_length)
 {
     if (subst == NULL || src == NULL || dst == NULL) {
-        FATAL("substitute_token(): subst, src or dst == NULL");
+        fatal("substitute_token(): subst, src or dst == NULL");
     }
 
     if (dst_length == 0) {
@@ -329,7 +328,7 @@ void
 create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length)
 {
     if (rdn == NULL || uid == NULL || dst == NULL) {
-        FATAL("create_ldap_search_filter(): rdn, uid or dst == NULL");
+        fatal("create_ldap_search_filter(): rdn, uid or dst == NULL");
     }
 
     if (dst_length == 0) {
@@ -344,10 +343,11 @@ create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length)
 
 void
 check_access_permission(char *group_dn, char *identifier,
-                        struct pox509_info *x509_info)
+    struct pox509_info *x509_info)
 {
     if (group_dn == NULL || identifier == NULL || x509_info == NULL) {
-        FATAL("check_access_permission(): group_dn, identifier or x509_info == NULL");
+        fatal("check_access_permission(): group_dn, identifier or x509_info == "
+            "NULL");
     }
 
     /*
@@ -381,7 +381,7 @@ void
 validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 {
     if (x509 == NULL || cacerts_dir == NULL || x509_info == NULL) {
-        FATAL("validate_x509(): x509, cacerts_dir or x509_info == NULL");
+        fatal("validate_x509(): x509, cacerts_dir or x509_info == NULL");
     }
 
     /* add algorithms */
@@ -390,32 +390,32 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
     /* create a new x509 store with ca certificates */
     X509_STORE *store = X509_STORE_new();
     if (store == NULL) {
-        FATAL("X509_STORE_new()");
+        fatal("X509_STORE_new()");
     }
     X509_LOOKUP *lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
     if (lookup == NULL) {
-        FATAL("X509_STORE_add_lookup()");
+        fatal("X509_STORE_add_lookup()");
     }
     int rc = X509_LOOKUP_add_dir(lookup, cacerts_dir, X509_FILETYPE_PEM);
     if (rc == 0) {
-        FATAL("X509_LOOKUP_add_dir()");
+        fatal("X509_LOOKUP_add_dir()");
     }
 
     /* validate the user certificate against the x509 store */
     X509_STORE_CTX *ctx = X509_STORE_CTX_new();
     if (ctx == NULL) {
-        FATAL("X509_STORE_CTX_new()");
+        fatal("X509_STORE_CTX_new()");
     }
     rc = X509_STORE_CTX_init(ctx, store, x509, NULL);
     if (rc == 0) {
-        FATAL("X509_STORE_CTX_init()");
+        fatal("X509_STORE_CTX_init()");
     }
     rc = X509_verify_cert(ctx);
     if (rc != 1) {
         x509_info->has_valid_cert = 0;
         int cert_err = X509_STORE_CTX_get_error(ctx);
         const char *cert_err_string = X509_verify_cert_error_string(cert_err);
-        LOG_FAIL("X509_verify_cert(): %d (%s)", cert_err, cert_err_string);
+        log_fail("X509_verify_cert(): %d (%s)", cert_err, cert_err_string);
     } else {
         x509_info->has_valid_cert = 1;
     }
@@ -430,7 +430,7 @@ void
 pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
 {
     if (pkey == NULL || x509_info == NULL) {
-        FATAL("pkey_to_authorized_keys(): pkey or x509_info == NULL");
+        fatal("pkey_to_authorized_keys(): pkey or x509_info == NULL");
     }
 
     int pkey_type = EVP_PKEY_type(pkey->type);
@@ -438,11 +438,11 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
     case EVP_PKEY_RSA: {
         x509_info->ssh_keytype = strdup("ssh-rsa");
         if (x509_info->ssh_keytype == NULL) {
-            FATAL("strdup()");
+            fatal("strdup()");
         }
         RSA *rsa = EVP_PKEY_get1_RSA(pkey);
         if (rsa == NULL) {
-            FATAL("EVP_PKEY_get1_RSA()");
+            fatal("EVP_PKEY_get1_RSA()");
         }
 
         /* create authorized_keys entry */
@@ -457,8 +457,8 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
          * significant bit of them is set. this is to avoid
          * misinterpreting the value as a negative number later.
          */
-        int pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent +
-                              4 + 1 + length_modulus;
+        int pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent + 4 +
+            1 + length_modulus;
 
         unsigned char blob[pre_length_blob];
         unsigned char blob_buffer[pre_length_blob];
@@ -503,21 +503,21 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         /* create base64 bio */
         BIO *bio_base64 = BIO_new(BIO_f_base64());
         if (bio_base64 == NULL) {
-            FATAL("BIO_new()");
+            fatal("BIO_new()");
         }
         BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
 
         /* create memory bio */
         BIO *bio_mem = BIO_new(BIO_s_mem());
         if (bio_mem == NULL) {
-            FATAL("BIO_new()");
+            fatal("BIO_new()");
         }
         /* create bio chain base64->mem */
         bio_base64 = BIO_push(bio_base64, bio_mem);
         BIO_write(bio_base64, blob, post_length_blob);
         int rc = BIO_flush(bio_base64);
         if (rc != 1) {
-            FATAL("BIO_flush()");
+            fatal("BIO_flush()");
         }
         char *tmp_result = NULL;
         long data_out = BIO_get_mem_data(bio_base64, &tmp_result);
@@ -536,13 +536,13 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         break;
     }
     case EVP_PKEY_DSA:
-        FATAL("DSA is not supported yet");
+        fatal("DSA is not supported yet");
     case EVP_PKEY_DH:
-        FATAL("DH is not supported yet");
+        fatal("DH is not supported yet");
     case EVP_PKEY_EC:
-        FATAL("EC is not supported yet");
+        fatal("EC is not supported yet");
     default:
-        FATAL("unsupported public key type (%i)", pkey->type);
+        fatal("unsupported public key type (%i)", pkey->type);
     }
 }
 

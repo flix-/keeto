@@ -23,7 +23,7 @@
 #include <check.h>
 
 /* type declarations */
-struct pox509_test_substitute_token_item {
+struct pox509_substitute_token_entry {
     char token;
     char *subst;
     char *src;
@@ -31,25 +31,25 @@ struct pox509_test_substitute_token_item {
     char *exp_result;
 };
 
-struct pox509_test_create_ldap_search_filter_item {
+struct pox509_create_ldap_search_filter_entry {
     char *rdn;
     char *uid;
     size_t dst_length;
     char *exp_result;
 };
 
-struct pox509_test_check_access_permission_item {
+struct pox509_check_access_permission_entry {
     char *group_dn;
     char *identifier;
     char exp_result;
 };
 
-struct pox509_test_validate_x509_item {
+struct pox509_validate_x509_entry {
     char *file;
     char exp_result;
 };
 
-struct pox509_test_is_valid_uid_item {
+struct pox509_is_valid_uid_entry {
     char *uid;
     bool exp_result;
 };

@@ -27,7 +27,6 @@
 
 /* function declarations */
 void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-                                               struct pox509_info *x509_info,
-                                               X509 **x509);
+    struct pox509_info *x509_info, X509 **x509);
 #endif
 

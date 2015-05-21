@@ -44,26 +44,29 @@ struct pox509_info {
     char *log_facility;
 };
 
-enum pox509_sections { SYSLOG, LIBLDAP };
+enum pox509_sections {
+    SYSLOG,
+    LIBLDAP
+};
 
 /* function declarations */
-void LOG_MSG(const char *fmt, ...);
-void LOG_SUCCESS(const char *fmt, ...);
-void LOG_FAIL(const char *fmt, ...);
-void FATAL(const char *fmt, ...);
+void log_msg(const char *fmt, ...);
+void log_success(const char *fmt, ...);
+void log_fail(const char *fmt, ...);
+void fatal(const char *fmt, ...);
 int config_lookup(const enum pox509_sections sec, const char *key);
 int set_log_facility(const char *log_facility);
 void init_data_transfer_object(struct pox509_info *x509_info);
 bool is_readable_file(const char *file);
 bool is_valid_uid(const char *uid);
 void substitute_token(char token, char *subst, char *src, char *dst,
-                      size_t dst_length);
+    size_t dst_length);
 void create_ldap_search_filter(char *rdn, char *uid, char *dst,
-                               size_t dst_length);
+    size_t dst_length);
 void check_access_permission(char *group_dn, char *identifier,
-                             struct pox509_info *x509_info);
+    struct pox509_info *x509_info);
 void validate_x509(X509 *x509, char *cacerts_dir,
-                   struct pox509_info *x509_info);
+    struct pox509_info *x509_info);
 void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info);
 #endif
 

@@ -26,7 +26,7 @@
 
 #include "../src/pam_openssh_x509_config.c"
 
-static char *test_init_and_parse_config_exit_lt[] = {
+static char *init_and_parse_config_exit_lt[] = {
     CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_0.conf",
     CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_1.conf",
     CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_2.conf",
@@ -41,45 +41,47 @@ static char *test_init_and_parse_config_exit_lt[] = {
     CONFIGSDIR "/cfg_validate_cacerts_dir_negative_2.conf",
 };
 
-static char *test_init_and_parse_config_lt[] = {
+static char *init_and_parse_config_lt[] = {
     CONFIGSDIR "/valid.conf",
 };
 
 START_TEST
-(test_init_and_parse_config_exit)
+(t_init_and_parse_config_exit)
 {
-    char *config_file = test_init_and_parse_config_exit_lt[_i];
+    char *config_file = init_and_parse_config_exit_lt[_i];
 
     if(!is_readable_file(config_file)) {
-        ck_abort_msg("is_readable_file() returned false (%s)", config_file);
+        ck_abort_msg("config (%s) not readable", config_file);
     }
+
     cfg_t *cfg = NULL;
     init_and_parse_config(&cfg, config_file);
 }
 END_TEST
 
 START_TEST
-(test_init_and_parse_config)
+(t_init_and_parse_config)
 {
-    char *config_file = test_init_and_parse_config_lt[_i];
+    char *config_file = init_and_parse_config_lt[_i];
 
     if(!is_readable_file(config_file)) {
-        ck_abort_msg("is_readable_file() returned false (%s)", config_file);
+        ck_abort_msg("config (%s) not readable", config_file);
     }
+
     cfg_t *cfg = NULL;
     init_and_parse_config(&cfg, config_file);
 }
 END_TEST
 
 START_TEST
-(release_config_exit_cfg_NULL)
+(t_release_config_exit_cfg_null)
 {
     release_config(NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_error_handler_exit_cfg_NULL)
+(t_cfg_error_handler_exit_cfg_null)
 {
     va_list ap;
     cfg_error_handler(NULL, "foo", ap);
@@ -87,195 +89,179 @@ START_TEST
 END_TEST
 
 START_TEST
-(cfg_error_handler_exit_fmt_NULL)
+(t_cfg_error_handler_exit_fmt_null)
 {
     va_list ap;
     cfg_t cfg;
-
     cfg_error_handler(&cfg, NULL, ap);
 }
 END_TEST
 
 START_TEST
-(cfg_error_handler_exit_cfg_fmt_NULL)
+(t_cfg_error_handler_exit_cfg_fmt_null)
 {
     va_list ap;
-
     cfg_error_handler(NULL, NULL, ap);
 }
 END_TEST
 
 START_TEST
-(cfg_str_to_int_parser_libldap_exit_cfg_NULL)
+(t_cfg_str_to_int_parser_libldap_exit_cfg_null)
 {
     cfg_opt_t opt;
     const char *value = "LDAP_VERSION3";
     long int result;
-
     cfg_str_to_int_parser_libldap(NULL, &opt, value, &result);
 }
 END_TEST
 
 START_TEST
-(cfg_str_to_int_parser_libldap_exit_opt_NULL)
+(t_cfg_str_to_int_parser_libldap_exit_opt_null)
 {
     cfg_t cfg;
     const char *value = "LDAP_VERSION3";
     long int result;
-
     cfg_str_to_int_parser_libldap(&cfg, NULL, value, &result);
 }
 END_TEST
 
 START_TEST
-(cfg_str_to_int_parser_libldap_exit_value_NULL)
+(t_cfg_str_to_int_parser_libldap_exit_value_null)
 {
     cfg_t cfg;
     cfg_opt_t opt;
     long int result;
-
     cfg_str_to_int_parser_libldap(&cfg, &opt, NULL, &result);
 }
 END_TEST
 
 START_TEST
-(cfg_str_to_int_parser_libldap_exit_result_NULL)
+(t_cfg_str_to_int_parser_libldap_exit_result_null)
 {
     cfg_t cfg;
     cfg_opt_t opt;
     const char *value = "LDAP_VERSION3";
-
     cfg_str_to_int_parser_libldap(&cfg, &opt, value, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_NULL)
+(t_cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_null)
 {
     cfg_str_to_int_parser_libldap(NULL, NULL, NULL, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_log_facility_exit_cfg_NULL)
+(t_cfg_validate_log_facility_exit_cfg_null)
 {
     cfg_opt_t opt;
-
     cfg_validate_log_facility(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_log_facility_exit_opt_NULL)
+(t_cfg_validate_log_facility_exit_opt_null)
 {
     cfg_t cfg;
-
     cfg_validate_log_facility(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_log_facility_exit_cfg_opt_NULL)
+(t_cfg_validate_log_facility_exit_cfg_opt_null)
 {
     cfg_validate_log_facility(NULL, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_uri_exit_cfg_NULL)
+(t_cfg_validate_ldap_uri_exit_cfg_null)
 {
     cfg_opt_t opt;
-
     cfg_validate_ldap_uri(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_uri_exit_opt_NULL)
+(t_cfg_validate_ldap_uri_exit_opt_null)
 {
     cfg_t cfg;
-
     cfg_validate_ldap_uri(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_uri_exit_cfg_opt_NULL)
+(t_cfg_validate_ldap_uri_exit_cfg_opt_null)
 {
     cfg_validate_ldap_uri(NULL, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_starttls_exit_cfg_NULL)
+(t_cfg_validate_ldap_starttls_exit_cfg_null)
 {
     cfg_opt_t opt;
-
     cfg_validate_ldap_starttls(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_starttls_exit_opt_NULL)
+(t_cfg_validate_ldap_starttls_exit_opt_null)
 {
     cfg_t cfg;
-
     cfg_validate_ldap_starttls(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_starttls_exit_cfg_opt_NULL)
+(t_cfg_validate_ldap_starttls_exit_cfg_opt_null)
 {
     cfg_validate_ldap_starttls(NULL, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_search_timeout_exit_cfg_NULL)
+(t_cfg_validate_ldap_search_timeout_exit_cfg_null)
 {
     cfg_opt_t opt;
-
     cfg_validate_ldap_search_timeout(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_search_timeout_exit_opt_NULL)
+(t_cfg_validate_ldap_search_timeout_exit_opt_null)
 {
     cfg_t cfg;
-
     cfg_validate_ldap_search_timeout(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_ldap_search_timeout_exit_cfg_opt_NULL)
+(t_cfg_validate_ldap_search_timeout_exit_cfg_opt_null)
 {
     cfg_validate_ldap_search_timeout(NULL, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_cacerts_dir_exit_cfg_NULL)
+(t_cfg_validate_cacerts_dir_exit_cfg_null)
 {
     cfg_opt_t opt;
-
     cfg_validate_cacerts_dir(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_cacerts_dir_exit_opt_NULL)
+(t_cfg_validate_cacerts_dir_exit_opt_null)
 {
     cfg_t cfg;
-
     cfg_validate_cacerts_dir(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(cfg_validate_cacerts_dir_exit_cfg_opt_NULL)
+(t_cfg_validate_cacerts_dir_exit_cfg_opt_null)
 {
     cfg_validate_cacerts_dir(NULL, NULL);
 }
@@ -293,82 +279,70 @@ make_config_suite(void)
     suite_add_tcase(s, tc_callbacks);
 
     /* main test cases */
-    int length_iapce_lt = sizeof test_init_and_parse_config_exit_lt /
-                          sizeof test_init_and_parse_config_exit_lt[0];
-    tcase_add_loop_exit_test(tc_main, test_init_and_parse_config_exit,
-                             EXIT_FAILURE, 0, length_iapce_lt);
-    int length_iapc_lt = sizeof test_init_and_parse_config_lt /
-                         sizeof test_init_and_parse_config_lt[0];
-    tcase_add_loop_test(tc_main, test_init_and_parse_config, 0, length_iapc_lt);
+    int length_iapce_lt = sizeof init_and_parse_config_exit_lt /
+        sizeof init_and_parse_config_exit_lt[0];
+    tcase_add_loop_exit_test(tc_main, t_init_and_parse_config_exit, EXIT_FAILURE,
+        0, length_iapce_lt);
+    int length_iapc_lt = sizeof init_and_parse_config_lt /
+        sizeof init_and_parse_config_lt[0];
+    tcase_add_loop_test(tc_main, t_init_and_parse_config, 0, length_iapc_lt);
 
-    tcase_add_exit_test(tc_main, release_config_exit_cfg_NULL, EXIT_FAILURE);
+    tcase_add_exit_test(tc_main, t_release_config_exit_cfg_null, EXIT_FAILURE);
 
     /* callbacks test cases */
-    tcase_add_exit_test(tc_callbacks, cfg_error_handler_exit_cfg_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_error_handler_exit_fmt_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_error_handler_exit_cfg_fmt_NULL,
-                        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_cfg_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_fmt_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_cfg_fmt_null,
+        EXIT_FAILURE);
 
     tcase_add_exit_test(tc_callbacks,
-                        cfg_str_to_int_parser_libldap_exit_cfg_NULL,
-                        EXIT_FAILURE);
+        t_cfg_str_to_int_parser_libldap_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_str_to_int_parser_libldap_exit_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_str_to_int_parser_libldap_exit_opt_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_str_to_int_parser_libldap_exit_value_NULL,
-                        EXIT_FAILURE);
+        t_cfg_str_to_int_parser_libldap_exit_value_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_str_to_int_parser_libldap_exit_result_NULL,
-                        EXIT_FAILURE);
+        t_cfg_str_to_int_parser_libldap_exit_result_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_NULL,
-                        EXIT_FAILURE);
-
-    tcase_add_exit_test(tc_callbacks, cfg_validate_log_facility_exit_cfg_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_validate_log_facility_exit_opt_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_log_facility_exit_cfg_opt_NULL,
-                        EXIT_FAILURE);
-
-    tcase_add_exit_test(tc_callbacks, cfg_validate_ldap_uri_exit_cfg_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_validate_ldap_uri_exit_opt_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_validate_ldap_uri_exit_cfg_opt_NULL,
-                        EXIT_FAILURE);
-
-    tcase_add_exit_test(tc_callbacks, cfg_validate_ldap_starttls_exit_cfg_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks, cfg_validate_ldap_starttls_exit_opt_NULL,
-                        EXIT_FAILURE);
-    tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_ldap_starttls_exit_cfg_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_null,
+        EXIT_FAILURE);
 
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_ldap_search_timeout_exit_cfg_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_log_facility_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_ldap_search_timeout_exit_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_log_facility_exit_opt_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_ldap_search_timeout_exit_cfg_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_log_facility_exit_cfg_opt_null, EXIT_FAILURE);
+
+    tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_cfg_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_opt_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_cfg_opt_null,
+        EXIT_FAILURE);
 
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_cacerts_dir_exit_cfg_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_ldap_starttls_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_cacerts_dir_exit_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_ldap_starttls_exit_opt_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-                        cfg_validate_cacerts_dir_exit_cfg_opt_NULL,
-                        EXIT_FAILURE);
+        t_cfg_validate_ldap_starttls_exit_cfg_opt_null, EXIT_FAILURE);
+
+    tcase_add_exit_test(tc_callbacks,
+        t_cfg_validate_ldap_search_timeout_exit_cfg_null, EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks,
+        t_cfg_validate_ldap_search_timeout_exit_opt_null, EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks,
+        t_cfg_validate_ldap_search_timeout_exit_cfg_opt_null, EXIT_FAILURE);
+
+    tcase_add_exit_test(tc_callbacks, t_cfg_validate_cacerts_dir_exit_cfg_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks, t_cfg_validate_cacerts_dir_exit_opt_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_callbacks,
+        t_cfg_validate_cacerts_dir_exit_cfg_opt_null, EXIT_FAILURE);
 
     return s;
 }

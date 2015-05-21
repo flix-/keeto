@@ -35,32 +35,32 @@ static void
 set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
-        FATAL("set_ldap_options(): ldap_handle or cfg == NULL");
+        fatal("set_ldap_options(): ldap_handle or cfg == NULL");
     }
 
     /* set protocol version */
     int ldap_version = cfg_getint(cfg, "ldap_version");
     int rc = ldap_set_option(ldap_handle, LDAP_OPT_PROTOCOL_VERSION,
-                             &ldap_version);
+        &ldap_version);
     if (rc != LDAP_OPT_SUCCESS) {
-        FATAL("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: %i",
-              ldap_version);
+        fatal("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: %i",
+            ldap_version);
     }
 
     /* force validation of certificates when using ldaps */
     int req_cert = LDAP_OPT_X_TLS_HARD;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {
-        FATAL("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: %i",
-              req_cert);
+        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: %i",
+            req_cert);
     }
 
     /* set trusted ca path */
     char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cacerts_dir);
     if (rc != LDAP_OPT_SUCCESS) {
-        FATAL("ldap_set_option(): key: LDAP_OPT_X_TLS_CACERTDIR, value: %s",
-              cacerts_dir);
+        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_CACERTDIR, value: %s",
+            cacerts_dir);
     }
 
     /*
@@ -70,8 +70,8 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int new_ctx = 0x56;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);
     if (rc != LDAP_OPT_SUCCESS) {
-        FATAL("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %i",
-              new_ctx);
+        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %i",
+            new_ctx);
     }
 }
 
@@ -79,7 +79,7 @@ static void
 init_starttls(LDAP *ldap_handle)
 {
     if (ldap_handle == NULL) {
-        FATAL("init_starttls(): ldap_handle == NULL");
+        fatal("init_starttls(): ldap_handle == NULL");
     }
 
     int rc = ldap_start_tls_s(ldap_handle, NULL, NULL);
@@ -87,10 +87,10 @@ init_starttls(LDAP *ldap_handle)
         char *msg = NULL;
         rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
         if (rc == LDAP_OPT_SUCCESS) {
-            FATAL("ldap_start_tls_s(): '%s - %s' (%d)", ldap_err2string(rc),
-                  msg, rc);
+            fatal("ldap_start_tls_s(): '%s - %s' (%d)", ldap_err2string(rc),
+                msg, rc);
         } else {
-            FATAL("ldap_start_tls_s(): '%s (%d)", ldap_err2string(rc), rc);
+            fatal("ldap_start_tls_s(): '%s (%d)", ldap_err2string(rc), rc);
         }
     }
 }
@@ -99,7 +99,7 @@ static int
 bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
-        FATAL("bind_to_ldap(): ldap_handle or cfg == NULL");
+        fatal("bind_to_ldap(): ldap_handle or cfg == NULL");
     }
 
     char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
@@ -107,18 +107,19 @@ bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
     size_t ldap_pwd_length = strlen(ldap_pwd);
     struct berval cred = { ldap_pwd_length, ldap_pwd };
     int rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE,
-                              &cred, NULL, NULL, NULL);
+        &cred, NULL, NULL, NULL);
     memset(ldap_pwd, 0, ldap_pwd_length);
     return rc;
 }
 
 static int
 search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
-            struct pox509_info *x509_info)
+    struct pox509_info *x509_info)
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
         x509_info == NULL) {
-        FATAL("search_ldap(): ldap_handle, ldap_result, cfg or x509_info == NULL");
+        fatal("search_ldap(): ldap_handle, ldap_result, cfg or x509_info == "
+            "NULL");
     }
 
     /* collect arguments for ldap search */
@@ -128,7 +129,7 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     char *ldap_attr_rdn_person = cfg_getstr(cfg, "ldap_attr_rdn_person");
     create_ldap_search_filter(ldap_attr_rdn_person, x509_info->uid, filter,
-                              sizeof filter);
+        sizeof filter);
     char *ldap_attr_access = cfg_getstr(cfg, "ldap_attr_access");
     char *ldap_attr_cert = cfg_getstr(cfg, "ldap_attr_cert");
     char *attrs[] = { ldap_attr_access, ldap_attr_cert, NULL };
@@ -141,35 +142,34 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
      * and x509 certificates.
      */
     int rc = ldap_search_ext_s(ldap_handle, ldap_base, ldap_scope, filter,
-                               attrs, 0, NULL, NULL, &search_timeout, sizelimit,
-                               ldap_result);
+        attrs, 0, NULL, NULL, &search_timeout, sizelimit, ldap_result);
     return rc;
 }
 
 static void
 handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
-                             cfg_t *cfg, struct pox509_info *x509_info,
-                             X509 **x509)
+    cfg_t *cfg, struct pox509_info *x509_info, X509 **x509)
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
         x509_info == NULL || x509 == NULL) {
-        FATAL("handle_ldap_res_search_entry(): ldap_handle, ldap_result, cfg, x509_info or x509 == NULL");
+        fatal("handle_ldap_res_search_entry(): ldap_handle, ldap_result, cfg, "
+            "x509_info or x509 == NULL");
     }
 
     char *user_dn = ldap_get_dn(ldap_handle, ldap_result);
     if (user_dn == NULL) {
         /* cannot access ldap_handle->ld_errno as structure is opaque */
-        LOG_FAIL("ldap_get_dn(): '%s'", "user_dn == NULL");
+        log_fail("ldap_get_dn(): '%s'", "user_dn == NULL");
     } else {
-        LOG_MSG("user_dn: %s", user_dn);
+        log_msg("user_dn: %s", user_dn);
     }
 
     /* iterate over all requested attributes */
     char *attr = NULL;
     struct berelement *attributes = NULL;
     for (attr = ldap_first_attribute(ldap_handle, ldap_result, &attributes);
-         attr != NULL;
-         attr = ldap_next_attribute(ldap_handle, ldap_result, attributes)) {
+        attr != NULL;
+        attr = ldap_next_attribute(ldap_handle, ldap_result, attributes)) {
 
         char *ldap_attr_access = cfg_getstr(cfg, "ldap_attr_access");
         char *ldap_attr_cert = cfg_getstr(cfg, "ldap_attr_cert");
@@ -177,9 +177,9 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
         bool is_attr_cert = strcmp(attr, ldap_attr_cert) == 0 ? 1 : 0;
 
         struct berval **attr_values = ldap_get_values_len(ldap_handle,
-                                                          ldap_result, attr);
+            ldap_result, attr);
         if (attr_values == NULL) {
-            FATAL("ldap_get_values_len()");
+            fatal("ldap_get_values_len()");
         }
 
         /*
@@ -199,10 +199,11 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                  * check access permission based on group membership
                  * and store result.
                  */
-                LOG_MSG("group_dn: %s", value);
-                char *ldap_group_identifier = cfg_getstr(cfg, "ldap_group_identifier");
+                log_msg("group_dn: %s", value);
+                char *ldap_group_identifier =
+                    cfg_getstr(cfg, "ldap_group_identifier");
                 check_access_permission(value, ldap_group_identifier,
-                                        x509_info);
+                    x509_info);
                 /*
                  * stop looping over group memberships when access has
                  * been granted.
@@ -216,7 +217,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                 /* decode certificate */
                 *x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
                 if (*x509 == NULL) {
-                    LOG_FAIL("d2i_X509(): cannot decode certificate");
+                    log_fail("d2i_X509(): cannot decode certificate");
                     /* try next certificate if existing */
                     continue;
                 }
@@ -240,46 +241,48 @@ static void
 handle_ldap_res_search_reference(LDAP *ldap_handle, LDAPMessage *ldap_result)
 {
     if (ldap_handle == NULL || ldap_result == NULL) {
-        FATAL("handle_ldap_res_search_reference(): ldap_handle or ldap_result == NULL");
+        fatal("handle_ldap_res_search_reference(): ldap_handle or ldap_result "
+            "== NULL");
     }
 
-    LOG_FAIL("LDAP_RES_SEARCH_REFERENCE handling is not yet supported");
+    log_fail("LDAP_RES_SEARCH_REFERENCE handling is not yet implemented");
 }
 
 static void
 handle_ldap_res_search_result(LDAP *ldap_handle, LDAPMessage *ldap_result)
 {
     if (ldap_handle == NULL || ldap_result == NULL) {
-        FATAL("handle_ldap_res_search_result(): ldap_handle or ldap_result == NULL");
+        fatal("handle_ldap_res_search_result(): ldap_handle or ldap_result == "
+            "NULL");
     }
 
     int error_code;
     char *error_msg = NULL;
     int rc = ldap_parse_result(ldap_handle, ldap_result, &error_code, NULL,
-                               &error_msg, NULL, NULL, 0);
+        &error_msg, NULL, NULL, 0);
     if (rc != LDAP_SUCCESS) {
-        LOG_FAIL("ldap_parse_result()");
+        log_fail("ldap_parse_result()");
         return;
     }
 
     /* only log errors */
     if (error_code != LDAP_SUCCESS) {
-        LOG_FAIL("ldap_parse_result(): '%s' (%i)", ldap_err2string(error_code),
-                 error_code);
+        log_fail("ldap_parse_result(): '%s' (%i)", ldap_err2string(error_code),
+            error_code);
     }
     if (error_msg != NULL) {
-        LOG_FAIL("ldap_parse_result(): '%s'", error_msg);
+        log_fail("ldap_parse_result(): '%s'", error_msg);
         ldap_memfree(error_msg);
     }
 }
 
 void
 retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-                                          struct pox509_info *x509_info,
-                                          X509 **x509)
+    struct pox509_info *x509_info, X509 **x509)
 {
     if (cfg == NULL || x509_info == NULL || x509 == NULL) {
-        FATAL("retrieve_authorization_and_x509_from_ldap(): cfg, x509_info or x509 == NULL");
+        fatal("retrieve_authorization_and_x509_from_ldap(): cfg, x509_info or "
+            "x509 == NULL");
     }
 
     /* init handle */
@@ -287,10 +290,10 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
     char *ldap_uri = cfg_getstr(cfg, "ldap_uri");
     int rc = ldap_initialize(&ldap_handle, ldap_uri);
     if (rc != LDAP_SUCCESS) {
-        FATAL("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
+        fatal("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
     }
 
-    LOG_SUCCESS("ldap_initialize()");
+    log_success("ldap_initialize()");
     set_ldap_options(ldap_handle, cfg);
 
     /* init STARTTLS if set */
@@ -302,23 +305,23 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
     rc = bind_to_ldap(ldap_handle, cfg);
     if (rc != LDAP_SUCCESS) {
         x509_info->directory_online = 0;
-        LOG_FAIL("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_fail("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
     }
 
     /* connection established */
-    LOG_SUCCESS("bind_to_ldap()");
+    log_success("bind_to_ldap()");
     x509_info->directory_online = 1;
 
     /* query ldap */
     LDAPMessage *ldap_result = NULL;
     rc = search_ldap(ldap_handle, &ldap_result, cfg, x509_info);
     if (rc != LDAP_SUCCESS) {
-        LOG_FAIL("search_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_fail("search_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
     }
 
-    LOG_SUCCESS("search_ldap()");
+    log_success("search_ldap()");
     /*
      * iterate over matching entries
      *
@@ -328,16 +331,16 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
      * and process the first message.
      */
     for (ldap_result = ldap_first_message(ldap_handle, ldap_result);
-         ldap_result != NULL;
-         ldap_result = ldap_next_message(ldap_handle, ldap_result)) {
+        ldap_result != NULL;
+        ldap_result = ldap_next_message(ldap_handle, ldap_result)) {
 
         int msgtype = ldap_msgtype(ldap_result);
         switch (msgtype) {
         case -1:
-            FATAL("ldap_msgtype()");
+            fatal("ldap_msgtype()");
         case LDAP_RES_SEARCH_ENTRY:
             handle_ldap_res_search_entry(ldap_handle, ldap_result, cfg,
-                                         x509_info, x509);
+                x509_info, x509);
             break;
         case LDAP_RES_SEARCH_REFERENCE:
             handle_ldap_res_search_reference(ldap_handle, ldap_result);
@@ -347,7 +350,7 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
             break;
         default:
             /* unlikely */
-            LOG_FAIL("undefined msgtype '(0x%x)'", msgtype);
+            log_fail("undefined msgtype '(0x%x)'", msgtype);
         }
     }
     /*
@@ -364,9 +367,9 @@ unbind_and_free_handle:
      */
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);
     if (rc == LDAP_SUCCESS) {
-        LOG_SUCCESS("ldap_unbind_ext_s()");
+        log_success("ldap_unbind_ext_s()");
     } else {
-        LOG_FAIL("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_fail("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
 }
 

@@ -61,7 +61,7 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
      * in OpenSSH.
      */
     struct pox509_info *x509_info = data;
-    LOG_MSG("freeing x509_info");
+    log_msg("freeing x509_info");
     free(x509_info->log_facility);
     free(x509_info->subject);
     free(x509_info->issuer);
@@ -71,7 +71,7 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
     free(x509_info->authorized_keys_file);
     free(x509_info->uid);
     free(x509_info);
-    LOG_MSG("x509_info freed");
+    log_msg("x509_info freed");
 }
 
 PAM_EXTERN int
@@ -79,11 +79,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
     /* check if argument is path to config file */
     if (argc != 1) {
-        FATAL("arg count != 1");
+        fatal("arg count != 1");
     }
     const char *cfg_file = argv[0];
     if(!is_readable_file(cfg_file)) {
-        FATAL("cannot open config file (%s) for reading", cfg_file);
+        fatal("cannot open config file (%s) for reading", cfg_file);
     }
 
     /* initialize and parse config */
@@ -93,27 +93,28 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* initialize data transfer object */
     struct pox509_info *x509_info = malloc(sizeof *x509_info);
     if (x509_info == NULL) {
-        FATAL("malloc()");
+        fatal("malloc()");
     }
     init_data_transfer_object(x509_info);
 
     /* make data transfer object available to module stack */
     int rc = pam_set_data(pamh, "x509_info", x509_info, &cleanup_x509_info);
     if (rc != PAM_SUCCESS) {
-        FATAL("pam_set_data()");
+        fatal("pam_set_data()");
     }
 
     /* make log facility available in data transfer object */
-    x509_info->log_facility = strdup(cfg_getstr(cfg, "log_facility"));
+    char *log_facility = cfg_getstr(cfg, "log_facility");
+    x509_info->log_facility = strdup(log_facility);
     if (x509_info->log_facility == NULL) {
-        FATAL("strdup()");
+        fatal("strdup()");
     }
 
     /* retrieve uid */
     const char *uid = NULL;
     rc = pam_get_user(pamh, &uid, NULL);
     if (rc != PAM_SUCCESS) {
-        FATAL("pam_get_user(): (%i)", rc);
+        fatal("pam_get_user(): (%i)", rc);
     }
     /*
      * an attacker could provide a malicious uid
@@ -123,7 +124,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * against a restrictive regular expression.
      */
     if (!is_valid_uid(uid)) {
-        FATAL("is_valid_uid(): uid: '%s'", uid);
+        fatal("is_valid_uid(): uid: '%s'", uid);
     }
 
     /*
@@ -133,17 +134,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      */
     x509_info->uid = strndup(uid, MAX_UID_LENGTH);
     if (x509_info->uid == NULL) {
-        FATAL("strndup()");
+        fatal("strndup()");
     }
 
     /* expand authorized_keys_file option and add to dto */
     char *expanded_path = malloc(AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
     if (expanded_path == NULL) {
-        FATAL("malloc()");
+        fatal("malloc()");
     }
-    substitute_token('u', x509_info->uid,
-                     cfg_getstr(cfg, "authorized_keys_file"), expanded_path,
-                     AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
+    char *authorized_keys_file = cfg_getstr(cfg, "authorized_keys_file");
+    substitute_token('u', x509_info->uid, authorized_keys_file, expanded_path,
+        AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
     x509_info->authorized_keys_file = expanded_path;
 
     /* query ldap server */
@@ -153,7 +154,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* process certificate if one has been found */
     if (x509 != NULL) {
         /* validate certificate */
-        validate_x509(x509, cfg_getstr(cfg, "cacerts_dir"), x509_info);
+        char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
+        validate_x509(x509, cacerts_dir, x509_info);
 
         /* TODO: own function */
         x509_info->subject = X509_NAME_oneline(X509_get_subject_name(x509), NULL, 0);
@@ -163,7 +165,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         /* extract public key and convert into OpenSSH format */
         EVP_PKEY *pkey = X509_get_pubkey(x509);
         if (pkey == NULL) {
-            FATAL("X509_get_pubkey(): unable to load public key");
+            fatal("X509_get_pubkey(): unable to load public key");
         }
         pkey_to_authorized_keys(pkey, x509_info);
         EVP_PKEY_free(pkey);
