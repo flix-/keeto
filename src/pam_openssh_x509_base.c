@@ -60,6 +60,10 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
      * posix threads in OpenSSH and to be prepared for possible changes
      * in OpenSSH.
      */
+    if (pamh == NULL || data == NULL) {
+        fatal("cleanup_x509_info(): pamh or data == NULL");
+    }
+
     struct pox509_info *x509_info = data;
     log_msg("freeing x509_info");
     free(x509_info->log_facility);
@@ -77,6 +81,10 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+    if (pamh == NULL || argv == NULL) {
+        fatal("pam_sm_authenticate(): pamh or argv == NULL",);
+    }
+
     /* check if argument is path to config file */
     if (argc != 1) {
         fatal("arg count != 1");

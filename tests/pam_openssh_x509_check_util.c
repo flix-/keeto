@@ -265,7 +265,7 @@ START_TEST
 END_TEST
 
 START_TEST
-(t_set_log_facility_exit_log_facility_NULL)
+(t_set_log_facility_exit_log_facility_null)
 {
     set_log_facility(NULL);
 }
@@ -443,7 +443,7 @@ make_util_suite(void)
     tcase_add_exit_test(tc_helper, t_config_lookup_exit_key_null, EXIT_FAILURE);
     tcase_add_test(tc_helper, t_config_lookup);
 
-    tcase_add_exit_test(tc_helper, t_set_log_facility_exit_log_facility_NULL,
+    tcase_add_exit_test(tc_helper, t_set_log_facility_exit_log_facility_null,
         EXIT_FAILURE);
     tcase_add_test(tc_helper, t_set_log_facility);
 

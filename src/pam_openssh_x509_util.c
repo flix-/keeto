@@ -99,7 +99,7 @@ static struct pox509_config_entry *config_lt[] = { syslog_facility, libldap };
 static int pox509_log_facility = DEFAULT_LOG_FACILITY;
 
 static void
-LOG(char *prefix, const char *fmt, va_list ap)
+pox509_log(char *prefix, const char *fmt, va_list ap)
 {
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
@@ -111,7 +111,7 @@ log_msg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    LOG("[#]", fmt, ap);
+    pox509_log("[#]", fmt, ap);
     va_end(ap);
 }
 
@@ -120,7 +120,7 @@ log_success(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    LOG("[+]", fmt, ap);
+    pox509_log("[+]", fmt, ap);
     va_end(ap);
 }
 
@@ -129,7 +129,7 @@ log_fail(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    LOG("[-]", fmt, ap);
+    pox509_log("[-]", fmt, ap);
     va_end(ap);
 }
 
@@ -138,7 +138,7 @@ fatal(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    LOG("[!]", fmt, ap);
+    pox509_log("[!]", fmt, ap);
     va_end(ap);
     exit(EXIT_FAILURE);
 }
