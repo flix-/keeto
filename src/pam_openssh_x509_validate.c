@@ -35,6 +35,10 @@ is_authorized(struct pox509_info *x509_info)
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+    if (pamh == NULL) {
+        fatal("pamh == NULL");
+    }
+
     struct pox509_info *x509_info = NULL;
     int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
     if (rc != PAM_SUCCESS) {

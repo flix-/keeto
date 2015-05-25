@@ -39,7 +39,8 @@
 #include <openssl/x509_vfy.h>
 
 #define DEFAULT_LOG_FACILITY LOG_LOCAL1
-#define LOG_BUFFER_SIZE 2048
+#define LOG_BUFFER_SIZE 4096
+#define LOG_PREFIX_BUFFER_SIZE 1024
 #define GROUP_DN_BUFFER_SIZE 1024
 #define REGEX_PATTERN_UID "^[a-z][-a-z0-9]\\{0,31\\}$"
 
@@ -101,6 +102,10 @@ static int pox509_log_facility = DEFAULT_LOG_FACILITY;
 static void
 pox509_log(char *prefix, const char *fmt, va_list ap)
 {
+    if (prefix == NULL || fmt == NULL) {
+        fatal("prefix or fmt == NULL");
+    }
+
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
     syslog(pox509_log_facility, "%s %s\n", prefix, buffer);
@@ -109,6 +114,10 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
 void
 log_msg(const char *fmt, ...)
 {
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
     va_list ap;
     va_start(ap, fmt);
     pox509_log("[#]", fmt, ap);
@@ -118,6 +127,10 @@ log_msg(const char *fmt, ...)
 void
 log_success(const char *fmt, ...)
 {
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
     va_list ap;
     va_start(ap, fmt);
     pox509_log("[+]", fmt, ap);
@@ -125,20 +138,36 @@ log_success(const char *fmt, ...)
 }
 
 void
-log_fail(const char *fmt, ...)
+pox509_log_fail(const char *filename, const char *function, const int line,
+    const char *fmt, ...)
 {
+    if (filename == NULL || function == NULL || fmt == NULL) {
+        fatal("filename, function or fmt == NULL");
+    }
+
+    char prefix[LOG_PREFIX_BUFFER_SIZE];
+    snprintf(prefix, sizeof prefix, "[-] [%s, %s(), %d]", filename, function,
+        line);
     va_list ap;
     va_start(ap, fmt);
-    pox509_log("[-]", fmt, ap);
+    pox509_log(prefix, fmt, ap);
     va_end(ap);
 }
 
 void
-fatal(const char *fmt, ...)
+pox509_fatal(const char *filename, const char *function, const int line,
+    const char *fmt, ...)
 {
+    if (filename == NULL || function == NULL || fmt == NULL) {
+        fatal("filename, function or fmt == NULL");
+    }
+
+    char prefix[LOG_PREFIX_BUFFER_SIZE];
+    snprintf(prefix, sizeof prefix, "[!] [%s, %s(), %d]", filename, function,
+        line);
     va_list ap;
     va_start(ap, fmt);
-    pox509_log("[!]", fmt, ap);
+    pox509_log(prefix, fmt, ap);
     va_end(ap);
     exit(EXIT_FAILURE);
 }
@@ -147,7 +176,7 @@ int
 config_lookup(const enum pox509_sections sec, const char *key)
 {
     if (key == NULL) {
-        fatal("config_lookup(): key == NULL");
+        fatal("key == NULL");
     }
 
     if (sec != SYSLOG && sec != LIBLDAP) {
@@ -170,7 +199,7 @@ int
 set_log_facility(const char *log_facility)
 {
     if (log_facility == NULL) {
-        fatal("set_log_facility(): log_facility == NULL");
+        fatal("log_facility == NULL");
     }
 
     int value = config_lookup(SYSLOG, log_facility);
@@ -186,7 +215,7 @@ void
 init_data_transfer_object(struct pox509_info *x509_info)
 {
     if (x509_info == NULL) {
-        fatal("init_data_transfer_object(): x509_info == NULL");
+        fatal("x509_info == NULL");
     }
 
     memset(x509_info, 0, sizeof *x509_info);
@@ -208,7 +237,7 @@ bool
 is_readable_file(const char *file)
 {
     if (file == NULL) {
-        fatal("is_readable_file(): file == NULL");
+        fatal("file == NULL");
     }
 
     struct stat stat_buffer;
@@ -235,13 +264,13 @@ bool
 is_valid_uid(const char *uid)
 {
     if (uid == NULL) {
-        fatal("is_valid_uid(): uid == NULL");
+        fatal("uid == NULL");
     }
 
     regex_t regex_uid;
     int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
     if (rc != 0) {
-        fatal("could not compile regex");
+        fatal("regcomp(): could not compile regex");
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
@@ -288,10 +317,10 @@ is_msb_set(unsigned char byte)
  */
 void
 substitute_token(char token, char *subst, char *src, char *dst,
-                 size_t dst_length)
+    size_t dst_length)
 {
     if (subst == NULL || src == NULL || dst == NULL) {
-        fatal("substitute_token(): subst, src or dst == NULL");
+        fatal("subst, src or dst == NULL");
     }
 
     if (dst_length == 0) {
@@ -328,17 +357,13 @@ void
 create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length)
 {
     if (rdn == NULL || uid == NULL || dst == NULL) {
-        fatal("create_ldap_search_filter(): rdn, uid or dst == NULL");
+        fatal("rdn, uid or dst == NULL");
     }
 
     if (dst_length == 0) {
         return;
     }
-
-    dst[dst_length - 1] = '\0';
-    strncpy(dst, rdn, dst_length - 1);
-    strncat(dst, "=", dst_length - 1 - strlen(dst));
-    strncat(dst, uid, dst_length - 1 - strlen(dst));
+    snprintf(dst, dst_length, "%s=%s", rdn, uid);
 }
 
 void
@@ -346,8 +371,7 @@ check_access_permission(char *group_dn, char *identifier,
     struct pox509_info *x509_info)
 {
     if (group_dn == NULL || identifier == NULL || x509_info == NULL) {
-        fatal("check_access_permission(): group_dn, identifier or x509_info == "
-            "NULL");
+        fatal("group_dn, identifier or x509_info == NULL");
     }
 
     /*
@@ -381,7 +405,7 @@ void
 validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 {
     if (x509 == NULL || cacerts_dir == NULL || x509_info == NULL) {
-        fatal("validate_x509(): x509, cacerts_dir or x509_info == NULL");
+        fatal("x509, cacerts_dir or x509_info == NULL");
     }
 
     /* add algorithms */
@@ -430,7 +454,7 @@ void
 pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
 {
     if (pkey == NULL || x509_info == NULL) {
-        fatal("pkey_to_authorized_keys(): pkey or x509_info == NULL");
+        fatal("pkey or x509_info == NULL");
     }
 
     int pkey_type = EVP_PKEY_type(pkey->type);
@@ -524,10 +548,11 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
 
         /* store key */
         x509_info->ssh_key = malloc(data_out + 1);
-        if (x509_info->ssh_key != NULL) {
-            memcpy(x509_info->ssh_key, tmp_result, data_out);
-            x509_info->ssh_key[data_out] = '\0';
+        if (x509_info->ssh_key == NULL) {
+            fatal("malloc()");
         }
+        memcpy(x509_info->ssh_key, tmp_result, data_out);
+        x509_info->ssh_key[data_out] = '\0';
 
         /* cleanup structures */
         BIO_free_all(bio_base64);

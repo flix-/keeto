@@ -25,6 +25,9 @@
 #include <openssl/ossl_typ.h>
 #include <openssl/x509.h>
 
+#define log_fail(...) pox509_log_fail(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
+
 /* type declarations */
 struct pox509_info {
     char *uid;
@@ -52,8 +55,12 @@ enum pox509_sections {
 /* function declarations */
 void log_msg(const char *fmt, ...);
 void log_success(const char *fmt, ...);
-void log_fail(const char *fmt, ...);
-void fatal(const char *fmt, ...);
+/* do not call this function directly - use log_fail wrapper macro instead */
+void pox509_log_fail(const char *filename, const char *function, const int line,
+    const char *fmt, ...);
+/* do not call this function directly - use fatal wrapper macro instead */
+void pox509_fatal(const char *filename, const char *function, const int line,
+    const char *fmt, ...);
 int config_lookup(const enum pox509_sections sec, const char *key);
 int set_log_facility(const char *log_facility);
 void init_data_transfer_object(struct pox509_info *x509_info);

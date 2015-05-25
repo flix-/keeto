@@ -34,7 +34,7 @@ static void
 cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
 {
     if (cfg == NULL || fmt == NULL) {
-        fatal("cfg_error_handler(): cfg or fmt == NULL");
+        fatal("cfg or fmt == NULL");
     }
 
     char error_msg[ERROR_MSG_BUFFER_SIZE];
@@ -52,8 +52,7 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
     void *result)
 {
     if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
-        fatal("cfg_str_to_int_parser_libldap(): cfg, opt, value or result == "
-            "NULL");
+        fatal("cfg, opt, value or result == NULL");
     }
 
     long int result_value = config_lookup(LIBLDAP, value);
@@ -71,7 +70,7 @@ static int
 cfg_validate_log_facility(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg_validate_log_facility(): cfg or opt == NULL");
+        fatal("cfg or opt == NULL");
     }
 
     const char *log_facility = cfg_opt_getnstr(opt, 0);
@@ -89,7 +88,7 @@ static int
 cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg_validate_ldap_uri(): cfg or opt == NULL");
+        fatal("cfg or opt == NULL");
     }
 
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
@@ -106,7 +105,7 @@ static int
 cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg_validate_ldap_starttls(): cfg or opt == NULL");
+        fatal("cfg or opt == NULL");
     }
 
     long int starttls = cfg_opt_getnint(opt, 0);
@@ -122,7 +121,7 @@ static int
 cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg_validate_ldap_search_timeout(): cfg or opt == NULL");
+        fatal("cfg or opt == NULL");
     }
 
     long int timeout = cfg_opt_getnint(opt, 0);
@@ -138,7 +137,7 @@ static int
 cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg_validate_cacerts_dir(): cfg or opt == NULL");
+        fatal("cfg or opt == NULL");
     }
 
     const char *cacerts_dir = cfg_opt_getnstr(opt, 0);
@@ -158,7 +157,7 @@ void
 init_and_parse_config(cfg_t **cfg, const char *cfg_file)
 {
     if (cfg == NULL || cfg_file == NULL) {
-        fatal("init_and_parse_config(): cfg or cfg_file == NULL");
+        fatal("cfg or cfg_file == NULL");
     }
 
     /* setup config options */
@@ -207,7 +206,7 @@ void
 release_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
-        fatal("release_config(): cfg == NULL");
+        fatal("cfg == NULL");
     }
 
     /* free values of each option */

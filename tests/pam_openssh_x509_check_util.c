@@ -210,11 +210,8 @@ START_TEST
         }
 
         char pem_file_abs[BUFFER_SIZE];
-        strncpy(pem_file_abs, directory, sizeof pem_file_abs);
-        strncat(pem_file_abs, "/", sizeof pem_file_abs -
-            strlen(pem_file_abs) - 1);
-        strncat(pem_file_abs, pem_file_rel, sizeof pem_file_abs -
-            strlen(pem_file_abs) - 1);
+        snprintf(pem_file_abs, sizeof pem_file_abs, "%s/%s", directory,
+            pem_file_rel);
         FILE *f_pem_file = fopen(pem_file_abs, "r");
         if (f_pem_file == NULL) {
             ck_abort_msg("fopen() failed ('%s')", pem_file_abs);
@@ -228,10 +225,8 @@ START_TEST
         struct pox509_info x509_info;
         pkey_to_authorized_keys(pkey, &x509_info);
         char exp_ssh_rsa[BUFFER_SIZE];
-        strncpy(exp_ssh_rsa, x509_info.ssh_keytype, sizeof exp_ssh_rsa);
-        strncat(exp_ssh_rsa, " ", sizeof exp_ssh_rsa - strlen(exp_ssh_rsa) - 1);
-        strncat(exp_ssh_rsa, x509_info.ssh_key, sizeof exp_ssh_rsa -
-            strlen(exp_ssh_rsa) - 1);
+        snprintf(exp_ssh_rsa, sizeof exp_ssh_rsa, "%s %s",
+            x509_info.ssh_keytype, x509_info.ssh_key);
         ck_assert_str_eq(ssh_rsa, exp_ssh_rsa);
         fclose(f_pem_file);
     }

@@ -35,7 +35,7 @@ static void
 set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
-        fatal("set_ldap_options(): ldap_handle or cfg == NULL");
+        fatal("ldap_handle or cfg == NULL");
     }
 
     /* set protocol version */
@@ -79,7 +79,7 @@ static void
 init_starttls(LDAP *ldap_handle)
 {
     if (ldap_handle == NULL) {
-        fatal("init_starttls(): ldap_handle == NULL");
+        fatal("ldap_handle == NULL");
     }
 
     int rc = ldap_start_tls_s(ldap_handle, NULL, NULL);
@@ -87,11 +87,11 @@ init_starttls(LDAP *ldap_handle)
         char *msg = NULL;
         rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
         if (rc == LDAP_OPT_SUCCESS) {
-            fatal("ldap_start_tls_s(): '%s - %s' (%d)", ldap_err2string(rc),
-                msg, rc);
+            fatal("ldap_start_tls_s(): '%s'", msg);
         } else {
-            fatal("ldap_start_tls_s(): '%s (%d)", ldap_err2string(rc), rc);
+            log_fail("ldap_get_option(): '%s' (%d)", ldap_err2string(rc), rc);
         }
+        fatal("ldap_start_tls_s()");
     }
 }
 
@@ -99,7 +99,7 @@ static int
 bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
-        fatal("bind_to_ldap(): ldap_handle or cfg == NULL");
+        fatal("ldap_handle or cfg == NULL");
     }
 
     char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
@@ -118,8 +118,7 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
         x509_info == NULL) {
-        fatal("search_ldap(): ldap_handle, ldap_result, cfg or x509_info == "
-            "NULL");
+        fatal("ldap_handle, ldap_result, cfg or x509_info == NULL");
     }
 
     /* collect arguments for ldap search */
@@ -152,8 +151,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
         x509_info == NULL || x509 == NULL) {
-        fatal("handle_ldap_res_search_entry(): ldap_handle, ldap_result, cfg, "
-            "x509_info or x509 == NULL");
+        fatal("ldap_handle, ldap_result, cfg, x509_info or x509 == NULL");
     }
 
     char *user_dn = ldap_get_dn(ldap_handle, ldap_result);
@@ -189,7 +187,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
          * mutivalued attributes
          */
         int i;
-        for (i = 0; attr_values[i] != '\0'; i++) {
+        for (i = 0; attr_values[i] != NULL; i++) {
             char *value = attr_values[i]->bv_val;
             ber_len_t len = attr_values[i]->bv_len;
 
@@ -241,8 +239,7 @@ static void
 handle_ldap_res_search_reference(LDAP *ldap_handle, LDAPMessage *ldap_result)
 {
     if (ldap_handle == NULL || ldap_result == NULL) {
-        fatal("handle_ldap_res_search_reference(): ldap_handle or ldap_result "
-            "== NULL");
+        fatal("ldap_handle or ldap_result == NULL");
     }
 
     log_fail("LDAP_RES_SEARCH_REFERENCE handling is not yet implemented");
@@ -252,8 +249,7 @@ static void
 handle_ldap_res_search_result(LDAP *ldap_handle, LDAPMessage *ldap_result)
 {
     if (ldap_handle == NULL || ldap_result == NULL) {
-        fatal("handle_ldap_res_search_result(): ldap_handle or ldap_result == "
-            "NULL");
+        fatal("ldap_handle or ldap_result == NULL");
     }
 
     int error_code;
@@ -281,8 +277,7 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
     struct pox509_info *x509_info, X509 **x509)
 {
     if (cfg == NULL || x509_info == NULL || x509 == NULL) {
-        fatal("retrieve_authorization_and_x509_from_ldap(): cfg, x509_info or "
-            "x509 == NULL");
+        fatal("cfg, x509_info or x509 == NULL");
     }
 
     /* init handle */

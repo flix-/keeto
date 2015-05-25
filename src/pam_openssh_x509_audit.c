@@ -29,7 +29,7 @@ static void
 log_string(char *attr, char *value)
 {
     if (attr == NULL) {
-        return;
+        fatal("attr == NULL");
     }
     if (value == NULL) {
         value = unset;
@@ -41,7 +41,7 @@ static void
 log_char(char *attr, char value)
 {
     if (attr == NULL) {
-        return;
+        fatal("attr == NULL");
     }
     char *value_string = NULL;
     if (value == 0x56) {
@@ -57,6 +57,10 @@ log_char(char *attr, char value)
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+    if (pamh == NULL) {
+        fatal("pamh == NULL");
+    }
+
     struct pox509_info *x509_info = NULL;
     int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
     if (rc != PAM_SUCCESS) {
