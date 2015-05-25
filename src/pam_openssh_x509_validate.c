@@ -48,7 +48,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* set log facility */
     rc = set_log_facility(x509_info->log_facility);
     if (rc == -EINVAL) {
-        log_fail("set_log_facility(%s)", x509_info->log_facility);
+        log_fail("set_log_facility(): '%s'", x509_info->log_facility);
     }
 
     /* only modify authorized_keys file if LDAP server could be queried */

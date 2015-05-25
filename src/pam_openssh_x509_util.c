@@ -567,7 +567,7 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
     case EVP_PKEY_EC:
         fatal("EC is not supported yet");
     default:
-        fatal("unsupported public key type (%i)", pkey->type);
+        fatal("unsupported public key type (%d)", pkey->type);
     }
 }
 

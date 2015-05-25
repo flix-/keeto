@@ -122,7 +122,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     const char *uid = NULL;
     rc = pam_get_user(pamh, &uid, NULL);
     if (rc != PAM_SUCCESS) {
-        fatal("pam_get_user(): (%i)", rc);
+        fatal("pam_get_user(): (%d)", rc);
     }
     /*
      * an attacker could provide a malicious uid

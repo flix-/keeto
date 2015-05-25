@@ -43,7 +43,7 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int rc = ldap_set_option(ldap_handle, LDAP_OPT_PROTOCOL_VERSION,
         &ldap_version);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: %i",
+        fatal("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: %d",
             ldap_version);
     }
 
@@ -51,7 +51,7 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int req_cert = LDAP_OPT_X_TLS_HARD;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: %i",
+        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: %d",
             req_cert);
     }
 
@@ -70,7 +70,7 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int new_ctx = 0x56;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %i",
+        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %d",
             new_ctx);
     }
 }
@@ -263,7 +263,7 @@ handle_ldap_res_search_result(LDAP *ldap_handle, LDAPMessage *ldap_result)
 
     /* only log errors */
     if (error_code != LDAP_SUCCESS) {
-        log_fail("ldap_parse_result(): '%s' (%i)", ldap_err2string(error_code),
+        log_fail("ldap_parse_result(): '%s' (%d)", ldap_err2string(error_code),
             error_code);
     }
     if (error_msg != NULL) {
