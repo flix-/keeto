@@ -288,7 +288,6 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
         fatal("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
     }
 
-    log_success("ldap_initialize()");
     set_ldap_options(ldap_handle, cfg);
 
     /* init STARTTLS if set */
