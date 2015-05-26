@@ -449,8 +449,8 @@ START_TEST
     rc = is_readable_file(file);
     ck_assert_int_eq(rc, exp_result);
 
-    /* make distcheck fails if file/dir is not readable */
-    rc = chmod(file, S_IRUSR|S_IRGRP|S_IROTH);
+    rc = chmod(file, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|
+        S_IWOTH|S_IXOTH);
     if (rc == -1) {
         ck_abort_msg("chmod() failed");
     }
