@@ -1,7 +1,8 @@
 EXTRA_DIST = tests/ca_certificates \
-             tests/configs \
-             tests/openssh_keys \
-             tests/x509_certificates \
+             tests/validate_x509 \
+             tests/init_and_parse_config \
+             tests/pkey_to_authorized_keys \
+             tests/is_readable_file \
              samples
 SUBDIRS = src . tests
 AM_DISTCHECK_CONFIGURE_FLAGS = --disable-dependency-tracking

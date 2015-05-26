@@ -96,7 +96,11 @@ static struct pox509_config_entry libldap[] = {
     { NULL, 0 }
 };
 
-static struct pox509_config_entry *config_lt[] = { syslog_facility, libldap };
+static struct pox509_config_entry *config_lt[] = {
+    syslog_facility,
+    libldap
+};
+
 static int pox509_log_facility = DEFAULT_LOG_FACILITY;
 
 static void

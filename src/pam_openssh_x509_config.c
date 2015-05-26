@@ -55,7 +55,7 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
         fatal("cfg, opt, value or result == NULL");
     }
 
-    long int result_value = config_lookup(LIBLDAP, value);
+    int result_value = config_lookup(LIBLDAP, value);
     if (result_value == -EINVAL) {
         cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
             cfg_opt_name(opt), value);

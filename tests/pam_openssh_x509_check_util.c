@@ -27,10 +27,12 @@
 #include <check.h>
 #include <ldap.h>
 #include <syslog.h>
+#include <bits/types.h>
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
+#include <sys/stat.h>
 
 #include "../src/pam_openssh_x509_util.h"
 
@@ -100,6 +102,27 @@ static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
     { "../keystore/foo", false },
     { "..", false },
     { "_foo", false },
+};
+
+static struct pox509_is_readable_file_entry is_readable_file_lt[] = {
+    { READABLEFILESDIR "/file_none", 0, false },
+    { READABLEFILESDIR "/file_execute", S_IXUSR, false },
+    { READABLEFILESDIR "/file_execute_read", S_IXUSR|S_IRUSR, true },
+    { READABLEFILESDIR "/file_execute_write", S_IXUSR|S_IWUSR, false },
+    { READABLEFILESDIR "/file_execute_write_read", S_IXUSR|S_IWUSR|S_IRUSR,
+    true },
+    { READABLEFILESDIR "/file_read", S_IRUSR, true },
+    { READABLEFILESDIR "/file_write", S_IWUSR, false },
+    { READABLEFILESDIR "/file_write_read", S_IWUSR|S_IRUSR, true },
+    { READABLEFILESDIR "/dir_none", 0, false },
+    { READABLEFILESDIR "/dir_execute", S_IXUSR, false },
+    { READABLEFILESDIR "/dir_execute_read", S_IXUSR|S_IRUSR, false },
+    { READABLEFILESDIR "/dir_execute_write", S_IXUSR|S_IWUSR, false },
+    { READABLEFILESDIR "/dir_execute_write_read", S_IXUSR|S_IWUSR|S_IRUSR,
+    false },
+    { READABLEFILESDIR "/dir_read", S_IRUSR, false },
+    { READABLEFILESDIR "/dir_write", S_IWUSR, false },
+    { READABLEFILESDIR "/dir_write_read", S_IWUSR|S_IRUSR, false },
 };
 
 START_TEST
@@ -338,9 +361,9 @@ START_TEST
 (t_is_valid_uid)
 {
     char *uid = is_valid_uid_lt[_i].uid;
-    char exp_result = is_valid_uid_lt[_i].exp_result;
+    bool exp_result = is_valid_uid_lt[_i].exp_result;
 
-    int rc = is_valid_uid(uid);
+    bool rc = is_valid_uid(uid);
     ck_assert_int_eq(rc, exp_result);
 }
 END_TEST
@@ -404,6 +427,47 @@ START_TEST
 }
 END_TEST
 
+START_TEST
+(t_is_readable_file_file_null)
+{
+    is_readable_file(NULL);
+}
+END_TEST
+
+START_TEST
+(t_is_readable_file)
+{
+    char *file = is_readable_file_lt[_i].file;
+    mode_t mode = is_readable_file_lt[_i].mode;
+    bool exp_result = is_readable_file_lt[_i].exp_result;
+
+    int rc = chmod(file, mode);
+    if (rc == -1) {
+        ck_abort_msg("chmod() failed");
+    }
+
+    rc = is_readable_file(file);
+    ck_assert_int_eq(rc, exp_result);
+
+    /* make distcheck fails if file/dir is not readable */
+    rc = chmod(file, S_IRUSR|S_IRGRP|S_IROTH);
+    if (rc == -1) {
+        ck_abort_msg("chmod() failed");
+    }
+}
+END_TEST
+
+START_TEST
+(t_is_readable_file_not_existent_file)
+{
+    char *file = READABLEFILESDIR "/this_file_does_not_exist";
+    bool exp_result = false;
+
+    bool rc = is_readable_file(file);
+    ck_assert_int_eq(rc, exp_result);
+}
+END_TEST
+
 Suite *
 make_util_suite(void)
 {
@@ -417,7 +481,11 @@ make_util_suite(void)
     suite_add_tcase(s, tc_ssh);
     suite_add_tcase(s, tc_x509);
 
-    /* helper test cases */
+    /*
+     * helper test cases
+     */
+
+    /* substitute_token() */
     tcase_add_exit_test(tc_helper, t_substitute_token_exit_subst_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_helper, t_substitute_token_exit_src_null,
@@ -430,21 +498,26 @@ make_util_suite(void)
         sizeof substitute_token_lt[0];
     tcase_add_loop_test(tc_helper, t_substitute_token, 0, length_st_lt);
 
+    /* create_ldap_search_filter() */
     int length_clsf_lt = sizeof create_ldap_search_filter_lt /
         sizeof create_ldap_search_filter_lt[0];
     tcase_add_loop_test(tc_helper, t_create_ldap_search_filter, 0,
         length_clsf_lt);
 
+    /* config_lookup() */
     tcase_add_exit_test(tc_helper, t_config_lookup_exit_key_null, EXIT_FAILURE);
     tcase_add_test(tc_helper, t_config_lookup);
 
+    /* set_log_facility() */
     tcase_add_exit_test(tc_helper, t_set_log_facility_exit_log_facility_null,
         EXIT_FAILURE);
     tcase_add_test(tc_helper, t_set_log_facility);
 
+    /* init_data_transfer_object() */
     tcase_add_exit_test(tc_helper,
         t_init_data_transfer_object_exit_x509_info_null, EXIT_FAILURE);
 
+    /* check_access_permission() */
     tcase_add_exit_test(tc_helper, t_check_access_permission_exit_group_dn_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_helper,
@@ -458,11 +531,23 @@ make_util_suite(void)
         sizeof check_access_permission_lt[0];
     tcase_add_loop_test(tc_helper, t_check_access_permission, 0, length_cap_lt);
 
+    /* is_valid_uid() */
     tcase_add_exit_test(tc_helper, t_is_valid_uid_exit_uid_null, EXIT_FAILURE);
     int length_ivu_lt = sizeof is_valid_uid_lt / sizeof is_valid_uid_lt[0];
     tcase_add_loop_test(tc_helper, t_is_valid_uid, 0, length_ivu_lt);
 
-    /* ssh test cases */
+    /* is_readable_file() */
+    tcase_add_exit_test(tc_helper, t_is_readable_file_file_null, EXIT_FAILURE);
+    int length_irf_lt = sizeof is_readable_file_lt /
+        sizeof is_readable_file_lt[0];
+    tcase_add_loop_test(tc_helper, t_is_readable_file, 0, length_irf_lt);
+    tcase_add_test(tc_helper, t_is_readable_file_not_existent_file);
+
+    /*
+     * ssh test cases
+     */
+
+    /* pkey_to_authorized_keys() */
     tcase_add_exit_test(tc_ssh, t_pkey_to_authorized_keys_exit_pkey_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_ssh, t_pkey_to_authorized_keys_exit_x509_info_null,
@@ -471,7 +556,11 @@ make_util_suite(void)
         t_pkey_to_authorized_keys_exit_pkey_x509_info_null, EXIT_FAILURE);
     tcase_add_test(tc_ssh, t_pkey_to_authorized_keys);
 
-    /* x509 test cases */
+    /*
+     * x509 test cases
+     */
+
+    /* validate_x509() */
     tcase_add_exit_test(tc_x509, t_validate_x509_exit_x509_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_x509, t_validate_x509_exit_cacerts_dir_null,
         EXIT_FAILURE);

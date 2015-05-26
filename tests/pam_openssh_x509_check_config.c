@@ -27,18 +27,18 @@
 #include "../src/pam_openssh_x509_config.c"
 
 static char *init_and_parse_config_exit_lt[] = {
-    CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_0.conf",
-    CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_1.conf",
-    CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_scope_negative_2.conf",
-    CONFIGSDIR "/cfg_str_to_int_parser_libldap_ldap_version_negative.conf",
-    CONFIGSDIR "/cfg_validate_log_facility_negative.conf",
-    CONFIGSDIR "/cfg_validate_ldap_uri_negative.conf",
-    CONFIGSDIR "/cfg_validate_ldap_starttls_negative_0.conf",
-    CONFIGSDIR "/cfg_validate_ldap_starttls_negative_1.conf",
-    CONFIGSDIR "/cfg_validate_ldap_search_timeout_negative.conf",
-    CONFIGSDIR "/cfg_validate_cacerts_dir_negative_0.conf",
-    CONFIGSDIR "/cfg_validate_cacerts_dir_negative_1.conf",
-    CONFIGSDIR "/cfg_validate_cacerts_dir_negative_2.conf",
+    CONFIGSDIR "/ldap_scope_negative_0.conf",
+    CONFIGSDIR "/ldap_scope_negative_1.conf",
+    CONFIGSDIR "/ldap_scope_negative_2.conf",
+    CONFIGSDIR "/ldap_version_negative.conf",
+    CONFIGSDIR "/log_facility_negative.conf",
+    CONFIGSDIR "/ldap_uri_negative.conf",
+    CONFIGSDIR "/starttls_negative_0.conf",
+    CONFIGSDIR "/starttls_negative_1.conf",
+    CONFIGSDIR "/ldap_search_timeout_negative.conf",
+    CONFIGSDIR "/cacerts_dir_negative_0.conf",
+    CONFIGSDIR "/cacerts_dir_negative_1.conf",
+    CONFIGSDIR "/cacerts_dir_negative_2.conf",
 };
 
 static char *init_and_parse_config_lt[] = {
@@ -278,18 +278,27 @@ make_config_suite(void)
     suite_add_tcase(s, tc_main);
     suite_add_tcase(s, tc_callbacks);
 
-    /* main test cases */
+    /*
+     * main test cases
+     */
+
+    /* init_and_parse_config() */
     int length_iapce_lt = sizeof init_and_parse_config_exit_lt /
         sizeof init_and_parse_config_exit_lt[0];
-    tcase_add_loop_exit_test(tc_main, t_init_and_parse_config_exit, EXIT_FAILURE,
-        0, length_iapce_lt);
+    tcase_add_loop_exit_test(tc_main, t_init_and_parse_config_exit,
+        EXIT_FAILURE, 0, length_iapce_lt);
     int length_iapc_lt = sizeof init_and_parse_config_lt /
         sizeof init_and_parse_config_lt[0];
     tcase_add_loop_test(tc_main, t_init_and_parse_config, 0, length_iapc_lt);
 
+    /* release_config() */
     tcase_add_exit_test(tc_main, t_release_config_exit_cfg_null, EXIT_FAILURE);
 
-    /* callbacks test cases */
+    /*
+     * callbacks test cases
+     */
+
+    /* cfg_error_handler() */
     tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_cfg_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_fmt_null,
@@ -297,6 +306,7 @@ make_config_suite(void)
     tcase_add_exit_test(tc_callbacks, t_cfg_error_handler_exit_cfg_fmt_null,
         EXIT_FAILURE);
 
+    /* cfg_str_to_int_parser_libldap() */
     tcase_add_exit_test(tc_callbacks,
         t_cfg_str_to_int_parser_libldap_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
@@ -309,6 +319,7 @@ make_config_suite(void)
         t_cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_null,
         EXIT_FAILURE);
 
+    /* cfg_validate_log_facility() */
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_log_facility_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
@@ -316,6 +327,7 @@ make_config_suite(void)
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_log_facility_exit_cfg_opt_null, EXIT_FAILURE);
 
+    /* cfg_validate_ldap_uri() */
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_cfg_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_opt_null,
@@ -323,6 +335,7 @@ make_config_suite(void)
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_cfg_opt_null,
         EXIT_FAILURE);
 
+    /* cfg_validate_ldap_starttls() */
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_ldap_starttls_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
@@ -330,6 +343,7 @@ make_config_suite(void)
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_ldap_starttls_exit_cfg_opt_null, EXIT_FAILURE);
 
+    /* cfg_validate_ldap_search_timeout() */
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_ldap_search_timeout_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
@@ -337,6 +351,7 @@ make_config_suite(void)
     tcase_add_exit_test(tc_callbacks,
         t_cfg_validate_ldap_search_timeout_exit_cfg_opt_null, EXIT_FAILURE);
 
+    /* cfg_validate_cacerts_dir() */
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_cacerts_dir_exit_cfg_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_cacerts_dir_exit_opt_null,

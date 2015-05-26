@@ -20,6 +20,9 @@
 
 #include <stdbool.h>
 
+#include <bits/types.h>
+#include <sys/stat.h>
+
 #include <check.h>
 
 /* type declarations */
@@ -51,6 +54,12 @@ struct pox509_validate_x509_entry {
 
 struct pox509_is_valid_uid_entry {
     char *uid;
+    bool exp_result;
+};
+
+struct pox509_is_readable_file_entry {
+    char *file;
+    mode_t mode;
     bool exp_result;
 };
 

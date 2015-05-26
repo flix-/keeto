@@ -29,6 +29,10 @@
 static bool
 is_authorized(struct pox509_info *x509_info)
 {
+    if (x509_info == NULL) {
+        fatal("x509_info == NULL");
+    }
+
     return (x509_info->has_access == 1 && x509_info->has_valid_cert == 1);
 }
 
