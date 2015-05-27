@@ -449,8 +449,19 @@ START_TEST
     rc = is_readable_file(file);
     ck_assert_int_eq(rc, exp_result);
 
-    rc = chmod(file, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|
-        S_IWOTH|S_IXOTH);
+    struct stat stat_buffer;
+    rc = stat(file, &stat_buffer);
+    if (rc != 0) {
+        ck_abort_msg("stat() failed");
+    }
+    if (S_ISREG(stat_buffer.st_mode)) {
+        rc = chmod(file, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    } else if (S_ISDIR(stat_buffer.st_mode)) {
+        rc = chmod(file, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|
+            S_IXOTH);
+    } else {
+        return;
+    }
     if (rc == -1) {
         ck_abort_msg("chmod() failed");
     }
