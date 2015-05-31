@@ -197,6 +197,7 @@ OpenLDAP
      dn: uid=pox509-test-user,ou=people,dc=ssh,dc=hq
      memberOf: cn=pox509-test-server,ou=groups,dc=ssh,dc=hq
 
+
 pam_openssh_x509
 ----------------
 
@@ -217,7 +218,7 @@ PuTTY-CAC
 ---------
 
 Connect to the OpenSSH server using the private key in
-10-ee_user_1_key.pem In production, use the private key inside the
+10-ee_user_1_key.pem. In production, use the private key inside the
 Smartcard for signing.
 
 
