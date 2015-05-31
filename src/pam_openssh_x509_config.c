@@ -44,8 +44,9 @@ cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
 
 /*
  * note that value parsing and validation callback functions will only
- * be called during parsing. altering the value later wont incorporate
- * them.
+ * be called during parsing when the value is obtained from the config
+ * file. neither they will be incorporated when default values are being
+ * used nor if the value is altered later.
  */
 static int
 cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
@@ -168,11 +169,11 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
         CFG_STR("ldap_bind_dn", "cn=directory_manager,dc=ssh,dc=hq", CFGF_NONE),
         CFG_STR("ldap_pwd", "test123", CFGF_NONE),
         CFG_STR("ldap_base", "ou=people,dc=ssh,dc=hq", CFGF_NONE),
-        CFG_INT_CB("ldap_scope", config_lookup(LIBLDAP, "LDAP_SCOPE_ONE"),
-            CFGF_NONE, &cfg_str_to_int_parser_libldap),
+        CFG_INT_CB("ldap_scope", LDAP_SCOPE_ONE, CFGF_NONE,
+            &cfg_str_to_int_parser_libldap),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
-        CFG_INT_CB("ldap_version", config_lookup(LIBLDAP, "LDAP_VERSION3"),
-            CFGF_NONE, &cfg_str_to_int_parser_libldap),
+        CFG_INT_CB("ldap_version", LDAP_VERSION3, CFGF_NONE,
+            &cfg_str_to_int_parser_libldap),
         CFG_STR("ldap_attr_rdn_person", "uid", CFGF_NONE),
         CFG_STR("ldap_attr_access", "memberOf", CFGF_NONE),
         CFG_STR("ldap_attr_cert", "userCertificate;binary", CFGF_NONE),
