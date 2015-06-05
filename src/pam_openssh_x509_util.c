@@ -470,10 +470,14 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
             fatal("EVP_PKEY_get1_RSA()");
         }
 
-        /* create authorized_keys entry */
-        int length_keytype = strlen(x509_info->ssh_keytype);
-        int length_exponent = BN_num_bytes(rsa->e);
-        int length_modulus = BN_num_bytes(rsa->n);
+        /*
+         * create authorized_keys entry
+         */
+
+        /* length of keytype WITHOUT the terminating null byte */
+        size_t length_keytype = strlen(x509_info->ssh_keytype);
+        size_t length_exponent = BN_num_bytes(rsa->e);
+        size_t length_modulus = BN_num_bytes(rsa->n);
 
         /*
          * the 4 bytes hold the length of the following value and the 2
@@ -482,48 +486,55 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
          * significant bit of them is set. this is to avoid
          * misinterpreting the value as a negative number later.
          */
-        int pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent + 4 +
-            1 + length_modulus;
+        size_t pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent +
+            4 + 1 + length_modulus;
+        size_t length_tmp_buffer = length_modulus > length_exponent ?
+            length_modulus : length_exponent;
 
         unsigned char blob[pre_length_blob];
-        unsigned char blob_buffer[pre_length_blob];
-
+        unsigned char tmp_buffer[length_tmp_buffer];
         unsigned char *blob_p = blob;
+
+        /* put length of keytype */
         PUT_32BIT(blob_p, length_keytype);
         blob_p += 4;
+        /* put keytype */
         memcpy(blob_p, x509_info->ssh_keytype, length_keytype);
         blob_p += length_keytype;
-        BN_bn2bin(rsa->e, blob_buffer);
 
         /* put length of exponent */
-        if (is_msb_set(blob_buffer[0])) {
+        BN_bn2bin(rsa->e, tmp_buffer);
+        if (is_msb_set(tmp_buffer[0])) {
             PUT_32BIT(blob_p, length_exponent + 1);
             blob_p += 4;
-            *(blob_p++) = 0;
+            memset(blob_p, 0, 1);
+            blob_p++;
         } else {
             PUT_32BIT(blob_p, length_exponent);
             blob_p += 4;
         }
         /* put exponent */
-        memcpy(blob_p, blob_buffer, length_exponent);
+        memcpy(blob_p, tmp_buffer, length_exponent);
         blob_p += length_exponent;
-        BN_bn2bin(rsa->n, blob_buffer);
 
         /* put length of modulus */
-        if (is_msb_set(blob_buffer[0])) {
+        BN_bn2bin(rsa->n, tmp_buffer);
+        if (is_msb_set(tmp_buffer[0])) {
             PUT_32BIT(blob_p, length_modulus + 1);
             blob_p += 4;
-            *(blob_p++) = 0;
+            memset(blob_p, 0, 1);
+            blob_p++;
         } else {
             PUT_32BIT(blob_p, length_modulus);
             blob_p += 4;
         }
         /* put modulus */
-        memcpy(blob_p, blob_buffer, length_modulus);
+        memcpy(blob_p, tmp_buffer, length_modulus);
         blob_p += length_modulus;
-        int post_length_blob = blob_p - blob;
 
-        /* encode base64 */
+        /*
+         * base64 encode blob and store result in dto
+         */
 
         /* create base64 bio */
         BIO *bio_base64 = BIO_new(BIO_f_base64());
@@ -538,16 +549,19 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
             fatal("BIO_new()");
         }
         /* create bio chain base64->mem */
-        bio_base64 = BIO_push(bio_base64, bio_mem);
-        BIO_write(bio_base64, blob, post_length_blob);
-        int rc = BIO_flush(bio_base64);
+        BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
+
+        /* base64 encode blob and write to memory */
+        int post_length_blob = blob_p - blob;
+        BIO_write(bio_base64_mem, blob, post_length_blob);
+        int rc = BIO_flush(bio_base64_mem);
         if (rc != 1) {
             fatal("BIO_flush()");
         }
-        char *tmp_result = NULL;
-        long data_out = BIO_get_mem_data(bio_base64, &tmp_result);
 
-        /* store key */
+        /* store base64 encoded string in var and put null terminator */
+        char *tmp_result = NULL;
+        long data_out = BIO_get_mem_data(bio_mem, &tmp_result);
         x509_info->ssh_key = malloc(data_out + 1);
         if (x509_info->ssh_key == NULL) {
             fatal("malloc()");
@@ -556,7 +570,7 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         x509_info->ssh_key[data_out] = '\0';
 
         /* cleanup structures */
-        BIO_free_all(bio_base64);
+        BIO_free_all(bio_base64_mem);
         RSA_free(rsa);
 
         break;
