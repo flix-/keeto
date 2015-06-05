@@ -198,7 +198,6 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                  * check access permission based on group membership
                  * and store result.
                  */
-                log_msg("group_dn: %s", value);
                 char *ldap_group_identifier =
                     cfg_getstr(cfg, "ldap_group_identifier");
                 check_access_permission(value, ldap_group_identifier,
@@ -209,6 +208,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                  */
                 if (x509_info->has_access == 1) {
                     log_msg("group membership found");
+                    log_msg("group_dn: %s", value);
                     break;
                 }
 
