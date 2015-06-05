@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -98,6 +99,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     cfg_t *cfg = NULL;
     init_and_parse_config(&cfg, cfg_file);
 
+    /* set log facility */
+    char *log_facility = cfg_getstr(cfg, "log_facility");
+    int rc = set_log_facility(log_facility);
+    if (rc == -EINVAL) {
+        log_fail("set_log_facility(): '%s'", log_facility);
+    }
+
     /* initialize data transfer object */
     struct pox509_info *x509_info = malloc(sizeof *x509_info);
     if (x509_info == NULL) {
@@ -106,13 +114,12 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     init_data_transfer_object(x509_info);
 
     /* make data transfer object available to module stack */
-    int rc = pam_set_data(pamh, "x509_info", x509_info, &cleanup_x509_info);
+    rc = pam_set_data(pamh, "x509_info", x509_info, &cleanup_x509_info);
     if (rc != PAM_SUCCESS) {
         fatal("pam_set_data()");
     }
 
-    /* make log facility available in data transfer object */
-    char *log_facility = cfg_getstr(cfg, "log_facility");
+    /* make log facility available in dto for downstream modules */
     x509_info->log_facility = strdup(log_facility);
     if (x509_info->log_facility == NULL) {
         fatal("strdup()");

@@ -189,7 +189,7 @@ config_lookup(const enum pox509_sections sec, const char *key)
 
     struct pox509_config_entry *lookup_ptr = NULL;
     for (lookup_ptr = config_lt[sec]; lookup_ptr->name != NULL; lookup_ptr++) {
-        if(strcasecmp(lookup_ptr->name, key) == 0) {
+        if(strcmp(lookup_ptr->name, key) == 0) {
             return lookup_ptr->value;
         }
     }

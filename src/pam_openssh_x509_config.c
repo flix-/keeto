@@ -28,7 +28,7 @@
 
 #include "pam_openssh_x509_util.h"
 
-#define ERROR_MSG_BUFFER_SIZE 1024
+#define ERROR_MSG_BUFFER_SIZE 4096
 
 static void
 cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
@@ -60,7 +60,6 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
     if (result_value == -EINVAL) {
         cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
             cfg_opt_name(opt), value);
-        return -1; 
     }
     long int *ptr_result = result;
     *ptr_result = result_value;
@@ -75,12 +74,11 @@ cfg_validate_log_facility(cfg_t *cfg, cfg_opt_t *opt)
     }
 
     const char *log_facility = cfg_opt_getnstr(opt, 0);
-    int rc = set_log_facility(log_facility);
+    int rc = config_lookup(SYSLOG, log_facility);
     if (rc == -EINVAL) {
         cfg_error(cfg, "cfg_validate_log_facility(): option: '%s', value: '%s' "
             "(value is not a valid syslog facility)", cfg_opt_name(opt),
             log_facility);
-        return -1;
     }
     return 0;
 }
@@ -97,7 +95,6 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
     if (rc == 0) {
         cfg_error(cfg, "cfg_validate_ldap_uri(): option: '%s', value: '%s' "
             "(value is not an ldap uri)", cfg_opt_name(opt), ldap_uri);
-        return -1;
     }
     return 0;
 }
@@ -113,7 +110,6 @@ cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
     if (starttls != 0 && starttls != 1) {
         cfg_error(cfg, "cfg_validate_ldap_starttls(): option: '%s', value: "
             "'%li' (value must be either 0 or 1)", cfg_opt_name(opt), starttls);
-        return -1;
     }
     return 0;
 }
@@ -129,7 +125,6 @@ cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
     if (timeout <= 0) {
         cfg_error(cfg, "cfg_validate_ldap_search_timeout(): option: '%s', "
             "value: '%li' (value must be > 0)", cfg_opt_name(opt), timeout);
-        return -1;
     }
     return 0;
 }
@@ -147,7 +142,6 @@ cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
     if (cacerts_dir_stream == NULL) {
         cfg_error(cfg, "cfg_validate_cacerts_dir(): option: '%s', value: '%s' "
             "(%s)", cfg_opt_name(opt), cacerts_dir, strerror(errno));
-        return -1;
     }
     closedir(cacerts_dir_stream);
 
@@ -185,7 +179,7 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     };
 
     /* initialize config */
-    *cfg = cfg_init(opts, CFGF_NOCASE);
+    *cfg = cfg_init(opts, CFGF_NONE);
     /* register callbacks */
     cfg_set_error_function(*cfg, &cfg_error_handler);
     cfg_set_validate_func(*cfg, "log_facility", &cfg_validate_log_facility);
@@ -210,11 +204,6 @@ release_config(cfg_t *cfg)
         fatal("cfg == NULL");
     }
 
-    /* free values of each option */
-    cfg_opt_t *opt_ptr = NULL;
-    for (opt_ptr = cfg->opts; opt_ptr->name != NULL; opt_ptr++) {
-        cfg_free_value(opt_ptr);
-    }
     /* free cfg structure */
     cfg_free(cfg);
 }
