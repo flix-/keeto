@@ -30,7 +30,6 @@ static char *init_and_parse_config_exit_lt[] = {
     CONFIGSDIR "/ldap_scope_negative_0.conf",
     CONFIGSDIR "/ldap_scope_negative_1.conf",
     CONFIGSDIR "/ldap_scope_negative_2.conf",
-    CONFIGSDIR "/ldap_version_negative.conf",
     CONFIGSDIR "/log_facility_negative.conf",
     CONFIGSDIR "/ldap_uri_negative.conf",
     CONFIGSDIR "/starttls_negative_0.conf",
@@ -109,7 +108,7 @@ START_TEST
 (t_cfg_str_to_int_parser_libldap_exit_cfg_null)
 {
     cfg_opt_t opt;
-    const char *value = "LDAP_VERSION3";
+    const char *value = "LDAP_SCOPE_ONE";
     long int result;
     cfg_str_to_int_parser_libldap(NULL, &opt, value, &result);
 }
@@ -119,7 +118,7 @@ START_TEST
 (t_cfg_str_to_int_parser_libldap_exit_opt_null)
 {
     cfg_t cfg;
-    const char *value = "LDAP_VERSION3";
+    const char *value = "LDAP_SCOPE_ONE";
     long int result;
     cfg_str_to_int_parser_libldap(&cfg, NULL, value, &result);
 }
@@ -140,7 +139,7 @@ START_TEST
 {
     cfg_t cfg;
     cfg_opt_t opt;
-    const char *value = "LDAP_VERSION3";
+    const char *value = "LDAP_SCOPE_ONE";
     cfg_str_to_int_parser_libldap(&cfg, &opt, value, NULL);
 }
 END_TEST

@@ -115,6 +115,31 @@ cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 }
 
 static int
+cfg_validate_dn(cfg_t *cfg, cfg_opt_t *opt)
+{
+    if (cfg == NULL || opt == NULL) {
+        fatal("cfg or opt == NULL");
+    }
+
+    const char *dn_str = cfg_opt_getnstr(opt, 0);
+    size_t dn_str_length = strlen(dn_str);
+    if (dn_str_length == 0) {
+        cfg_error(cfg, "cfg_validate_dn(): option: '%s', value: '%s' "
+            "(length of dn must be > 0)", cfg_opt_name(opt), dn_str);
+    }
+
+    LDAPDN dn = NULL;
+    int rc = ldap_str2dn(dn_str, &dn, LDAP_DN_FORMAT_LDAPV3);
+    if (rc != LDAP_SUCCESS) {
+        cfg_error(cfg, "cfg_validate_dn(): option: '%s', value: '%s' "
+            "('%s' (%d))", cfg_opt_name(opt), dn_str, ldap_err2string(rc), rc);
+    }
+    ldap_dnfree(dn);
+
+    return 0;
+}
+
+static int
 cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
@@ -166,8 +191,6 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
         CFG_INT_CB("ldap_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_parser_libldap),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
-        CFG_INT_CB("ldap_version", LDAP_VERSION3, CFGF_NONE,
-            &cfg_str_to_int_parser_libldap),
         CFG_STR("ldap_attr_rdn_person", "uid", CFGF_NONE),
         CFG_STR("ldap_attr_access", "memberOf", CFGF_NONE),
         CFG_STR("ldap_attr_cert", "userCertificate;binary", CFGF_NONE),
@@ -185,6 +208,8 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     cfg_set_validate_func(*cfg, "log_facility", &cfg_validate_log_facility);
     cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
     cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
+    cfg_set_validate_func(*cfg, "ldap_bind_dn", &cfg_validate_dn);
+    cfg_set_validate_func(*cfg, "ldap_base", &cfg_validate_dn);
     cfg_set_validate_func(*cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
     cfg_set_validate_func(*cfg, "cacerts_dir", &cfg_validate_cacerts_dir);

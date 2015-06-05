@@ -39,7 +39,7 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     }
 
     /* set protocol version */
-    int ldap_version = cfg_getint(cfg, "ldap_version");
+    int ldap_version = LDAP_VERSION3;
     int rc = ldap_set_option(ldap_handle, LDAP_OPT_PROTOCOL_VERSION,
         &ldap_version);
     if (rc != LDAP_OPT_SUCCESS) {
@@ -160,6 +160,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
         log_fail("ldap_get_dn(): '%s'", "user_dn == NULL");
     } else {
         log_msg("user_dn: %s", user_dn);
+        ldap_memfree(user_dn);
     }
 
     /* iterate over all requested attributes */
@@ -207,6 +208,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                  * been granted.
                  */
                 if (x509_info->has_access == 1) {
+                    log_msg("group membership found");
                     break;
                 }
 

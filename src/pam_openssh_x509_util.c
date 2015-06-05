@@ -81,9 +81,6 @@ static struct pox509_config_entry syslog_facility[] = {
 };
 
 static struct pox509_config_entry libldap[] = {
-    { "LDAP_VERSION1", LDAP_VERSION1 },
-    { "LDAP_VERSION2", LDAP_VERSION2 },
-    { "LDAP_VERSION3", LDAP_VERSION3 },
     { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
     { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
     { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
