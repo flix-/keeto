@@ -78,13 +78,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     log_string("auth_keys_file", x509_info->authorized_keys_file);
     log_string("ssh_keytype", x509_info->ssh_keytype);
     log_string("ssh_key", x509_info->ssh_key);
-    log_msg("");
+    log_msg(" ");
     log_char("has_cert", x509_info->has_cert);
     log_char("has_valid_cert", x509_info->has_valid_cert);
     log_string("serial", x509_info->serial);
     log_string("issuer", x509_info->issuer);
     log_string("subject", x509_info->subject);
-    log_msg("");
+    log_msg(" ");
     log_char("is_directory_online", x509_info->directory_online);
     log_char("has_access", x509_info->has_access);
     log_msg("===================================================");

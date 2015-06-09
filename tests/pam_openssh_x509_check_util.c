@@ -54,7 +54,6 @@ static struct pox509_substitute_token_entry substitute_token_lt[] = {
     { 'u', "foo", "/home/%u/", 8, "/home/%" },
     { 'u', "foo", "/home/%u/", 9, "/home/fo" },
     { 'u', "foo", "/home/%u/", 10, "/home/foo" },
-    { 'u', "foo", "/home/%u/", 0, "1.FC KOELN" },
     { 'u', "foo", "/home/%u/", 1, "" },
     { 'u', "foo", "/home/%u/", 2, "/" },
 };
@@ -64,7 +63,6 @@ static struct pox509_create_ldap_search_filter_entry
     { "uid", "foo", 8, "uid=foo" },
     { "uid", "foo", 7, "uid=fo" },
     { "uid", "foo", 100, "uid=foo" },
-    { "uid", "foo", 0, "1.FC KOELN" },
     { "uid", "foo", 1, "" },
     { "uid", "foo", 2, "u" },
     { "uid", "foo", 5, "uid=" },
@@ -73,11 +71,12 @@ static struct pox509_create_ldap_search_filter_entry
 
 static struct pox509_check_access_permission_entry
     check_access_permission_lt[] = {
-    { "cn=blub,dc=abc,dc=afg", "blub", 1 },
-    { "cn==blub,dc=abc,dc=afg", "=blub", 1 },
-    { "cn=cn=blub,dc=abc,dc=afg", "cn=blub", 1 },
+    { "cn=blub,dc=abc,dc=def", "blub", 1 },
+    { "cn==blub,dc=abc,dc=def", "\3Dblub", 1 },
+    { "cn=cn=blub,dc=abc,dc=def", "cn\3Dblub", 1 },
     { "cn=blub", "blub", 1 },
-    { "blub", "blub", 0 },
+    { "cn= blub", "blub", 1},
+    { "cn=blub,dc=abc,dc=def", "foo", 0 },
     { "", "blub", 0 },
     { "", "", 0 },
     { " ", "", 0 },
@@ -267,11 +266,7 @@ END_TEST
 START_TEST
 (t_config_lookup)
 {
-    int rc = config_lookup(10, "foo");
-    ck_assert_int_eq(rc, -EINVAL);
-    rc = config_lookup(10, "LOG_FTP");
-    ck_assert_int_eq(rc, -EINVAL);
-    rc = config_lookup(SYSLOG, "foo");
+    int rc = config_lookup(SYSLOG, "foo");
     ck_assert_int_eq(rc, -EINVAL);
     rc = config_lookup(SYSLOG, "LOG_FTP");
     ck_assert_int_eq(rc, LOG_FTP);

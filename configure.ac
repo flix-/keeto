@@ -28,8 +28,10 @@ AC_SUBST([LIBS], [ ])
 
 AC_SUBST([LIBADD_BASE], ["-lpam ${libconfuse_LIBS} -lldap -llber \
     ${libcrypto_LIBS}"])
-AC_SUBST([LIBADD_AUDIT], ["-lpam ${libconfuse_LIBS} ${libcrypto_LIBS}"])
-AC_SUBST([LIBADD_VALIDATE], ["-lpam ${libconfuse_LIBS} ${libcrypto_LIBS}"])
+AC_SUBST([LIBADD_AUDIT], ["-lpam ${libconfuse_LIBS} -lldap -llber \
+    ${libcrypto_LIBS}"])
+AC_SUBST([LIBADD_VALIDATE], ["-lpam ${libconfuse_LIBS} -lldap -llber \
+    ${libcrypto_LIBS}"])
 AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
     -llber ${libcrypto_LIBS}"])
 

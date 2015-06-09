@@ -50,12 +50,12 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value) )
 
-struct pox509_config_entry {
+struct pox509_cfg_entry {
     char *name;
     int value;
 };
 
-static struct pox509_config_entry syslog_facility[] = {
+static struct pox509_cfg_entry syslog_facility[] = {
     { "LOG_KERN", LOG_KERN },
     { "LOG_USER", LOG_USER },
     { "LOG_MAIL", LOG_MAIL },
@@ -80,7 +80,7 @@ static struct pox509_config_entry syslog_facility[] = {
     { NULL, 0 }
 };
 
-static struct pox509_config_entry libldap[] = {
+static struct pox509_cfg_entry libldap[] = {
     { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
     { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
     { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
@@ -93,7 +93,7 @@ static struct pox509_config_entry libldap[] = {
     { NULL, 0 }
 };
 
-static struct pox509_config_entry *config_lt[] = {
+static struct pox509_cfg_entry *cfg_lt[] = {
     syslog_facility,
     libldap
 };
@@ -139,7 +139,7 @@ log_success(const char *fmt, ...)
 }
 
 void
-pox509_log_fail(const char *filename, const char *function, const int line,
+pox509_log_fail(const char *filename, const char *function, int line,
     const char *fmt, ...)
 {
     if (filename == NULL || function == NULL || fmt == NULL) {
@@ -156,7 +156,7 @@ pox509_log_fail(const char *filename, const char *function, const int line,
 }
 
 void
-pox509_fatal(const char *filename, const char *function, const int line,
+pox509_fatal(const char *filename, const char *function, int line,
     const char *fmt, ...)
 {
     if (filename == NULL || function == NULL || fmt == NULL) {
@@ -181,20 +181,18 @@ config_lookup(const enum pox509_sections sec, const char *key)
     }
 
     if (sec != SYSLOG && sec != LIBLDAP) {
-        goto ret_no_value;
+        fatal("invalid section (%d)", sec);
     }
 
-    struct pox509_config_entry *lookup_ptr = NULL;
-    for (lookup_ptr = config_lt[sec]; lookup_ptr->name != NULL; lookup_ptr++) {
-        if(strcmp(lookup_ptr->name, key) == 0) {
-            return lookup_ptr->value;
+    struct pox509_cfg_entry *cfg_entry_p = NULL;
+    for (cfg_entry_p = cfg_lt[sec]; cfg_entry_p->name != NULL; cfg_entry_p++) {
+        if(strcmp(cfg_entry_p->name, key) != 0) {
+            continue;
         }
+        return cfg_entry_p->value;
     }
-
-ret_no_value:
     return -EINVAL;
 }
-
 
 int
 set_log_facility(const char *log_facility)
@@ -244,15 +242,18 @@ is_readable_file(const char *file)
     struct stat stat_buffer;
     int rc = stat(file, &stat_buffer);
     if (rc != 0) {
+        log_fail("stat(): '%s' (%d)", strerror(errno), errno);
         goto ret_false;
     }
     /* check if we have a file */
     if (!S_ISREG(stat_buffer.st_mode)) {
+        log_fail("S_ISREG");
         goto ret_false;
     }
-    /* check if readable */
+    /* check if file is readable */
     rc = access(file, R_OK);
     if (rc != 0) {
+        log_fail("access(): '%s' (%d)", strerror(errno), errno);
         goto ret_false;
     }
     return true;
@@ -276,14 +277,9 @@ is_valid_uid(const char *uid)
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
 
-    switch (rc) {
-    case 0:
+    if (rc == 0) {
         return true;
-    case REG_ESPACE:
-        fatal("regexec(): out of memory");
-    case REG_NOMATCH:
-        /* fall through */
-    default:
+    } else {
         return false;
     }
 }
@@ -298,26 +294,8 @@ is_msb_set(unsigned char byte)
     }
 }
 
-/*
- * CAUTION!
- *
- * before calling substitute_token() make sure that you filter values
- * that can lead to unwanted behavior.
- *
- * for example if the substitution value for the token can be chosen by
- * an attacker and the function is used for replacing tokens in a path.
- *
- * consider the following example:
- * path: /etc/ssh/keystore/%u/authorized_keys
- *
- * an attacker can change the path easily if he provides the following:
- * substitution value: ../../../root/.ssh 
- *
- * that would lead to the following path:
- * /etc/ssh/keystore/../../../root/.ssh/authorized_keys
- */
 void
-substitute_token(char token, char *subst, char *src, char *dst,
+substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length)
 {
     if (subst == NULL || src == NULL || dst == NULL) {
@@ -325,10 +303,10 @@ substitute_token(char token, char *subst, char *src, char *dst,
     }
 
     if (dst_length == 0) {
-        return;
+        fatal("dst_length must be > 0");
     }
 
-    bool cdt = 0;
+    int cdt = 0;
     int j = 0;
     size_t strlen_subst = strlen(subst);
     int i;
@@ -355,51 +333,65 @@ substitute_token(char token, char *subst, char *src, char *dst,
 }
 
 void
-create_ldap_search_filter(char *rdn, char *uid, char *dst, size_t dst_length)
+create_ldap_search_filter(const char *rdn, const char *uid, char *dst,
+    size_t dst_length)
 {
     if (rdn == NULL || uid == NULL || dst == NULL) {
         fatal("rdn, uid or dst == NULL");
     }
 
     if (dst_length == 0) {
-        return;
+        fatal("dst_length must be > 0");
     }
+
     snprintf(dst, dst_length, "%s=%s", rdn, uid);
 }
 
-void
-check_access_permission(char *group_dn, char *identifier,
+int
+check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *x509_info)
 {
     if (group_dn == NULL || identifier == NULL || x509_info == NULL) {
         fatal("group_dn, identifier or x509_info == NULL");
     }
 
-    /*
-     * copy group_dn to char array in order to make sure that
-     * string is mutable as strtok will try to change it
-     */
-    char group_dn_mutable[GROUP_DN_BUFFER_SIZE];
-    strncpy(group_dn_mutable, group_dn, GROUP_DN_BUFFER_SIZE);
+    size_t group_dn_length = strlen(group_dn);
+    if (group_dn_length == 0) {
+        fatal("group_dn must be > 0");
+    }
 
-    char *token = strtok(group_dn_mutable, "=");
-    if (token == NULL) {
-        goto no_access;
+    int ret = -1;
+    LDAPDN dn = NULL;
+    int rc = ldap_str2dn(group_dn, &dn, LDAP_DN_FORMAT_LDAPV3);
+    if (rc != LDAP_SUCCESS) {
+        log_fail("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
+        return ret;
     }
-    token = strtok(NULL, ",");
-    if (token == NULL) {
-        goto no_access;
-    }
-    /* token now contains rdn value of group only */
-    int rc = strcmp(token, identifier);
-    if (rc != 0) {
-        goto no_access;
-    }
-    x509_info->has_access = 1;
-    return;
 
-no_access:
-    x509_info->has_access = 0;
+    if (dn == NULL) {
+        log_fail("dn == NULL");
+        goto cleanup_dn;
+    }
+
+    LDAPRDN rdn = dn[0];
+    char *rdn_value = NULL;
+    rc = ldap_rdn2str(rdn, &rdn_value, LDAP_DN_FORMAT_UFN);
+    if (rc != LDAP_SUCCESS) {
+        log_fail("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
+        goto cleanup_dn;
+    }
+
+    rc = strcmp(rdn_value, identifier);
+    if (rc == 0) {
+        x509_info->has_access = 1;
+    } else {
+        x509_info->has_access = 0;
+    }
+
+    ldap_memfree(rdn_value);
+cleanup_dn:
+    ldap_dnfree(dn);
+    return ret;
 }
 
 void
@@ -452,7 +444,7 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 }
 
 void
-pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
+pkey_to_authorized_keys(const EVP_PKEY *pkey, struct pox509_info *x509_info)
 {
     if (pkey == NULL || x509_info == NULL) {
         fatal("pkey or x509_info == NULL");
@@ -478,7 +470,6 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         size_t length_keytype = strlen(x509_info->ssh_keytype);
         size_t length_exponent = BN_num_bytes(rsa->e);
         size_t length_modulus = BN_num_bytes(rsa->n);
-
         /*
          * the 4 bytes hold the length of the following value and the 2
          * extra bytes before the exponent and modulus are possibly
@@ -552,7 +543,7 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
 
         /* base64 encode blob and write to memory */
-        int post_length_blob = blob_p - blob;
+        size_t post_length_blob = blob_p - blob;
         BIO_write(bio_base64_mem, blob, post_length_blob);
         int rc = BIO_flush(bio_base64_mem);
         if (rc != 1) {

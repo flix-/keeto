@@ -28,7 +28,6 @@
 #define log_fail(...) pox509_log_fail(__FILE__, __func__, __LINE__, __VA_ARGS__)
 #define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
-/* type declarations */
 struct pox509_info {
     char *uid;
     char *authorized_keys_file;
@@ -52,28 +51,219 @@ enum pox509_sections {
     LIBLDAP
 };
 
-/* function declarations */
-void log_msg(const char *fmt, ...);
-void log_success(const char *fmt, ...);
-/* do not call this function directly - use log_fail wrapper macro instead */
-void pox509_log_fail(const char *filename, const char *function, const int line,
-    const char *fmt, ...);
-/* do not call this function directly - use fatal wrapper macro instead */
-void pox509_fatal(const char *filename, const char *function, const int line,
-    const char *fmt, ...);
-int config_lookup(const enum pox509_sections sec, const char *key);
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[#]'.
+ *
+ * @param[in] fmt Format string.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void log_msg(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[+]'.
+ *
+ * @param[in] fmt Format string. Must not be NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[-] [filename, function(), line]'.
+ *
+ * Do NOT call this function directly - use log_fail wrapper macro
+ * instead!
+ *
+ * @param[in] filename Name of the source file the call took place. Must
+ * not be NULL.
+ * @param[in] function Name of the function the call took place. Must
+ * not be NULL.
+ * @param[in] line Number of the line the call took place.
+ * @param[in] fmt Format string. Must not be NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void pox509_log_fail(const char *filename, const char *function, int line,
+    const char *fmt, ...) __attribute__((format(printf, 4, 5)));
+
+/**
+ * Log message to syslog and terminate process.
+ *
+ * The message is prefixed with '[!] [filename, function(), line]'.
+ * After the message has been send to syslog the process will be
+ * terminated.
+ *
+ * Do NOT call this function directly - use fatal wrapper macro instead!
+ *
+ * @param[in] filename Name of the source file the call took place. Must
+ * not be NULL.
+ * @param[in] function Name of the function the call took place. Must
+ * not be NULL.
+ * @param[in] line Number of the line the call took place.
+ * @param[in] fmt Format string. Must not be NULL. Must not be NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void pox509_fatal(const char *filename, const char *function, int line,
+    const char *fmt, ...) __attribute__((noreturn))
+    __attribute__((format(printf, 4, 5)));
+
+/**
+ * Map a configuration value from string to enum constant.
+ *
+ * Some configuration options have to be set to enum constants. For
+ * example the log_facility accepts LOG_KERN, LOG_USER etc. This enum
+ * constants are actually integer values. In the configuration file they
+ * are passed as strings. This function maps the input string to the
+ * appropriate enum constant.
+ *
+ * @param[in] sec Name of the section that shall be searched. Valid
+ * values are: SYSLOG, LIBLDAP.
+ * @param[in] key String that shall be mapped. Must not be NULL.
+ *
+ * @return Upon successful completion, the appropriate enum constant
+ * shall be returned. Otherwise -EINVAL shall be returned.
+ */
+int config_lookup(enum pox509_sections sec, const char *key);
+
+/**
+ * Set the syslog facility used by the logging functions.
+ *
+ * @param[in] log_facility Log facility name. Must not be NULL.
+ *
+ * @return Upon successful completion, 0 shall be returned with the log
+ * facility set. Otherwise, -EINVAL shall be returned.
+ *
+ * @see man 3 syslog.
+ */
 int set_log_facility(const char *log_facility);
+
+/**
+ * Set default values of data transfer object.
+ *
+ * @param[out] x509_info DTO. Must not be NULL.
+ */
 void init_data_transfer_object(struct pox509_info *x509_info);
+
+/**
+ * Check if file is a regular and readable file.
+ *
+ * @param[in] file Path to file. Must not be NULL.
+ *
+ * @return Shall return true if file is a regular and readable file or
+ * false otherwise. Process shall terminate on error.
+ */
 bool is_readable_file(const char *file);
+
+/**
+ * Check uid against a regular expression.
+ *
+ * @param[in] uid UID that shall be checked. Must not be NULL.
+ *
+ * @return Shall return true if uid matches regex or false otherwise.
+ * Process shall terminate on error.
+ */
 bool is_valid_uid(const char *uid);
-void substitute_token(char token, char *subst, char *src, char *dst,
+
+/**
+ * Overwrite a token in a string with a substitution value.
+ *
+ * The token has the form '%{token}' and will be completely replaced
+ * with the value pointed by subst.
+ * For example the string "/etc/ssh/keystore/%u/authorized_keys" with
+ * the token 'u' and the substitution value "foo" will yield
+ * "/etc/ssh/keystore/foo/authorized_keys".
+ *
+ *
+ * @param[in] token Token that shall be replaced.
+ * @param[in] subst Substitution value for '%{token}'. Must not be NULL.
+ * @param[in] src Input string that shall be replaced. Must not be NULL.
+ * @param[out] dst Output buffer where substituted string shall be
+ * written to. Must not be NULL.
+ * @param[in] dst_length Length of the output buffer. Must be > 0.
+ *
+ * @warning Before calling substitute_token() make sure that values that
+ * can lead to unwanted behavior are filtered.
+ *
+ * For example if the substitution value for the token can be chosen by
+ * an attacker and the function is used for replacing tokens in a path.
+ *
+ * Consider the following path: "/etc/ssh/keystore/%u/authorized_keys"
+ *
+ * An attacker can change the path easily if he provides the following
+ * substitution value: "../../../root/.ssh"
+ *
+ * This will lead to the following path:
+ * "/etc/ssh/keystore/../../../root/.ssh/authorized_keys"
+ */
+void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
-void create_ldap_search_filter(char *rdn, char *uid, char *dst,
-    size_t dst_length);
-void check_access_permission(char *group_dn, char *identifier,
+
+/**
+ * Create LDAP search filter from rdn attribute and uid.
+ *
+ * @param[in] rdn RDN attribute. Must not be NULL.
+ * @param[in] uid UID. Must not be NULL.
+ * @param[out] dst Output buffer where result shall be written to. Must
+ * not be NULL.
+ * @param[in] dst_length Length of the output buffer. Must be > 0.
+ */
+void create_ldap_search_filter(const char *rdn, const char *uid,
+    char *dst, size_t dst_length);
+
+/**
+ * Extract first RDN value of group_dn and compare to identifier.
+ *
+ * Every OpenSSH server has a corresponding group in the LDAP server.
+ * A user has the permission to access a certain OpenSSH server if he
+ * has a group membership for that OpenSSH server.
+ * To identify the group of the OpenSSH server an identifier in the
+ * config file of pam_openssh_x509 is set that has to correspond to the
+ * first RDN value of the group dn.
+ *
+ * This function checks if the user has access to the OpenSSH server or
+ * not and writes the result to the DTO.
+ *
+ * @param[in] group_dn DN of an OpenSSH server group. Must be > 0.
+ * @param[in] identifier Identifier for the OpenSSH server.
+ * @param[out] x509_info DTO
+ *
+ * @return Upon successful completion, 0 shall be returned and the
+ * result shall be writen to the DTO. Otherwise -1 shall be returned and
+ * the DTO remains untouched.
+ */
+int check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *x509_info);
+
+/**
+ * Validate a x509 certificate.
+ *
+ * @param[in] x509 X509 certificate. Must not be NULL.
+ * @param[in] cacerts_dir Path to directory with trusted root CA's
+ * symlinked by their hash value. Must not be NULL.
+ * @param[out] DTO
+ */
 void validate_x509(X509 *x509, char *cacerts_dir,
     struct pox509_info *x509_info);
-void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info);
+
+/**
+ * Converts a public key to an OpenSSH authorized_keys file entry.
+ *
+ * @param[in] pkey Public Key. Must not be NULL.
+ * @param[out] DTO.
+ */
+void pkey_to_authorized_keys(const EVP_PKEY *pkey,
+    struct pox509_info *x509_info);
 #endif
 
