@@ -129,7 +129,7 @@ void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  *
  * The message is prefixed with '[-] [filename, function(), line]'.
  *
- * Do NOT call this function directly - use log_fail wrapper macro
+ * Do NOT call this function directly - use #log_fail wrapper macro
  * instead!
  *
  * @param[in] filename Name of the source file the call took place. Must
@@ -153,7 +153,8 @@ void pox509_log_fail(const char *filename, const char *function, int line,
  * After the message has been send to syslog the process will be
  * terminated.
  *
- * Do NOT call this function directly - use fatal wrapper macro instead!
+ * Do NOT call this function directly - use #fatal wrapper macro
+ * instead!
  *
  * @param[in] filename Name of the source file the call took place. Must
  * not be @c NULL.
