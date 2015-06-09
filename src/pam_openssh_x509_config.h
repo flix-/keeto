@@ -16,13 +16,13 @@
  */
 
 /**
-  * Functions regarding config processing for pam_openssh_x509.
-  *
-  * @file pam_openssh_x509_config.h
-  * @author Sebastian Roland <seroland86@gmail.com>
-  * @date 2015-06-09
-  * @see https://github.com/flix-/pam_openssh_x509
-  */
+ * Functions regarding config processing for pam_openssh_x509.
+ *
+ * @file pam_openssh_x509_config.h
+ * @author Sebastian Roland <seroland86@gmail.com>
+ * @date 2015-06-09
+ * @see https://github.com/flix-/pam_openssh_x509
+ */
 
 #ifndef PAM_OPENSSH_X509_CONFIG_H
 #define PAM_OPENSSH_X509_CONFIG_H

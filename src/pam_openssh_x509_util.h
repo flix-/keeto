@@ -16,13 +16,13 @@
  */
 
 /**
-  * Utility functions for pam_openssh_x509.
-  *
-  * @file pam_openssh_x509_util.h
-  * @author Sebastian Roland <seroland86@gmail.com>
-  * @date 2015-06-09
-  * @see https://github.com/flix-/pam_openssh_x509
-  */
+ * Utility functions for pam_openssh_x509.
+ *
+ * @file pam_openssh_x509_util.h
+ * @author Sebastian Roland <seroland86@gmail.com>
+ * @date 2015-06-09
+ * @see https://github.com/flix-/pam_openssh_x509
+ */
 
 #ifndef PAM_OPENSSH_X509_UTIL_H
 #define PAM_OPENSSH_X509_UTIL_H
@@ -58,35 +58,35 @@
  * handle.
  */
 struct pox509_info {
-	/** UID of the user trying to authenticate */
+    /** UID of the user trying to authenticate */
     char *uid; 
-	/** Path to authorized_keys file */
+    /** Path to authorized_keys file */
     char *authorized_keys_file;
-	/** Type of the OpenSSH key */
+    /** Type of the OpenSSH key */
     char *ssh_keytype;
-	/** String representation of the OpenSSH public key for pasting into
-	 *  authorized_keys file */
+    /** String representation of the OpenSSH public key for pasting into
+     *  authorized_keys file */
     char *ssh_key;
 
     /** Indicates whether a x509 certificate could has been found or
-	 *  not */
-	char has_cert;
-	/** Indicates whether the x509 certificate is valid or not */
+     *  not */
+    char has_cert;
+    /** Indicates whether the x509 certificate is valid or not */
     char has_valid_cert;
-	/** Serial number of the x509 certificate */
+    /** Serial number of the x509 certificate */
     char *serial;
-	/** Issuer of the x509 certificate */
+    /** Issuer of the x509 certificate */
     char *issuer;
-	/** Subject of the x509 certificate */
+    /** Subject of the x509 certificate */
     char *subject;
 
-	/** Indicates whether the LDAP server has been reached or not */
+    /** Indicates whether the LDAP server has been reached or not */
     char directory_online;
-	/** Indicates whether the user is authorized to access the server or
-	 *  not */
+    /** Indicates whether the user is authorized to access the server or
+     *  not */
     char has_access;
 
-	/** Syslog logging facility */
+    /** Syslog logging facility */
     char *log_facility;
 };
 
@@ -94,9 +94,9 @@ struct pox509_info {
  * Available sections for config lookup table.
  */
 enum pox509_sections {
-	/** Section holding config options regarding syslog. */
+    /** Section holding config options regarding syslog. */
     SYSLOG,
-	/** Section holding config options regarding libldap */
+     /** Section holding config options regarding libldap */
     LIBLDAP
 };
 
