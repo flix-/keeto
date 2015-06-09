@@ -444,7 +444,7 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 }
 
 void
-pkey_to_authorized_keys(const EVP_PKEY *pkey, struct pox509_info *x509_info)
+pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
 {
     if (pkey == NULL || x509_info == NULL) {
         fatal("pkey or x509_info == NULL");
