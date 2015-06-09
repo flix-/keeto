@@ -15,12 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+  * Functions regarding config processing for pam_openssh_x509.
+  *
+  * @file pam_openssh_x509_config.h
+  * @author Sebastian Roland <seroland86@gmail.com>
+  * @date 2015-06-09
+  * @see https://github.com/flix-/pam_openssh_x509
+  */
+
 #ifndef PAM_OPENSSH_X509_CONFIG_H
 #define PAM_OPENSSH_X509_CONFIG_H
 
 #include <confuse.h>
 
+/**
+ * Initialize and parse configuration file.
+ *
+ * @param[in] cfg Configuration structure. Must not be @c NULL.
+ * @param[in] cfg_file Path to configuration file. Must nut be @c NULL.
+ */
 void init_and_parse_config(cfg_t **cfg, const char *cfg_file);
+
+/**
+ * Release allocated memory from configuration structure.
+ *
+ * @param[in] cfg Configuration structure. Must not be @c NULL.
+ */
 void release_config(cfg_t *cfg);
 #endif
-

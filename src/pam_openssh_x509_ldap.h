@@ -15,6 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+  * Functions regarding LDAP connection for pam_openssh_x509.
+  *
+  * @file pam_openssh_x509_ldap.h
+  * @author Sebastian Roland <seroland86@gmail.com>
+  * @date 2015-06-09
+  * @see https://github.com/flix-/pam_openssh_x509
+  */
+
 #ifndef PAM_OPENSSH_X509_LDAP_H
 #define PAM_OPENSSH_X509_LDAP_H
 
@@ -23,7 +32,18 @@
 
 #include "pam_openssh_x509_util.h"
 
+/**
+ * Obtain access permission and x509 certificate of user from LDAP.
+ *
+ * The user object corresponding to the given UID is searched in the
+ * LDAP server and access permission as well as the x509 certificate
+ * of the user will be retrieved.
+ *
+ * @param[in] cfg Configuration structure. Must not be @c NULL.
+ * @param[out] x509_info DTO. Access permission will be stored here.
+ * Must not be @c NULL.
+ * @param[out] x509 The parsed x509 certificate.
+ */
 void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
     struct pox509_info *x509_info, X509 **x509);
 #endif
-

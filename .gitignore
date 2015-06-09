@@ -23,4 +23,5 @@ tests/.deps
 build-aux
 aclocal.m4
 m4
+doc/html
 
