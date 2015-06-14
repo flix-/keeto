@@ -109,7 +109,9 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
 
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
+    openlog("pox509", LOG_PID, pox509_log_facility);
     syslog(pox509_log_facility, "%s %s\n", prefix, buffer);
+    closelog();
 }
 
 void
@@ -227,7 +229,7 @@ init_data_transfer_object(struct pox509_info *x509_info)
     x509_info->serial = NULL;
     x509_info->issuer = NULL;
     x509_info->subject = NULL;
-    x509_info->directory_online = 0x56;
+    x509_info->ldap_online = 0x56;
     x509_info->has_access = 0x56;
     x509_info->log_facility = NULL;
 }
@@ -347,7 +349,7 @@ create_ldap_search_filter(const char *rdn, const char *uid, char *dst,
     snprintf(dst, dst_length, "%s=%s", rdn, uid);
 }
 
-int
+void
 check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *x509_info)
 {
@@ -360,25 +362,21 @@ check_access_permission(const char *group_dn, const char *identifier,
         fatal("group_dn must be > 0");
     }
 
-    int ret = -1;
     LDAPDN dn = NULL;
     int rc = ldap_str2dn(group_dn, &dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
-        log_fail("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
-        return ret;
+        fatal("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
     }
 
     if (dn == NULL) {
-        log_fail("dn == NULL");
-        goto cleanup_dn;
+        fatal("dn == NULL");
     }
 
     LDAPRDN rdn = dn[0];
     char *rdn_value = NULL;
     rc = ldap_rdn2str(rdn, &rdn_value, LDAP_DN_FORMAT_UFN);
     if (rc != LDAP_SUCCESS) {
-        log_fail("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
-        goto cleanup_dn;
+        fatal("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
     }
 
     rc = strcmp(rdn_value, identifier);
@@ -389,9 +387,7 @@ check_access_permission(const char *group_dn, const char *identifier,
     }
 
     ldap_memfree(rdn_value);
-cleanup_dn:
     ldap_dnfree(dn);
-    return ret;
 }
 
 void

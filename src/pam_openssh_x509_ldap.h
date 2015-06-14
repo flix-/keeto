@@ -16,11 +16,11 @@
  */
 
 /**
- * Functions regarding LDAP connection for pam_openssh_x509.
+ * LDAP processing.
  *
  * @file pam_openssh_x509_ldap.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-09
+ * @date 2015-06-13
  * @see https://github.com/flix-/pam_openssh_x509
  */
 

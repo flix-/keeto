@@ -56,7 +56,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* only modify authorized_keys file if LDAP server could be queried */
-    if (x509_info->directory_online != 1) {
+    if (x509_info->ldap_online != 1) {
         log_msg("ldap server not accessible. not changing anything");
         goto auth_success;
     }

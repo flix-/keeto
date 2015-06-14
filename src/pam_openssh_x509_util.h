@@ -16,11 +16,11 @@
  */
 
 /**
- * Utility functions for pam_openssh_x509.
+ * Utility functions.
  *
  * @file pam_openssh_x509_util.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-09
+ * @date 2015-06-13
  * @see https://github.com/flix-/pam_openssh_x509
  */
 
@@ -37,6 +37,7 @@
 /**
  * Wrapper for #pox509_log_fail.
  *
+ * @param[in] ... Format string, Format arguments.
  * @see #pox509_log_fail.
  * @see man 3 printf.
  */
@@ -44,6 +45,8 @@
 
 /**
  * Wrapper for #pox509_fatal.
+ *
+ * @param[in] ... Format string, Format arguments.
  *
  * @see #pox509_fatal.
  * @see man 3 printf.
@@ -58,7 +61,7 @@
  * handle.
  */
 struct pox509_info {
-    /** UID of the user trying to authenticate */
+    /** UID of the user about to authenticate */
     char *uid; 
     /** Path to authorized_keys file */
     char *authorized_keys_file;
@@ -68,8 +71,7 @@ struct pox509_info {
      *  authorized_keys file */
     char *ssh_key;
 
-    /** Indicates whether a x509 certificate could has been found or
-     *  not */
+    /** Indicates whether a x509 certificate has been found or not */
     char has_cert;
     /** Indicates whether the x509 certificate is valid or not */
     char has_valid_cert;
@@ -81,7 +83,7 @@ struct pox509_info {
     char *subject;
 
     /** Indicates whether the LDAP server has been reached or not */
-    char directory_online;
+    char ldap_online;
     /** Indicates whether the user is authorized to access the server or
      *  not */
     char has_access;
@@ -91,7 +93,7 @@ struct pox509_info {
 };
 
 /**
- * Available sections for config lookup table.
+ * Sections for config lookup table.
  */
 enum pox509_sections {
     /** Section holding config options regarding syslog. */
@@ -105,7 +107,7 @@ enum pox509_sections {
  *
  * The message is prefixed with '[#]'.
  *
- * @param[in] fmt Format string.
+ * @param[in] fmt Format string. Must not be @c NULL.
  * @param[in] ... Format arguments.
  *
  * @see man 3 printf.
@@ -129,9 +131,6 @@ void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  *
  * The message is prefixed with '[-] [filename, function(), line]'.
  *
- * Do NOT call this function directly - use #log_fail wrapper macro
- * instead!
- *
  * @param[in] filename Name of the source file the call took place. Must
  * not be @c NULL.
  * @param[in] function Name of the function the call took place. Must
@@ -139,6 +138,9 @@ void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  * @param[in] line Number of the line the call took place.
  * @param[in] fmt Format string. Must not be @c NULL.
  * @param[in] ... Format arguments.
+ *
+ * @note Do NOT call this function directly - use #log_fail wrapper
+ * macro instead.
  *
  * @see #log_fail.
  * @see man 3 printf.
@@ -153,17 +155,16 @@ void pox509_log_fail(const char *filename, const char *function, int line,
  * After the message has been send to syslog the process will be
  * terminated.
  *
- * Do NOT call this function directly - use #fatal wrapper macro
- * instead!
- *
  * @param[in] filename Name of the source file the call took place. Must
  * not be @c NULL.
  * @param[in] function Name of the function the call took place. Must
  * not be @c NULL.
  * @param[in] line Number of the line the call took place.
- * @param[in] fmt Format string. Must not be @c NULL. Must not be @c
- * NULL.
+ * @param[in] fmt Format string. Must not be @c NULL.
  * @param[in] ... Format arguments.
+ *
+ * @note Do NOT call this function directly - use #log_fail wrapper
+ * macro instead.
  *
  * @see #fatal.
  * @see man 3 printf.
@@ -292,15 +293,12 @@ void create_ldap_search_filter(const char *rdn, const char *uid,
  * This function checks if the user has access to the OpenSSH server or
  * not and writes the result to the DTO.
  *
- * @param[in] group_dn DN of an OpenSSH server group. Must be > 0.
+ * @param[in] group_dn DN of an OpenSSH server group. Must not be
+ * @c NULL. Length must be > 0.
  * @param[in] identifier Identifier for the OpenSSH server.
  * @param[out] x509_info DTO
- *
- * @return Upon successful completion, 0 shall be returned and the
- * result shall be writen to the DTO. Otherwise -1 shall be returned and
- * the DTO remains untouched.
  */
-int check_access_permission(const char *group_dn, const char *identifier,
+void check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *x509_info);
 
 /**

@@ -16,11 +16,11 @@
  */
 
 /**
- * Functions regarding config processing for pam_openssh_x509.
+ * Config file processing.
  *
  * @file pam_openssh_x509_config.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-09
+ * @date 2015-06-13
  * @see https://github.com/flix-/pam_openssh_x509
  */
 
@@ -33,7 +33,7 @@
  * Initialize and parse configuration file.
  *
  * @param[in] cfg Configuration structure. Must not be @c NULL.
- * @param[in] cfg_file Path to configuration file. Must nut be @c NULL.
+ * @param[in] cfg_file Path to configuration file. Must not be @c NULL.
  */
 void init_and_parse_config(cfg_t **cfg, const char *cfg_file);
 

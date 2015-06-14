@@ -85,7 +85,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     log_string("issuer", x509_info->issuer);
     log_string("subject", x509_info->subject);
     log_msg(" ");
-    log_char("is_directory_online", x509_info->directory_online);
+    log_char("is_ldap_online", x509_info->ldap_online);
     log_char("has_access", x509_info->has_access);
     log_msg("===================================================");
 

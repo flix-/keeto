@@ -88,8 +88,6 @@ init_starttls(LDAP *ldap_handle)
         rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
         if (rc == LDAP_OPT_SUCCESS) {
             fatal("ldap_start_tls_s(): '%s'", msg);
-        } else {
-            log_fail("ldap_get_option(): '%s' (%d)", ldap_err2string(rc), rc);
         }
         fatal("ldap_start_tls_s()");
     }
@@ -300,14 +298,14 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
 
     rc = bind_to_ldap(ldap_handle, cfg);
     if (rc != LDAP_SUCCESS) {
-        x509_info->directory_online = 0;
+        x509_info->ldap_online = 0;
         log_fail("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
     }
 
     /* connection established */
     log_success("bind_to_ldap()");
-    x509_info->directory_online = 1;
+    x509_info->ldap_online = 1;
 
     /* query ldap */
     LDAPMessage *ldap_result = NULL;

@@ -6,7 +6,8 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = pam_openssh_x509
 PROJECT_NUMBER         = 
-PROJECT_BRIEF          = 
+PROJECT_BRIEF          = "Collection of PAM modules for an automatized" \
+                         "and secure OpenSSH key and access management"
 PROJECT_LOGO           = 
 OUTPUT_DIRECTORY       = doc
 CREATE_SUBDIRS         = NO
@@ -184,7 +185,7 @@ QHG_LOCATION           =
 GENERATE_ECLIPSEHELP   = NO
 ECLIPSE_DOC_ID         = org.doxygen.Project
 DISABLE_INDEX          = NO
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 ENUM_VALUES_PER_LINE   = 4
 TREEVIEW_WIDTH         = 250
 EXT_LINKS_IN_WINDOW    = NO
