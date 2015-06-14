@@ -148,8 +148,7 @@ START_TEST
 {
     const char *function = "hello_world";
     int line = 1948;
-    const char *fmt = "fail";
-    pox509_log_fail(NULL, function, line, fmt);
+    pox509_log_fail(NULL, function, line, "fail");
 }
 END_TEST
 
@@ -158,8 +157,7 @@ START_TEST
 {
     const char *filename = "hello_world.c";
     int line = 1948;
-    const char *fmt = "fail";
-    pox509_log_fail(filename, NULL, line, fmt);
+    pox509_log_fail(filename, NULL, line, "fail");
 }
 END_TEST
 
@@ -189,8 +187,7 @@ START_TEST
 {
     const char *function = "hello_world";
     int line = 1948;
-    const char *fmt = "fatal";
-    pox509_fatal(NULL, function, line, fmt);
+    pox509_fatal(NULL, function, line, "fatal");
 }
 END_TEST
 
@@ -199,8 +196,7 @@ START_TEST
 {
     const char *filename = "hello_world.c";
     int line = 1948;
-    const char *fmt = "fatal";
-    pox509_fatal(filename, NULL, line, fmt);
+    pox509_fatal(filename, NULL, line, "fatal");
 }
 END_TEST
 
