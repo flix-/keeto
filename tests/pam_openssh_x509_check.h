@@ -25,7 +25,6 @@
 
 #include <check.h>
 
-/* type declarations */
 struct pox509_substitute_token_entry {
     char token;
     char *subst;
@@ -63,8 +62,6 @@ struct pox509_is_readable_file_entry {
     bool exp_result;
 };
 
-/* function declarations */
 Suite *make_config_suite(void);
 Suite *make_util_suite(void);
 #endif
-
