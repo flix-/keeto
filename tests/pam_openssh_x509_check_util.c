@@ -56,7 +56,7 @@ static struct pox509_is_readable_file_entry is_readable_file_lt[] = {
     false },
     { READABLEFILESDIR "/dir_read", S_IRUSR, false },
     { READABLEFILESDIR "/dir_write", S_IWUSR, false },
-    { READABLEFILESDIR "/dir_write_read", S_IWUSR|S_IRUSR, false },
+    { READABLEFILESDIR "/dir_write_read", S_IWUSR|S_IRUSR, false }
 };
 
 static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
@@ -69,7 +69,7 @@ static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
     { "abcdefghijklmnopqrstuvwxyzaabbccd", false },
     { "../keystore/foo", false },
     { "..", false },
-    { "_foo", false },
+    { "_foo", false }
 };
 
 static struct pox509_substitute_token_entry substitute_token_lt[] = {
@@ -89,7 +89,7 @@ static struct pox509_substitute_token_entry substitute_token_lt[] = {
     { 'u', "foo", "/home/%u/", 9, "/home/fo" },
     { 'u', "foo", "/home/%u/", 10, "/home/foo" },
     { 'u', "foo", "/home/%u/", 1, "" },
-    { 'u', "foo", "/home/%u/", 2, "/" },
+    { 'u', "foo", "/home/%u/", 2, "/" }
 };
 
 static struct pox509_create_ldap_search_filter_entry
@@ -100,7 +100,7 @@ static struct pox509_create_ldap_search_filter_entry
     { "uid", "foo", 1, "" },
     { "uid", "foo", 2, "u" },
     { "uid", "foo", 5, "uid=" },
-    { "uid", "foo", 6, "uid=f" },
+    { "uid", "foo", 6, "uid=f" }
 };
 
 static struct pox509_check_access_permission_entry
@@ -111,13 +111,13 @@ static struct pox509_check_access_permission_entry
     { "cn=blub", "blub", 1 },
     { "cn= blub", "blub", 1},
     { "cn=blub,dc=abc,dc=def", "foo", 0 },
-    { "cn=", "", 1 },
+    { "cn=", "", 1 }
 };
 
 static struct pox509_validate_x509_entry validate_x509_lt[] = {
     { X509CERTSDIR "/not_trusted_ca.pem", 0 },
     { X509CERTSDIR "/trusted_ca_but_expired.pem", 0 },
-    { X509CERTSDIR "/trusted_and_not_expired.pem", 1 },
+    { X509CERTSDIR "/trusted_and_not_expired.pem", 1 }
 };
 
 /*
