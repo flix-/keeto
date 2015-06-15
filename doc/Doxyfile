@@ -7,7 +7,7 @@ DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = pam-openssh-x509
 PROJECT_NUMBER         = 
 PROJECT_BRIEF          = "Collection of PAM modules for an automatized" \
-                         "and secure OpenSSH key and access management."
+                         "and secure OpenSSH key and access management"
 PROJECT_LOGO           = 
 OUTPUT_DIRECTORY       = doc
 CREATE_SUBDIRS         = NO
