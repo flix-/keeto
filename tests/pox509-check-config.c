@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_check.h"
+#include "pox509-check.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -24,7 +24,7 @@
 #include <check.h>
 #include <confuse.h>
 
-#include "../src/pam_openssh_x509_config.c"
+#include "../src/pox509-config.c"
 
 static char *init_and_parse_config_exit_lt[] = {
     CONFIGSDIR "/ldap_scope_negative_0.conf",

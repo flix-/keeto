@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_check.h"
+#include "pox509-check.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -34,7 +34,7 @@
 #include <openssl/x509.h>
 #include <sys/stat.h>
 
-#include "../src/pam_openssh_x509_util.h"
+#include "../src/pox509-util.h"
 
 #define BUFFER_SIZE 2048
 

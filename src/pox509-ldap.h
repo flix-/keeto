@@ -16,31 +16,34 @@
  */
 
 /**
- * Config file processing.
+ * LDAP processing.
  *
- * @file pam_openssh_x509_config.h
+ * @file pox509-ldap.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-13
- * @see https://github.com/flix-/pam_openssh_x509
+ * @date 2015-06-15
+ * @see https://github.com/flix-/pam-openssh-x509
  */
 
-#ifndef PAM_OPENSSH_X509_CONFIG_H
-#define PAM_OPENSSH_X509_CONFIG_H
+#ifndef POX509_LDAP_H
+#define POX509_LDAP_H
 
 #include <confuse.h>
+#include <openssl/x509.h>
+
+#include "pox509-util.h"
 
 /**
- * Initialize and parse configuration file.
+ * Obtain access permission and x509 certificate of user from LDAP.
+ *
+ * The user object corresponding to the given UID is searched in the
+ * LDAP server and access permission as well as the x509 certificate
+ * of the user will be retrieved.
  *
  * @param[in] cfg Configuration structure. Must not be @c NULL.
- * @param[in] cfg_file Path to configuration file. Must not be @c NULL.
+ * @param[out] x509_info DTO. Access permission will be stored here.
+ * Must not be @c NULL.
+ * @param[out] x509 The parsed x509 certificate.
  */
-void init_and_parse_config(cfg_t **cfg, const char *cfg_file);
-
-/**
- * Release allocated memory from configuration structure.
- *
- * @param[in] cfg Configuration structure. Must not be @c NULL.
- */
-void release_config(cfg_t *cfg);
+void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
+    struct pox509_info *x509_info, X509 **x509);
 #endif

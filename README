@@ -14,10 +14,10 @@ Contents of this file
 Introduction
 ------------
 
-pam_openssh_x509 is a collection of PAM modules that paired with a PKI
+pam-openssh-x509 is a collection of PAM modules that paired with a PKI
 provides a fully automated solution for the management of OpenSSH keys.
 
-pam_openssh_x509 enables you to...
+pam-openssh-x509 enables you to...
 
  * Reduce your costs yet improving security by using synergies of
    already established processes.
@@ -35,14 +35,14 @@ pam_openssh_x509 enables you to...
  * Reveal the theft of private keys and make it hard to duplicate them.
  * KEEP IT SIMPLE \o/
 
-For more information on how to make the most out of pam_openssh_x509 see
+For more information on how to make the most out of pam-openssh-x509 see
 the next section.
 
 
 Operating model
 ---------------
 
-The idea behind pam_openssh_x509 is to make managed x509 certificates
+The idea behind pam-openssh-x509 is to make managed x509 certificates
 accessible for OpenSSH public key authentication. Contrary to other
 approaches the source code of OpenSSH remains untouched, making it
 relatively independent from changes to OpenSSH. It also supports
@@ -58,7 +58,7 @@ The operating model consists of the following components:
  * LDAP server
  * Smartcard technology (optional)
  * SSH client supporting Smartcards (e.g. PuTTY-CAC) (optional)
- * pam_openssh_x509
+ * pam-openssh-x509
 
 
 The tasks of the components can be described as follows:
@@ -92,13 +92,13 @@ The SSH client supporting Smartcards...
    inside the filesystem
 
 
-For the usage of pam_openssh_x509 the PKI has to store the x509
+For the usage of pam-openssh-x509 the PKI has to store the x509
 certificates at the user object in the LDAP server. Every OpenSSH server
 will be represented as a group in a distinct tree in the LDAP server.
 Access permission to an OpenSSH server is then granted through a group
 membership.
 
-pam_openssh_x509 makes sure that the public key of the x509 certificate
+pam-openssh-x509 makes sure that the public key of the x509 certificate
 is synchronized to the server. It does so only after access permissions
 have been checked and the certificate has been validated.
 
@@ -106,9 +106,9 @@ have been checked and the certificate has been validated.
 Module stack
 ------------
 
-pam_openssh_x509 is made up of the following modules:
+pam-openssh-x509 is made up of the following modules:
 
-pam_openssh_x509_base.so
+pam-openssh-x509_base.so
 
  * Checks access permissions through LDAP groups.
  * Validates x509 certificate.
@@ -116,11 +116,11 @@ pam_openssh_x509_base.so
  * Creates and updates the data transfer object passed to downstream
    modules with all determined information.
 
-pam_openssh_x509_audit.so (optional)
+pam-openssh-x509_audit.so (optional)
 
  * Logs information from the data transfer object.
 
-pam_openssh_x509_validate.so
+pam-openssh-x509_validate.so
 
  * Keeps the policy that evaluates the data transfer object and updates
    the authorized_keys file.
@@ -184,8 +184,7 @@ Contact
 Questions? Suggestions? Just wanna say Hi?
 Reach us over the following channels:
 
-* IRC: #pam_openssh_x509 @freenode or /query flix
+* IRC: #pam-openssh-x509 @freenode or /query flix
 * E-Mail: seroland86@gmail.com
-* Github: https://github.com/flix-
+* Github: https://github.com/flix-/pam-openssh-x509
 
-#EOF

@@ -18,14 +18,14 @@
 /**
  * Utility functions.
  *
- * @file pam_openssh_x509_util.h
+ * @file pox509-util.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-13
- * @see https://github.com/flix-/pam_openssh_x509
+ * @date 2015-06-15
+ * @see https://github.com/flix-/pam-openssh-x509
  */
 
-#ifndef PAM_OPENSSH_X509_UTIL_H
-#define PAM_OPENSSH_X509_UTIL_H
+#ifndef POX509_UTIL_H
+#define POX509_UTIL_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -287,7 +287,7 @@ void create_ldap_search_filter(const char *rdn, const char *uid,
  * A user has the permission to access a certain OpenSSH server if he
  * has a group membership for that OpenSSH server.
  * To identify the group of the OpenSSH server an identifier in the
- * config file of pam_openssh_x509 is set that has to correspond to the
+ * config file of pam-openssh-x509 is set that has to correspond to the
  * first RDN value of the group dn.
  *
  * This function checks if the user has access to the OpenSSH server or

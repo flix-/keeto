@@ -21,7 +21,7 @@
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
 
-#include "pam_openssh_x509_util.h"
+#include "pox509-util.h"
 
 static char *unset = "unset";
 

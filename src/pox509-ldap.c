@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_ldap.h"
+#include "pox509-ldap.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -27,7 +27,7 @@
 #include <ldap.h>
 #include <openssl/x509.h>
 
-#include "pam_openssh_x509_util.h"
+#include "pox509-util.h"
 
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 512
 

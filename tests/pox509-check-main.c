@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_check.h"
+#include "pox509-check.h"
 
 #include <stdlib.h>
 

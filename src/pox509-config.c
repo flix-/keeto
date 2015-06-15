@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_config.h"
+#include "pox509-config.h"
 
 #include <errno.h>
 #include <dirent.h>
@@ -26,7 +26,7 @@
 
 #include <ldap.h>
 
-#include "pam_openssh_x509_util.h"
+#include "pox509-util.h"
 
 #define ERROR_MSG_BUFFER_SIZE 4096
 

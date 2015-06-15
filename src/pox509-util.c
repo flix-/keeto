@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pam_openssh_x509_util.h"
+#include "pox509-util.h"
 
 #include <errno.h>
 #include <stdarg.h>

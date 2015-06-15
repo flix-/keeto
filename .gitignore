@@ -8,7 +8,7 @@
 Makefile
 Makefile.in
 libtool
-tests/pam_openssh_x509_check
+tests/pox509-check
 autom4te.cache
 autoscan.log
 config.cache

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PAM_OPENSSH_X509_CHECK_H
-#define PAM_OPENSSH_X509_CHECK_H
+#ifndef POX509_CHECK_H
+#define POX509_CHECK_H
 
 #include <stdbool.h>
 

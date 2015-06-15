@@ -28,9 +28,9 @@
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
 
-#include "pam_openssh_x509_config.h"
-#include "pam_openssh_x509_ldap.h"
-#include "pam_openssh_x509_util.h"
+#include "pox509-config.h"
+#include "pox509-ldap.h"
+#include "pox509-util.h"
 
 #define MAX_UID_LENGTH 32
 #define AUTHORIZED_KEYS_FILE_BUFFER_SIZE 1024
