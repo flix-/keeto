@@ -39,24 +39,24 @@
 #define BUFFER_SIZE 2048
 
 static struct pox509_is_readable_file_entry is_readable_file_lt[] = {
-    { READABLEFILESDIR "/file_none", 0, false },
-    { READABLEFILESDIR "/file_execute", S_IXUSR, false },
-    { READABLEFILESDIR "/file_execute_read", S_IXUSR|S_IRUSR, true },
-    { READABLEFILESDIR "/file_execute_write", S_IXUSR|S_IWUSR, false },
-    { READABLEFILESDIR "/file_execute_write_read", S_IXUSR|S_IWUSR|S_IRUSR,
+    { READABLEFILESDIR "/file-none", 0, false },
+    { READABLEFILESDIR "/file-execute", S_IXUSR, false },
+    { READABLEFILESDIR "/file-execute-read", S_IXUSR|S_IRUSR, true },
+    { READABLEFILESDIR "/file-execute-write", S_IXUSR|S_IWUSR, false },
+    { READABLEFILESDIR "/file-execute-write-read", S_IXUSR|S_IWUSR|S_IRUSR,
     true },
-    { READABLEFILESDIR "/file_read", S_IRUSR, true },
-    { READABLEFILESDIR "/file_write", S_IWUSR, false },
-    { READABLEFILESDIR "/file_write_read", S_IWUSR|S_IRUSR, true },
-    { READABLEFILESDIR "/dir_none", 0, false },
-    { READABLEFILESDIR "/dir_execute", S_IXUSR, false },
-    { READABLEFILESDIR "/dir_execute_read", S_IXUSR|S_IRUSR, false },
-    { READABLEFILESDIR "/dir_execute_write", S_IXUSR|S_IWUSR, false },
-    { READABLEFILESDIR "/dir_execute_write_read", S_IXUSR|S_IWUSR|S_IRUSR,
+    { READABLEFILESDIR "/file-read", S_IRUSR, true },
+    { READABLEFILESDIR "/file-write", S_IWUSR, false },
+    { READABLEFILESDIR "/file-write-read", S_IWUSR|S_IRUSR, true },
+    { READABLEFILESDIR "/dir-none", 0, false },
+    { READABLEFILESDIR "/dir-execute", S_IXUSR, false },
+    { READABLEFILESDIR "/dir-execute-read", S_IXUSR|S_IRUSR, false },
+    { READABLEFILESDIR "/dir-execute-write", S_IXUSR|S_IWUSR, false },
+    { READABLEFILESDIR "/dir-execute-write-read", S_IXUSR|S_IWUSR|S_IRUSR,
     false },
-    { READABLEFILESDIR "/dir_read", S_IRUSR, false },
-    { READABLEFILESDIR "/dir_write", S_IWUSR, false },
-    { READABLEFILESDIR "/dir_write_read", S_IWUSR|S_IRUSR, false }
+    { READABLEFILESDIR "/dir-read", S_IRUSR, false },
+    { READABLEFILESDIR "/dir-write", S_IWUSR, false },
+    { READABLEFILESDIR "/dir-write-read", S_IWUSR|S_IRUSR, false }
 };
 
 static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
@@ -115,9 +115,9 @@ static struct pox509_check_access_permission_entry
 };
 
 static struct pox509_validate_x509_entry validate_x509_lt[] = {
-    { X509CERTSDIR "/not_trusted_ca.pem", 0 },
-    { X509CERTSDIR "/trusted_ca_but_expired.pem", 0 },
-    { X509CERTSDIR "/trusted_and_not_expired.pem", 1 }
+    { X509CERTSDIR "/not-trusted-ca.pem", 0 },
+    { X509CERTSDIR "/trusted-ca-but-expired.pem", 0 },
+    { X509CERTSDIR "/trusted-and-not-expired.pem", 1 }
 };
 
 /*
@@ -637,7 +637,7 @@ START_TEST
 (t_pkey_to_authorized_keys)
 {
     char *directory = KEYSDIR;
-    char *oneliner = KEYSDIR "/ssh_rsa.txt";
+    char *oneliner = KEYSDIR "/ssh-rsa.txt";
 
     FILE *fh_oneliner = fopen(oneliner, "r");
     if (fh_oneliner == NULL) {

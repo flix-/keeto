@@ -27,20 +27,20 @@
 #include "../src/pox509-config.c"
 
 static char *init_and_parse_config_exit_lt[] = {
-    CONFIGSDIR "/ldap_scope_negative_0.conf",
-    CONFIGSDIR "/ldap_scope_negative_1.conf",
-    CONFIGSDIR "/ldap_scope_negative_2.conf",
-    CONFIGSDIR "/log_facility_negative.conf",
-    CONFIGSDIR "/ldap_uri_negative.conf",
-    CONFIGSDIR "/starttls_negative_0.conf",
-    CONFIGSDIR "/starttls_negative_1.conf",
-    CONFIGSDIR "/ldap_search_timeout_negative.conf",
-    CONFIGSDIR "/ldap_bind_dn_negative_0.conf",
-    CONFIGSDIR "/ldap_bind_dn_negative_1.conf",
-    CONFIGSDIR "/ldap_bind_dn_negative_2.conf",
-    CONFIGSDIR "/cacerts_dir_negative_0.conf",
-    CONFIGSDIR "/cacerts_dir_negative_1.conf",
-    CONFIGSDIR "/cacerts_dir_negative_2.conf"
+    CONFIGSDIR "/ldap-scope-negative-0.conf",
+    CONFIGSDIR "/ldap-scope-negative-1.conf",
+    CONFIGSDIR "/ldap-scope-negative-2.conf",
+    CONFIGSDIR "/log-facility-negative.conf",
+    CONFIGSDIR "/ldap-uri-negative.conf",
+    CONFIGSDIR "/starttls-negative-0.conf",
+    CONFIGSDIR "/starttls-negative-1.conf",
+    CONFIGSDIR "/ldap-search-timeout-negative.conf",
+    CONFIGSDIR "/ldap-bind-dn-negative-0.conf",
+    CONFIGSDIR "/ldap-bind-dn-negative-1.conf",
+    CONFIGSDIR "/ldap-bind-dn-negative-2.conf",
+    CONFIGSDIR "/cacerts-dir-negative-0.conf",
+    CONFIGSDIR "/cacerts-dir-negative-1.conf",
+    CONFIGSDIR "/cacerts-dir-negative-2.conf"
 };
 
 static char *init_and_parse_config_lt[] = {
