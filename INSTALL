@@ -123,7 +123,7 @@ OpenLDAP
    $ /usr/bin/slapd
 
 5) Create initial directory structure:
-   $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapadd -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -f samples/pox509-test-initial.ldif
 
    DIT layout:
@@ -136,21 +136,21 @@ OpenLDAP
    x509 certificates.
 
 6) Add user 'pox509-test-user' with x509 certificate to person tree:
-   $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapadd -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -f samples/pox509-test-add-user.ldif
 
 7) Add OpenSSH server with identifier 'pox509-test-server' to groups
    tree:
-   $ ldapadd -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapadd -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -f samples/pox509-test-add-server.ldif
 
 8) Grant user 'pox509-test-user' access to OpenSSH server with the
    identifier 'pox509-test-server':
-   $ ldapmodify -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapmodify -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -f samples/pox509-test-authorize-user.ldif
 
 9) Check LDAP content:
-   $ ldapsearch -LLL -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapsearch -LLL -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -b dc=ssh,dc=hq objectclass=*
 
    Expected output:
@@ -190,7 +190,7 @@ OpenLDAP
      member: uid=__LAST_MAN_STANDING__
      member: uid=pox509-test-user,ou=people,dc=ssh,dc=hq
 
-   $ ldapsearch -LLL -h localhost -p 389 -D cn=directory_manager,dc=ssh,dc=hq \
+   $ ldapsearch -LLL -h localhost -p 389 -D cn=directory-manager,dc=ssh,dc=hq \
      -w test123 -b ou=people,dc=ssh,dc=hq uid=pox509-test-user memberOf
 
    Expected output:
@@ -218,7 +218,7 @@ PuTTY-CAC
 ---------
 
 Connect to the OpenSSH server using the private key in
-10-ee_user_1_key.pem. In production, use the private key inside the
+10-ee-user-1-key.pem. In production, use the private key inside the
 Smartcard for signing.
 
 
@@ -229,8 +229,8 @@ Trusted CA's store
    $ mkdir /usr/local/etc/ssh/cacerts
 
 2) Copy whole CA trust chain:
-   $ cp samples/00-ca_root_cert.pem /usr/local/etc/ssh/cacerts
-   $ cp samples/01-ca_int_user_cert.pem /usr/local/etc/ssh/cacerts 
+   $ cp samples/00-ca-root-cert.pem /usr/local/etc/ssh/cacerts
+   $ cp samples/01-ca-int-user-cert.pem /usr/local/etc/ssh/cacerts
 
 3) Create symlink hashes:
    $ c_rehash /usr/local/etc/ssh/cacerts
@@ -240,7 +240,7 @@ Overview
 --------
 
 Log files:
-   /var/log/ssh/sshd_5580.log
+   /var/log/ssh/sshd-5580.log
    /var/log/ssh/pox509.log
    /var/log/slapd/slapd.log
 

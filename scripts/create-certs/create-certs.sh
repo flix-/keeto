@@ -6,23 +6,26 @@
 # certificates...
 #
 # author: sebastian roland
-# date: 19.04.2015
+# date: 16.05.2015
 #
 ########################################
 
 ### BEGIN CONFIG ###
 
-# global
-ROOT='/home/sebastian/development/certs'                		    # path to root directory of testing env
-OPENSSL='/usr/bin/openssl'                                          # path to openssl binary
+# path to root directory of testing env
+ROOT='/home/sebastian/development/certs'
+# path to openssl
+OPENSSL='/usr/bin/openssl'
+# postfix for subject dn
 SUBJECT_POSTFIX='/DC=ssh/DC=hq'
 
-# root ca
-ROOT_CA_VALIDITY=36500                                              # validity in days for root ca
-
-export ROOT                                                         # make var accessible for openssl config
+# validity in days for root ca
+ROOT_CA_VALIDITY=36500
 
 ### END CONFIG ###
+
+# make var accessible for openssl config
+export ROOT
 
 ### BEGIN FUNCTIONS ###
 
@@ -36,7 +39,7 @@ usage()
 
 env_already_created()
 {
-    if [ -f "${ROOT}/tmp/.init_complete" ]
+    if [ -f "${ROOT}/tmp/.init-complete" ]
     then
         # return true
         return 0
@@ -51,9 +54,9 @@ get_next_free_index()
     cert_type=${1}
     index=1
 
-    for cert in $(ls -1 ${ROOT}/ca | grep -E 10-ee_${cert_type}_[[:digit:]]+_)
+    for cert in $(ls -1 ${ROOT}/ca | grep -E 10-ee-${cert_type}-[[:digit:]]+-)
     do
-        present_index=$(echo $cert | cut -d '_' -f 3)
+        present_index=$(echo $cert | cut -d '-' -f 4)
         if [ ${present_index} -ge ${index} ]
         then
             index=$(expr ${present_index} + 1)
@@ -64,8 +67,8 @@ get_next_free_index()
 }
 
 # all functions used for creating a specific keystore get the cert_type
-# as argument. possible values are <server|email|user>.
-# as a convention filename should be "10-ee_${cert_type}_${index}_*"
+# as argument. possible values are <server|email|user>. as a convention
+# filename should be "10-ee_${cert_type}_${index}_*"
 
 create_keystore_openssl()
 {
@@ -75,9 +78,15 @@ create_keystore_openssl()
     index=$(get_next_free_index ${cert_type})
     
     # create csr
-    ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee_${cert_type}_${index}_key.pem -out ${ROOT}/ca/csr/10-ee_${cert_type}_${index}_cert.csr -subj "/CN=10-ee_${cert_type}_${index}${SUBJECT_POSTFIX}" -config ${openssl_conf} &> /dev/null
+    ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee-${cert_type}-${index}-key.pem \
+        -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+        -subj "/CN=10-ee-${cert_type}-${index}${SUBJECT_POSTFIX}" \
+        -config ${openssl_conf} &> /dev/null
     # sign request
-    ${OPENSSL} ca -name ca_int_${cert_type} -in ${ROOT}/ca/csr/10-ee_${cert_type}_${index}_cert.csr -out ${ROOT}/ca/10-ee_${cert_type}_${index}_cert.pem -notext -config ${openssl_conf} &> /dev/null << EOF
+    ${OPENSSL} ca -name ca_int_${cert_type} \
+        -in ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+        -out ${ROOT}/ca/10-ee-${cert_type}-${index}-cert.pem -notext \
+        -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
@@ -138,7 +147,7 @@ create_keystore_sap()
 ### MAIN ###
 arg_count=${#}
 arg1=${1}
-openssl_conf="${ROOT}/etc/openssl_test_env.conf"
+openssl_conf="${ROOT}/etc/openssl-test-env.conf"
 
 if [ ! -x ${OPENSSL} ]
 then
@@ -164,7 +173,8 @@ case "${arg1}" in
 
             if env_already_created
             then
-                read -n 1 -p "testing environment has already been setup. create new? [y/n]: " overwrite_root
+                read -n 1 -p "testing environment has already been setup. \
+create new? [y/n]: " overwrite_root
                 echo ""
                 case "${overwrite_root}" in
                     [yY])
@@ -188,9 +198,9 @@ case "${arg1}" in
             rm -rf ${ROOT}
             echo "creating directory structure and files"
             mkdir -p ${ROOT}/ca/csr ${ROOT}/ca/res ${ROOT}/etc ${ROOT}/tmp
-            touch ${ROOT}/ca/res/ca_database
-            touch ${ROOT}/ca/res/ca_serial
-            echo "01" > ${ROOT}/ca/res/ca_serial
+            touch ${ROOT}/ca/res/ca-database
+            touch ${ROOT}/ca/res/ca-serial
+            echo "01" > ${ROOT}/ca/res/ca-serial
 
             # copy openssl config
             echo "copying openssl config"
@@ -198,24 +208,47 @@ case "${arg1}" in
 
             # create root ca
             echo "creating root ca"
-            ${OPENSSL} req -new -x509 -days ${ROOT_CA_VALIDITY} -keyout ${ROOT}/ca/00-ca_root_key.pem -out ${ROOT}/ca/00-ca_root_cert.pem -subj "/CN=00-ca_root${SUBJECT_POSTFIX}" -extensions ca_extension -config ${openssl_conf} &> /dev/null
+            ${OPENSSL} req -new -x509 -days ${ROOT_CA_VALIDITY} \
+                -keyout ${ROOT}/ca/00-ca-root-key.pem \
+                -out ${ROOT}/ca/00-ca-root-cert.pem \
+                -subj "/CN=00-ca-root${SUBJECT_POSTFIX}" \
+                -extensions ca_extension \
+                -config ${openssl_conf} &> /dev/null
 
             # create intermediate ca's
             echo "creating intermediate ca's"
             # create csr's
-            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca_int_server_key.pem -out ${ROOT}/ca/csr/01-ca_int_server_cert.csr -subj "/CN=01-ca_int_server${SUBJECT_POSTFIX}" -config ${openssl_conf} &> /dev/null
-            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca_int_email_key.pem -out ${ROOT}/ca/csr/01-ca_int_email_cert.csr -subj "/CN=01-ca_int_email${SUBJECT_POSTFIX}" -config ${openssl_conf} &> /dev/null
-            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca_int_user_key.pem -out ${ROOT}/ca/csr/01-ca_int_user_cert.csr -subj "/CN=01-ca_int_user${SUBJECT_POSTFIX}" -config ${openssl_conf} &> /dev/null
+            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-server-key.pem \
+                -out ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
+                -subj "/CN=01-ca-int-server${SUBJECT_POSTFIX}" \
+                -config ${openssl_conf} &> /dev/null
+            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-email-key.pem \
+                -out ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
+                -subj "/CN=01-ca-int-email${SUBJECT_POSTFIX}" \
+                -config ${openssl_conf} &> /dev/null
+            ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-user-key.pem \
+                -out ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
+                -subj "/CN=01-ca-int-user${SUBJECT_POSTFIX}" \
+                -config ${openssl_conf} &> /dev/null
             # sign requests
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca_int_server_cert.csr -out ${ROOT}/ca/01-ca_int_server_cert.pem -extensions ca_extension -notext -config ${openssl_conf} &> /dev/null << EOF
+            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-server-cert.pem \
+                -extensions ca_extension -notext -config ${openssl_conf} \
+                &> /dev/null << EOF
 y
 y
 EOF
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca_int_email_cert.csr -out ${ROOT}/ca/01-ca_int_email_cert.pem -extensions ca_extension -notext -config ${openssl_conf} &> /dev/null << EOF
+            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-email-cert.pem \
+                -extensions ca_extension -notext -config ${openssl_conf} \
+                &> /dev/null << EOF
 y
 y
 EOF
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca_int_user_cert.csr -out ${ROOT}/ca/01-ca_int_user_cert.pem -extensions ca_extension -notext -config ${openssl_conf} &> /dev/null << EOF
+            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-user-cert.pem \
+                -extensions ca_extension -notext -config ${openssl_conf} \
+                &> /dev/null << EOF
 y
 y
 EOF
@@ -223,15 +256,21 @@ EOF
             # create sscep server certificate
             echo "creating sscep server certificate"
             # create csr
-            ${OPENSSL} req -new -keyout ${ROOT}/ca/02-ee_server_sscep_key.pem -out ${ROOT}/ca/csr/02-ee_server_sscep_cert.csr -subj "/CN=02-ee_server_sscep${SUBJECT_POSTFIX}" -config ${openssl_conf} &> /dev/null
+            ${OPENSSL} req -new -keyout ${ROOT}/ca/02-ee-server-sscep-key.pem \
+                -out ${ROOT}/ca/csr/02-ee-server-sscep-cert.csr \
+                -subj "/CN=02-ee-server-sscep${SUBJECT_POSTFIX}" \
+                -config ${openssl_conf} &> /dev/null
             # sign request
-            ${OPENSSL} ca -name ca_int_server -in ${ROOT}/ca/csr/02-ee_server_sscep_cert.csr -out ${ROOT}/ca/02-ee_server_sscep_cert.pem -notext -config ${openssl_conf} &> /dev/null << EOF
+            ${OPENSSL} ca -name ca_int_server \
+                -in ${ROOT}/ca/csr/02-ee-server-sscep-cert.csr \
+                -out ${ROOT}/ca/02-ee-server-sscep-cert.pem -notext \
+                -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
 
             # initialization complete
-            touch ${ROOT}/tmp/.init_complete
+            touch ${ROOT}/tmp/.init-complete
 
             ;;
 
@@ -243,7 +282,8 @@ EOF
 
             if ! env_already_created
             then
-                echo "ERROR: cant find testing environment. please create first with ${0} init"
+                echo "ERROR: cannot find testing environment. please create \
+first with ${0} init"
                 exit -5
             fi
 

@@ -8,8 +8,8 @@ olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
 #olcTLSCACertificatePath: /usr/local/etc/ssh/cacerts/
-#olcTLSCertificateFile: /etc/openldap/certs/10-ee_server_1_cert.pem
-#olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee_server_1_key.pem
+#olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
+#olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
 
 #############
 # cn=module #
@@ -51,7 +51,7 @@ olcDatabase: frontend
 dn: olcDatabase=config,cn=config
 objectClass: olcDatabaseConfig
 olcDatabase: config
-olcRootDN: cn=directory_manager,cn=config
+olcRootDN: cn=directory-manager,cn=config
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4 
 
 # olcDatabase=hdb
@@ -60,7 +60,7 @@ objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
 olcDatabase: hdb
 olcSuffix: dc=ssh,dc=hq
-olcRootDN: cn=directory_manager,dc=ssh,dc=hq
+olcRootDN: cn=directory-manager,dc=ssh,dc=hq
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
 olcDbDirectory:	/var/lib/openldap/dc=ssh,dc=hq
 olcDbIndex: default eq

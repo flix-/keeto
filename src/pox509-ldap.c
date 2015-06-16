@@ -29,7 +29,7 @@
 
 #include "pox509-util.h"
 
-#define LDAP_SEARCH_FILTER_BUFFER_SIZE 512
+#define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 
 static void
 set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)

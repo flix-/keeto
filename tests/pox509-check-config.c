@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check.h"
+#include "pox509-check-config.h"
 
 #include <errno.h>
 #include <stdarg.h>

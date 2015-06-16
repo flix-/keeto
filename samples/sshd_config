@@ -114,7 +114,7 @@ UsePrivilegeSeparation no	# Default for new installations.
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS yes
-PidFile /run/sshd_5580.pid
+PidFile /run/sshd-5580.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none

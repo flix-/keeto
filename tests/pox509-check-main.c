@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check.h"
-
 #include <stdlib.h>
 
 #include <check.h>
+
+#include "pox509-check-config.h"
+#include "pox509-check-util.h"
 
 int
 main(int argc, char **argv)
