@@ -9,20 +9,27 @@ SSHKEYGEN='/usr/bin/ssh-keygen'
 TMPDIR='openssh-keys-temp'
 DSTDIR='openssh-keys'
 ONELINER='ssh-rsa.txt'
-AMOUNT=1
+
+AMOUNT=49
+KEYSIZES=(1024 2048 4096)
 
 mkdir ${TMPDIR}
 rm -rf ${DSTDIR}
 mkdir ${DSTDIR}
-for i in $(seq 0 $AMOUNT)
+
+for keysize in "${KEYSIZES[@]}"
 do
-	FILENAME="ssh-${i}"
-	${SSHKEYGEN} -C "" -P "" -f ${TMPDIR}/${FILENAME}
-	echo -n "ssh-${i}.pem:" >> ${ONELINER}
-	${OPENSSL} rsa -in ${TMPDIR}/${FILENAME} -pubout \
-        -out ${TMPDIR}/${FILENAME}.pem
-	${CAT} ${TMPDIR}/${FILENAME}.pub | ${SED} 's/ *$//' >> ${ONELINER}
+    for i in $(seq -w 0 $AMOUNT)
+    do
+        FILENAME="ssh-${keysize}-${i}"
+        ${SSHKEYGEN} -b ${keysize} -C "" -P "" -f ${TMPDIR}/${FILENAME}
+        echo -n "${FILENAME}.pem:" >> ${ONELINER}
+        ${OPENSSL} rsa -in ${TMPDIR}/${FILENAME} -pubout \
+            -out ${TMPDIR}/${FILENAME}.pem
+        ${CAT} ${TMPDIR}/${FILENAME}.pub | ${SED} 's/ *$//' >> ${ONELINER}
+    done
 done
+
 
 ${MV} ${TMPDIR}/*.pem ${DSTDIR}
 ${MV} ${ONELINER} ${DSTDIR}
