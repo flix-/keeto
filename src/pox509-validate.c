@@ -28,13 +28,13 @@
 #include "pox509-util.h"
 
 static bool
-is_authorized(struct pox509_info *x509_info)
+is_authorized(struct pox509_info *pox509_info)
 {
-    if (x509_info == NULL) {
-        fatal("x509_info == NULL");
+    if (pox509_info == NULL) {
+        fatal("pox509_info == NULL");
     }
 
-    return (x509_info->has_access == 1 && x509_info->has_valid_cert == 1);
+    return (pox509_info->has_access == 1 && pox509_info->has_valid_cert == 1);
 }
 
 PAM_EXTERN int
@@ -44,50 +44,51 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh == NULL");
     }
 
-    struct pox509_info *x509_info = NULL;
-    int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
+    struct pox509_info *pox509_info = NULL;
+    int rc = pam_get_data(pamh, "pox509_info", (const void **) &pox509_info);
     if (rc != PAM_SUCCESS) {
         fatal("pam_get_data()");
     }
 
     /* set log facility */
-    rc = set_syslog_facility(x509_info->syslog_facility);
+    rc = set_syslog_facility(pox509_info->syslog_facility);
     if (rc == -EINVAL) {
-        log_fail("set_syslog_facility(): '%s'", x509_info->syslog_facility);
+        log_fail("set_syslog_facility(): '%s'", pox509_info->syslog_facility);
     }
 
     /* only modify authorized_keys file if LDAP server could be queried */
-    if (x509_info->ldap_online != 1) {
+    if (pox509_info->ldap_online != 1) {
         log_msg("ldap server not accessible. not changing anything");
         goto auth_success;
     }
 
-    if (is_authorized(x509_info)) {
+    if (is_authorized(pox509_info)) {
         log_msg("access granted!");
         log_msg("synchronizing keys");
-        if (x509_info->ssh_keytype == NULL || x509_info->ssh_key == NULL) {
+        if (pox509_info->ssh_keytype == NULL || pox509_info->ssh_key == NULL) {
             fatal("cannot synchronize keys. either key or keytype not known");
         }
         /* write key to authorized_keys file */
-        FILE *fd_auth_keys = fopen(x509_info->authorized_keys_file, "w");
+        FILE *fd_auth_keys = fopen(pox509_info->authorized_keys_file, "w");
         if (fd_auth_keys == NULL) {
             fatal("cannot open '%s' for writing",
-                x509_info->authorized_keys_file);
+                pox509_info->authorized_keys_file);
         }
-        fwrite(x509_info->ssh_keytype, strlen(x509_info->ssh_keytype), 1,
+        fwrite(pox509_info->ssh_keytype, strlen(pox509_info->ssh_keytype), 1,
             fd_auth_keys);
         fwrite(" ", 1, 1, fd_auth_keys);
-        fwrite(x509_info->ssh_key, strlen(x509_info->ssh_key), 1, fd_auth_keys);
+        fwrite(pox509_info->ssh_key, strlen(pox509_info->ssh_key), 1,
+            fd_auth_keys);
         fwrite("\n", 1, 1, fd_auth_keys);
         fclose(fd_auth_keys);
     } else {
         log_msg("access denied!");
         log_msg("truncating authorized_keys file (%s)",
-            x509_info->authorized_keys_file);
-        FILE *fd_auth_keys = fopen(x509_info->authorized_keys_file, "w");
+            pox509_info->authorized_keys_file);
+        FILE *fd_auth_keys = fopen(pox509_info->authorized_keys_file, "w");
         if (fd_auth_keys == NULL) {
             log_fail("truncation of '%s' failed",
-                x509_info->authorized_keys_file);
+                pox509_info->authorized_keys_file);
             goto auth_err;
         }
         fclose(fd_auth_keys);

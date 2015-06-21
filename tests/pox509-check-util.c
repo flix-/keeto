@@ -148,7 +148,7 @@ END_TEST
  * init_data_transfer_object()
  */
 START_TEST
-(t_init_data_transfer_object_exit_x509_info_null)
+(t_init_data_transfer_object_exit_pox509_info_null)
 {
     init_data_transfer_object(NULL);
 }
@@ -377,28 +377,28 @@ END_TEST
 START_TEST
 (t_check_access_permission_exit_group_dn_null)
 {
-    struct pox509_info x509_info;
-    check_access_permission(NULL, "foo", &x509_info);
+    struct pox509_info pox509_info;
+    check_access_permission(NULL, "foo", &pox509_info);
 }
 END_TEST
 
 START_TEST
 (t_check_access_permission_exit_identifier_null)
 {
-    struct pox509_info x509_info;
-    check_access_permission("cn=foo,dc=bar", NULL, &x509_info);
+    struct pox509_info pox509_info;
+    check_access_permission("cn=foo,dc=bar", NULL, &pox509_info);
 }
 END_TEST
 
 START_TEST
-(t_check_access_permission_exit_x509_info_null)
+(t_check_access_permission_exit_pox509_info_null)
 {
     check_access_permission("cn=foo,dc=bar", "blub", NULL);
 }
 END_TEST
 
 START_TEST
-(t_check_access_permission_exit_group_dn_identifier_x509_info_null)
+(t_check_access_permission_exit_group_dn_identifier_pox509_info_null)
 {
     check_access_permission(NULL, NULL, NULL);
 }
@@ -408,8 +408,8 @@ START_TEST
 (t_check_access_permission_exit_group_dn_length_0)
 {
     char *group_dn = "";
-    struct pox509_info x509_info;
-    check_access_permission(group_dn, "foo", &x509_info);
+    struct pox509_info pox509_info;
+    check_access_permission(group_dn, "foo", &pox509_info);
 }
 END_TEST
 
@@ -420,10 +420,10 @@ START_TEST
     char *identifier = check_access_permission_lt[_i].identifier;
     char exp_result = check_access_permission_lt[_i].exp_result;
 
-    struct pox509_info x509_info;
-    x509_info.has_access = -1;
-    check_access_permission(group_dn, identifier, &x509_info);
-    ck_assert_int_eq(x509_info.has_access, exp_result);
+    struct pox509_info pox509_info;
+    pox509_info.has_access = -1;
+    check_access_permission(group_dn, identifier, &pox509_info);
+    ck_assert_int_eq(pox509_info.has_access, exp_result);
 }
 END_TEST
 
@@ -434,8 +434,8 @@ START_TEST
 (t_validate_x509_exit_x509_null)
 {
     char *ca_certs_dir = CACERTSDIR;
-    struct pox509_info x509_info;
-    validate_x509(NULL, ca_certs_dir, &x509_info);
+    struct pox509_info pox509_info;
+    validate_x509(NULL, ca_certs_dir, &pox509_info);
 }
 END_TEST
 
@@ -443,13 +443,13 @@ START_TEST
 (t_validate_x509_exit_cacerts_dir_null)
 {
     X509 x509;
-    struct pox509_info x509_info;
-    validate_x509(&x509, NULL, &x509_info);
+    struct pox509_info pox509_info;
+    validate_x509(&x509, NULL, &pox509_info);
 }
 END_TEST
 
 START_TEST
-(t_validate_x509_exit_x509_info_null)
+(t_validate_x509_exit_pox509_info_null)
 {
     X509 x509;
     char *ca_certs_dir = CACERTSDIR;
@@ -458,7 +458,7 @@ START_TEST
 END_TEST
 
 START_TEST
-(t_validate_x509_exit_x509_cacerts_dir_x509_info_null)
+(t_validate_x509_exit_x509_cacerts_dir_pox509_info_null)
 {
     validate_x509(NULL, NULL, NULL);
 }
@@ -470,8 +470,8 @@ START_TEST
     char *x509_cert = validate_x509_lt[_i].file;
     char exp_result = validate_x509_lt[_i].exp_result;
 
-    struct pox509_info x509_info;
-    x509_info.has_valid_cert = -1;
+    struct pox509_info pox509_info;
+    pox509_info.has_valid_cert = -1;
     char *ca_certs_dir = CACERTSDIR;
 
     FILE *x509_cert_file = fopen(x509_cert, "r");
@@ -484,8 +484,8 @@ START_TEST
         ck_abort_msg("PEM_read_X509() failed");
     }
     fclose(x509_cert_file);
-    validate_x509(x509, ca_certs_dir, &x509_info);
-    ck_assert_int_eq(x509_info.has_valid_cert, exp_result);
+    validate_x509(x509, ca_certs_dir, &pox509_info);
+    ck_assert_int_eq(pox509_info.has_valid_cert, exp_result);
 }
 END_TEST
 
@@ -495,13 +495,13 @@ END_TEST
 START_TEST
 (t_pkey_to_authorized_keys_exit_pkey_null)
 {
-    struct pox509_info x509_info;
-    pkey_to_authorized_keys(NULL, &x509_info);
+    struct pox509_info pox509_info;
+    pkey_to_authorized_keys(NULL, &pox509_info);
 }
 END_TEST
 
 START_TEST
-(t_pkey_to_authorized_keys_exit_x509_info_null)
+(t_pkey_to_authorized_keys_exit_pox509_info_null)
 {
     EVP_PKEY pkey;
     pkey_to_authorized_keys(&pkey, NULL);
@@ -509,7 +509,7 @@ START_TEST
 END_TEST
 
 START_TEST
-(t_pkey_to_authorized_keys_exit_pkey_x509_info_null)
+(t_pkey_to_authorized_keys_exit_pkey_pox509_info_null)
 {
     pkey_to_authorized_keys(NULL, NULL);
 }
@@ -547,11 +547,11 @@ START_TEST
             ck_abort_msg("PEM_read_PUBKEY() failed ('%s')", pem_file_abs);
         }
 
-        struct pox509_info x509_info;
-        pkey_to_authorized_keys(pkey, &x509_info);
+        struct pox509_info pox509_info;
+        pkey_to_authorized_keys(pkey, &pox509_info);
         char exp_ssh_rsa[BUFFER_SIZE];
         snprintf(exp_ssh_rsa, sizeof exp_ssh_rsa, "%s %s",
-            x509_info.ssh_keytype, x509_info.ssh_key);
+            pox509_info.ssh_keytype, pox509_info.ssh_key);
         ck_assert_str_eq(ssh_rsa, exp_ssh_rsa);
         fclose(f_pem_file);
     }
@@ -578,7 +578,7 @@ make_util_suite(void)
 
     /* init_data_transfer_object() */
     tcase_add_exit_test(tc_main,
-        t_init_data_transfer_object_exit_x509_info_null, EXIT_FAILURE);
+        t_init_data_transfer_object_exit_pox509_info_null, EXIT_FAILURE);
 
     /* is_readable_file() */
     tcase_add_exit_test(tc_main, t_is_readable_file_file_null, EXIT_FAILURE);
@@ -634,9 +634,9 @@ make_util_suite(void)
     tcase_add_exit_test(tc_main,
         t_check_access_permission_exit_identifier_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_x509_info_null, EXIT_FAILURE);
+        t_check_access_permission_exit_pox509_info_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_group_dn_identifier_x509_info_null,
+        t_check_access_permission_exit_group_dn_identifier_pox509_info_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
         t_check_access_permission_exit_group_dn_length_0, EXIT_FAILURE);
@@ -648,20 +648,20 @@ make_util_suite(void)
     tcase_add_exit_test(tc_main, t_validate_x509_exit_x509_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_main, t_validate_x509_exit_cacerts_dir_null,
         EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_validate_x509_exit_x509_info_null,
+    tcase_add_exit_test(tc_main, t_validate_x509_exit_pox509_info_null,
         EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
-        t_validate_x509_exit_x509_cacerts_dir_x509_info_null, EXIT_FAILURE);
+        t_validate_x509_exit_x509_cacerts_dir_pox509_info_null, EXIT_FAILURE);
     int length_vx509_lt = sizeof validate_x509_lt /sizeof validate_x509_lt[0];
     tcase_add_loop_test(tc_main, t_validate_x509, 0, length_vx509_lt);
 
     /* pkey_to_authorized_keys() */
     tcase_add_exit_test(tc_main, t_pkey_to_authorized_keys_exit_pkey_null,
         EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_pkey_to_authorized_keys_exit_x509_info_null,
-        EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
-        t_pkey_to_authorized_keys_exit_pkey_x509_info_null, EXIT_FAILURE);
+        t_pkey_to_authorized_keys_exit_pox509_info_null, EXIT_FAILURE);
+    tcase_add_exit_test(tc_main,
+        t_pkey_to_authorized_keys_exit_pkey_pox509_info_null, EXIT_FAILURE);
     tcase_add_test(tc_main, t_pkey_to_authorized_keys);
 
     return s;

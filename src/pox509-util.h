@@ -104,9 +104,9 @@ int str_to_enum(enum pox509_sections sec, const char *key);
 /**
  * Set default values of data transfer object.
  *
- * @param[out] x509_info DTO. Must not be @c NULL.
+ * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void init_data_transfer_object(struct pox509_info *x509_info);
+void init_data_transfer_object(struct pox509_info *pox509_info);
 
 /**
  * Check if file is a regular and readable file.
@@ -194,10 +194,10 @@ void create_ldap_search_filter(const char *rdn, const char *uid,
  * @param[in] group_dn DN of an OpenSSH server group. Must not be
  * @c NULL. Length must be > 0.
  * @param[in] identifier Identifier for the OpenSSH server.
- * @param[out] x509_info DTO
+ * @param[out] pox509_info DTO
  */
 void check_access_permission(const char *group_dn, const char *identifier,
-    struct pox509_info *x509_info);
+    struct pox509_info *pox509_info);
 
 /**
  * Validate a x509 certificate.
@@ -205,16 +205,16 @@ void check_access_permission(const char *group_dn, const char *identifier,
  * @param[in] x509 X509 certificate. Must not be @c NULL.
  * @param[in] cacerts_dir Path to directory with trusted root CA's
  * symlinked by their hash value. Must not be @c NULL.
- * @param[out] x509_info DTO. Must not be @c NULL.
+ * @param[out] pox509_info DTO. Must not be @c NULL.
  */
 void validate_x509(X509 *x509, char *cacerts_dir,
-    struct pox509_info *x509_info);
+    struct pox509_info *pox509_info);
 
 /**
  * Convert a public key to an OpenSSH authorized_keys file entry.
  *
  * @param[in] pkey Public Key. Must not be @c NULL.
- * @param[out] x509_info DTO. Must not be @c NULL.
+ * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info);
+void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *pox509_info);
 #endif

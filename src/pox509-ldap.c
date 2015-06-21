@@ -112,11 +112,11 @@ bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
 
 static int
 search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
-    struct pox509_info *x509_info)
+    struct pox509_info *pox509_info)
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
-        x509_info == NULL) {
-        fatal("ldap_handle, ldap_result, cfg or x509_info == NULL");
+        pox509_info == NULL) {
+        fatal("ldap_handle, ldap_result, cfg or pox509_info == NULL");
     }
 
     /* collect arguments for ldap search */
@@ -125,7 +125,7 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
     /* construct search filter */
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     char *ldap_attr_rdn_person = cfg_getstr(cfg, "ldap_attr_rdn_person");
-    create_ldap_search_filter(ldap_attr_rdn_person, x509_info->uid, filter,
+    create_ldap_search_filter(ldap_attr_rdn_person, pox509_info->uid, filter,
         sizeof filter);
     char *ldap_attr_access = cfg_getstr(cfg, "ldap_attr_access");
     char *ldap_attr_cert = cfg_getstr(cfg, "ldap_attr_cert");
@@ -145,11 +145,11 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
 
 static void
 handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
-    cfg_t *cfg, struct pox509_info *x509_info, X509 **x509)
+    cfg_t *cfg, struct pox509_info *pox509_info, X509 **x509)
 {
     if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
-        x509_info == NULL || x509 == NULL) {
-        fatal("ldap_handle, ldap_result, cfg, x509_info or x509 == NULL");
+        pox509_info == NULL || x509 == NULL) {
+        fatal("ldap_handle, ldap_result, cfg, pox509_info or x509 == NULL");
     }
 
     char *user_dn = ldap_get_dn(ldap_handle, ldap_result);
@@ -199,12 +199,12 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                 char *ldap_group_identifier =
                     cfg_getstr(cfg, "ldap_group_identifier");
                 check_access_permission(value, ldap_group_identifier,
-                    x509_info);
+                    pox509_info);
                 /*
                  * stop looping over group memberships when access has
                  * been granted.
                  */
-                if (x509_info->has_access == 1) {
+                if (pox509_info->has_access == 1) {
                     log_msg("group membership found");
                     log_msg("group_dn: %s", value);
                     break;
@@ -220,7 +220,7 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                     continue;
                 }
 
-                x509_info->has_cert = 1;
+                pox509_info->has_cert = 1;
                 /*
                  * stop looping over x509 certificates when a valid one
                  * has been found.
@@ -274,10 +274,10 @@ handle_ldap_res_search_result(LDAP *ldap_handle, LDAPMessage *ldap_result)
 
 void
 retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-    struct pox509_info *x509_info, X509 **x509)
+    struct pox509_info *pox509_info, X509 **x509)
 {
-    if (cfg == NULL || x509_info == NULL || x509 == NULL) {
-        fatal("cfg, x509_info or x509 == NULL");
+    if (cfg == NULL || pox509_info == NULL || x509 == NULL) {
+        fatal("cfg, pox509_info or x509 == NULL");
     }
 
     /* init handle */
@@ -298,18 +298,18 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
 
     rc = bind_to_ldap(ldap_handle, cfg);
     if (rc != LDAP_SUCCESS) {
-        x509_info->ldap_online = 0;
+        pox509_info->ldap_online = 0;
         log_fail("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
     }
 
     /* connection established */
     log_success("bind_to_ldap()");
-    x509_info->ldap_online = 1;
+    pox509_info->ldap_online = 1;
 
     /* query ldap */
     LDAPMessage *ldap_result = NULL;
-    rc = search_ldap(ldap_handle, &ldap_result, cfg, x509_info);
+    rc = search_ldap(ldap_handle, &ldap_result, cfg, pox509_info);
     if (rc != LDAP_SUCCESS) {
         log_fail("search_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
@@ -334,7 +334,7 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
             fatal("ldap_msgtype()");
         case LDAP_RES_SEARCH_ENTRY:
             handle_ldap_res_search_entry(ldap_handle, ldap_result, cfg,
-                x509_info, x509);
+                pox509_info, x509);
             break;
         case LDAP_RES_SEARCH_REFERENCE:
             handle_ldap_res_search_reference(ldap_handle, ldap_result);

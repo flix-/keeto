@@ -37,7 +37,7 @@
 #define AUTHORIZED_KEYS_FILE_BUFFER_SIZE 1024
 
 static void
-cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
+cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
 {
     /*
      * this function should normally be called through pam_end() for
@@ -66,18 +66,18 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
         fatal("pamh or data == NULL");
     }
 
-    struct pox509_info *x509_info = data;
-    log_msg("freeing x509_info");
-    free(x509_info->syslog_facility);
-    free(x509_info->subject);
-    free(x509_info->issuer);
-    free(x509_info->serial);
-    free(x509_info->ssh_key);
-    free(x509_info->ssh_keytype);
-    free(x509_info->authorized_keys_file);
-    free(x509_info->uid);
-    free(x509_info);
-    log_msg("x509_info freed");
+    struct pox509_info *pox509_info = data;
+    log_msg("freeing pox509_info");
+    free(pox509_info->syslog_facility);
+    free(pox509_info->subject);
+    free(pox509_info->issuer);
+    free(pox509_info->serial);
+    free(pox509_info->ssh_key);
+    free(pox509_info->ssh_keytype);
+    free(pox509_info->authorized_keys_file);
+    free(pox509_info->uid);
+    free(pox509_info);
+    log_msg("pox509_info freed");
 }
 
 PAM_EXTERN int
@@ -108,21 +108,21 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* initialize data transfer object */
-    struct pox509_info *x509_info = malloc(sizeof *x509_info);
-    if (x509_info == NULL) {
+    struct pox509_info *pox509_info = malloc(sizeof *pox509_info);
+    if (pox509_info == NULL) {
         fatal("malloc()");
     }
-    init_data_transfer_object(x509_info);
+    init_data_transfer_object(pox509_info);
 
     /* make data transfer object available to module stack */
-    rc = pam_set_data(pamh, "x509_info", x509_info, &cleanup_x509_info);
+    rc = pam_set_data(pamh, "pox509_info", pox509_info, &cleanup_pox509_info);
     if (rc != PAM_SUCCESS) {
         fatal("pam_set_data()");
     }
 
     /* make syslog facility available in dto for downstream modules */
-    x509_info->syslog_facility = strdup(syslog_facility);
-    if (x509_info->syslog_facility == NULL) {
+    pox509_info->syslog_facility = strdup(syslog_facility);
+    if (pox509_info->syslog_facility == NULL) {
         fatal("strdup()");
     }
 
@@ -148,8 +148,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * in pam space because if we free our data structure we would free
      * it from global pam space as well. other modules could rely on it.
      */
-    x509_info->uid = strndup(uid, MAX_UID_LENGTH);
-    if (x509_info->uid == NULL) {
+    pox509_info->uid = strndup(uid, MAX_UID_LENGTH);
+    if (pox509_info->uid == NULL) {
         fatal("strndup()");
     }
 
@@ -159,31 +159,31 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("malloc()");
     }
     char *authorized_keys_file = cfg_getstr(cfg, "authorized_keys_file");
-    substitute_token('u', x509_info->uid, authorized_keys_file, expanded_path,
+    substitute_token('u', pox509_info->uid, authorized_keys_file, expanded_path,
         AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
-    x509_info->authorized_keys_file = expanded_path;
+    pox509_info->authorized_keys_file = expanded_path;
 
     /* query ldap server */
     X509 *x509 = NULL;
-    retrieve_authorization_and_x509_from_ldap(cfg, x509_info, &x509);
+    retrieve_authorization_and_x509_from_ldap(cfg, pox509_info, &x509);
 
     /* process certificate if one has been found */
     if (x509 != NULL) {
         /* validate certificate */
         char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
-        validate_x509(x509, cacerts_dir, x509_info);
+        validate_x509(x509, cacerts_dir, pox509_info);
 
         /* TODO: own function */
-        x509_info->subject = X509_NAME_oneline(X509_get_subject_name(x509), NULL, 0);
-        x509_info->serial = BN_bn2hex(ASN1_INTEGER_to_BN(X509_get_serialNumber(x509), 0));
-        x509_info->issuer = X509_NAME_oneline(X509_get_issuer_name(x509), NULL, 0);
+        pox509_info->subject = X509_NAME_oneline(X509_get_subject_name(x509), NULL, 0);
+        pox509_info->serial = BN_bn2hex(ASN1_INTEGER_to_BN(X509_get_serialNumber(x509), 0));
+        pox509_info->issuer = X509_NAME_oneline(X509_get_issuer_name(x509), NULL, 0);
 
         /* extract public key and convert into OpenSSH format */
         EVP_PKEY *pkey = X509_get_pubkey(x509);
         if (pkey == NULL) {
             fatal("X509_get_pubkey(): unable to load public key");
         }
-        pkey_to_authorized_keys(pkey, x509_info);
+        pkey_to_authorized_keys(pkey, pox509_info);
         EVP_PKEY_free(pkey);
 
         /* free x509 structure */

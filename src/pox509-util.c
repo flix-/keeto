@@ -120,25 +120,25 @@ str_to_enum(enum pox509_sections sec, const char *key)
 }
 
 void
-init_data_transfer_object(struct pox509_info *x509_info)
+init_data_transfer_object(struct pox509_info *pox509_info)
 {
-    if (x509_info == NULL) {
-        fatal("x509_info == NULL");
+    if (pox509_info == NULL) {
+        fatal("pox509_info == NULL");
     }
 
-    memset(x509_info, 0, sizeof *x509_info);
-    x509_info->uid = NULL;
-    x509_info->authorized_keys_file = NULL;
-    x509_info->ssh_keytype = NULL;
-    x509_info->ssh_key = NULL;
-    x509_info->has_cert = 0x56;
-    x509_info->has_valid_cert = 0x56;
-    x509_info->serial = NULL;
-    x509_info->issuer = NULL;
-    x509_info->subject = NULL;
-    x509_info->ldap_online = 0x56;
-    x509_info->has_access = 0x56;
-    x509_info->syslog_facility = NULL;
+    memset(pox509_info, 0, sizeof *pox509_info);
+    pox509_info->uid = NULL;
+    pox509_info->authorized_keys_file = NULL;
+    pox509_info->ssh_keytype = NULL;
+    pox509_info->ssh_key = NULL;
+    pox509_info->has_cert = 0x56;
+    pox509_info->has_valid_cert = 0x56;
+    pox509_info->serial = NULL;
+    pox509_info->issuer = NULL;
+    pox509_info->subject = NULL;
+    pox509_info->ldap_online = 0x56;
+    pox509_info->has_access = 0x56;
+    pox509_info->syslog_facility = NULL;
 }
 
 bool
@@ -258,10 +258,10 @@ create_ldap_search_filter(const char *rdn, const char *uid, char *dst,
 
 void
 check_access_permission(const char *group_dn, const char *identifier,
-    struct pox509_info *x509_info)
+    struct pox509_info *pox509_info)
 {
-    if (group_dn == NULL || identifier == NULL || x509_info == NULL) {
-        fatal("group_dn, identifier or x509_info == NULL");
+    if (group_dn == NULL || identifier == NULL || pox509_info == NULL) {
+        fatal("group_dn, identifier or pox509_info == NULL");
     }
 
     size_t group_dn_length = strlen(group_dn);
@@ -288,9 +288,9 @@ check_access_permission(const char *group_dn, const char *identifier,
 
     rc = strcmp(rdn_value, identifier);
     if (rc == 0) {
-        x509_info->has_access = 1;
+        pox509_info->has_access = 1;
     } else {
-        x509_info->has_access = 0;
+        pox509_info->has_access = 0;
     }
 
     ldap_memfree(rdn_value);
@@ -298,10 +298,10 @@ check_access_permission(const char *group_dn, const char *identifier,
 }
 
 void
-validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
+validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *pox509_info)
 {
-    if (x509 == NULL || cacerts_dir == NULL || x509_info == NULL) {
-        fatal("x509, cacerts_dir or x509_info == NULL");
+    if (x509 == NULL || cacerts_dir == NULL || pox509_info == NULL) {
+        fatal("x509, cacerts_dir or pox509_info == NULL");
     }
 
     /* add algorithms */
@@ -332,12 +332,12 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
     }
     rc = X509_verify_cert(ctx);
     if (rc != 1) {
-        x509_info->has_valid_cert = 0;
+        pox509_info->has_valid_cert = 0;
         int cert_err = X509_STORE_CTX_get_error(ctx);
         const char *cert_err_string = X509_verify_cert_error_string(cert_err);
         log_fail("X509_verify_cert(): %d (%s)", cert_err, cert_err_string);
     } else {
-        x509_info->has_valid_cert = 1;
+        pox509_info->has_valid_cert = 1;
     }
 
     /* cleanup structures */
@@ -347,17 +347,17 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
 }
 
 void
-pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
+pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *pox509_info)
 {
-    if (pkey == NULL || x509_info == NULL) {
-        fatal("pkey or x509_info == NULL");
+    if (pkey == NULL || pox509_info == NULL) {
+        fatal("pkey or pox509_info == NULL");
     }
 
     int pkey_type = EVP_PKEY_type(pkey->type);
     switch (pkey_type) {
     case EVP_PKEY_RSA: {
-        x509_info->ssh_keytype = strdup("ssh-rsa");
-        if (x509_info->ssh_keytype == NULL) {
+        pox509_info->ssh_keytype = strdup("ssh-rsa");
+        if (pox509_info->ssh_keytype == NULL) {
             fatal("strdup()");
         }
         RSA *rsa = EVP_PKEY_get1_RSA(pkey);
@@ -370,7 +370,7 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
          */
 
         /* length of keytype WITHOUT the terminating null byte */
-        size_t length_keytype = strlen(x509_info->ssh_keytype);
+        size_t length_keytype = strlen(pox509_info->ssh_keytype);
         size_t length_exponent = BN_num_bytes(rsa->e);
         size_t length_modulus = BN_num_bytes(rsa->n);
         /*
@@ -393,7 +393,7 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         PUT_32BIT(blob_p, length_keytype);
         blob_p += 4;
         /* put keytype */
-        memcpy(blob_p, x509_info->ssh_keytype, length_keytype);
+        memcpy(blob_p, pox509_info->ssh_keytype, length_keytype);
         blob_p += length_keytype;
 
         /* put length of exponent */
@@ -456,12 +456,12 @@ pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *x509_info)
         /* store base64 encoded string in var and put null terminator */
         char *tmp_result = NULL;
         long data_out = BIO_get_mem_data(bio_mem, &tmp_result);
-        x509_info->ssh_key = malloc(data_out + 1);
-        if (x509_info->ssh_key == NULL) {
+        pox509_info->ssh_key = malloc(data_out + 1);
+        if (pox509_info->ssh_key == NULL) {
             fatal("malloc()");
         }
-        memcpy(x509_info->ssh_key, tmp_result, data_out);
-        x509_info->ssh_key[data_out] = '\0';
+        memcpy(pox509_info->ssh_key, tmp_result, data_out);
+        pox509_info->ssh_key[data_out] = '\0';
 
         /* cleanup structures */
         BIO_free_all(bio_base64_mem);

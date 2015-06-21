@@ -62,32 +62,32 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh == NULL");
     }
 
-    struct pox509_info *x509_info = NULL;
-    int rc = pam_get_data(pamh, "x509_info", (const void **) &x509_info);
+    struct pox509_info *pox509_info = NULL;
+    int rc = pam_get_data(pamh, "pox509_info", (const void **) &pox509_info);
     if (rc != PAM_SUCCESS) {
         fatal("pam_get_data()");
     }
 
     /* set log facility */
-    rc = set_syslog_facility(x509_info->syslog_facility);
+    rc = set_syslog_facility(pox509_info->syslog_facility);
     if (rc == -EINVAL) {
-        log_fail("set_syslog_facility(): '%s'", x509_info->syslog_facility);
+        log_fail("set_syslog_facility(): '%s'", pox509_info->syslog_facility);
     }
 
     log_msg("===================================================");
-    log_string("uid", x509_info->uid);
-    log_string("authorized_keys_file", x509_info->authorized_keys_file);
-    log_string("ssh_keytype", x509_info->ssh_keytype);
-    log_string("ssh_key", x509_info->ssh_key);
+    log_string("uid", pox509_info->uid);
+    log_string("authorized_keys_file", pox509_info->authorized_keys_file);
+    log_string("ssh_keytype", pox509_info->ssh_keytype);
+    log_string("ssh_key", pox509_info->ssh_key);
     log_msg(" ");
-    log_char("has_cert", x509_info->has_cert);
-    log_char("has_valid_cert", x509_info->has_valid_cert);
-    log_string("serial", x509_info->serial);
-    log_string("issuer", x509_info->issuer);
-    log_string("subject", x509_info->subject);
+    log_char("has_cert", pox509_info->has_cert);
+    log_char("has_valid_cert", pox509_info->has_valid_cert);
+    log_string("serial", pox509_info->serial);
+    log_string("issuer", pox509_info->issuer);
+    log_string("subject", pox509_info->subject);
     log_msg(" ");
-    log_char("ldap_online", x509_info->ldap_online);
-    log_char("has_access", x509_info->has_access);
+    log_char("ldap_online", pox509_info->ldap_online);
+    log_char("has_access", pox509_info->has_access);
     log_msg("===================================================");
 
     return PAM_SUCCESS;

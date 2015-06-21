@@ -40,10 +40,10 @@
  * of the user will be retrieved.
  *
  * @param[in] cfg Configuration structure. Must not be @c NULL.
- * @param[out] x509_info DTO. Access permission will be stored here.
+ * @param[out] pox509_info DTO. Access permission will be stored here.
  * Must not be @c NULL.
  * @param[out] x509 The parsed x509 certificate.
  */
 void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-    struct pox509_info *x509_info, X509 **x509);
+    struct pox509_info *pox509_info, X509 **x509);
 #endif

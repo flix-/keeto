@@ -107,8 +107,8 @@ void pox509_log_fail(const char *filename, const char *function, int line,
  * @param[in] fmt Format string. Must not be @c NULL.
  * @param[in] ... Format arguments.
  *
- * @note Do NOT call this function directly - use #log_fail wrapper
- * macro instead.
+ * @note Do NOT call this function directly - use #fatal wrapper marco
+ * instead.
  *
  * @see #fatal.
  * @see man 3 printf.
