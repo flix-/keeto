@@ -26,6 +26,7 @@
 
 #include <ldap.h>
 
+#include "pox509-log.h"
 #include "pox509-util.h"
 
 #define ERROR_MSG_BUFFER_SIZE 4096
@@ -56,7 +57,7 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
         fatal("cfg, opt, value or result == NULL");
     }
 
-    int ldap_option = config_lookup(LIBLDAP, value);
+    int ldap_option = str_to_enum(LIBLDAP, value);
     if (ldap_option == -EINVAL) {
         cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
             cfg_opt_name(opt), value);
@@ -67,18 +68,18 @@ cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
 }
 
 static int
-cfg_validate_log_facility(cfg_t *cfg, cfg_opt_t *opt)
+cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
         fatal("cfg or opt == NULL");
     }
 
-    const char *log_facility = cfg_opt_getnstr(opt, 0);
-    int rc = config_lookup(SYSLOG, log_facility);
+    const char *syslog_facility = cfg_opt_getnstr(opt, 0);
+    int rc = str_to_enum(SYSLOG, syslog_facility);
     if (rc == -EINVAL) {
-        cfg_error(cfg, "cfg_validate_log_facility(): option: '%s', value: '%s' "
-            "(value is not a valid syslog facility)", cfg_opt_name(opt),
-            log_facility);
+        cfg_error(cfg, "cfg_validate_syslog_facility(): option: '%s', value:"
+            "'%s' (value is not a valid syslog facility)", cfg_opt_name(opt),
+            syslog_facility);
     }
     return 0;
 }
@@ -182,7 +183,7 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
 
     /* setup config options */
     cfg_opt_t opts[] = { 
-        CFG_STR("log_facility", "LOG_LOCAL1", CFGF_NONE),
+        CFG_STR("syslog_facility", "LOG_LOCAL1", CFGF_NONE),
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
         CFG_INT("ldap_starttls", 0, CFGF_NONE),
         CFG_STR("ldap_bind_dn", "cn=directory_manager,dc=ssh,dc=hq", CFGF_NONE),
@@ -205,7 +206,8 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     *cfg = cfg_init(opts, CFGF_NONE);
     /* register callbacks */
     cfg_set_error_function(*cfg, &cfg_error_handler);
-    cfg_set_validate_func(*cfg, "log_facility", &cfg_validate_log_facility);
+    cfg_set_validate_func(*cfg, "syslog_facility",
+        &cfg_validate_syslog_facility);
     cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
     cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
     cfg_set_validate_func(*cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);

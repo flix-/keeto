@@ -20,7 +20,7 @@
  *
  * @file pox509-util.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-15
+ * @date 2015-06-21
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
@@ -33,25 +33,6 @@
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/x509.h>
-
-/**
- * Wrapper for #pox509_log_fail.
- *
- * @param[in] ... Format string, Format arguments.
- * @see #pox509_log_fail.
- * @see man 3 printf.
- */
-#define log_fail(...) pox509_log_fail(__FILE__, __func__, __LINE__, __VA_ARGS__)
-
-/**
- * Wrapper for #pox509_fatal.
- *
- * @param[in] ... Format string, Format arguments.
- *
- * @see #pox509_fatal.
- * @see man 3 printf.
- */
-#define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
 /**
  * (D)ata (T)ransfer (O)bject
@@ -89,7 +70,7 @@ struct pox509_info {
     char has_access;
 
     /** Syslog logging facility */
-    char *log_facility;
+    char *syslog_facility;
 };
 
 /**
@@ -97,87 +78,16 @@ struct pox509_info {
  */
 enum pox509_sections {
     /** Section holding config options regarding syslog. */
-    SYSLOG,
-     /** Section holding config options regarding libldap */
+    SYSLOG = 0,
+    /** Section holding config options regarding libldap. */
     LIBLDAP
 };
 
 /**
- * Log message to syslog.
- *
- * The message is prefixed with '[#]'.
- *
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @see man 3 printf.
- */
-void log_msg(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
-/**
- * Log message to syslog.
- *
- * The message is prefixed with '[+]'.
- *
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @see man 3 printf.
- */
-void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
-/**
- * Log message to syslog.
- *
- * The message is prefixed with '[-] [filename, function(), line]'.
- *
- * @param[in] filename Name of the source file the call took place. Must
- * not be @c NULL.
- * @param[in] function Name of the function the call took place. Must
- * not be @c NULL.
- * @param[in] line Number of the line the call took place.
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @note Do NOT call this function directly - use #log_fail wrapper
- * macro instead.
- *
- * @see #log_fail.
- * @see man 3 printf.
- */
-void pox509_log_fail(const char *filename, const char *function, int line,
-    const char *fmt, ...) __attribute__((format(printf, 4, 5)));
-
-/**
- * Log message to syslog and terminate process.
- *
- * The message is prefixed with '[!] [filename, function(), line]'.
- * After the message has been send to syslog the process will be
- * terminated.
- *
- * @param[in] filename Name of the source file the call took place. Must
- * not be @c NULL.
- * @param[in] function Name of the function the call took place. Must
- * not be @c NULL.
- * @param[in] line Number of the line the call took place.
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @note Do NOT call this function directly - use #log_fail wrapper
- * macro instead.
- *
- * @see #fatal.
- * @see man 3 printf.
- */
-void pox509_fatal(const char *filename, const char *function, int line,
-    const char *fmt, ...) __attribute__((noreturn))
-    __attribute__((format(printf, 4, 5)));
-
-/**
- * Map a configuration value from string to enum constant.
+ * Map a value from string to enum constant.
  *
  * Some configuration options have to be set to enum constants. For
- * example the log_facility accepts LOG_KERN, LOG_USER etc. This enum
+ * example the syslog_facility accepts LOG_KERN, LOG_USER etc. This enum
  * constants are actually integer values. In the configuration file they
  * are passed as strings. This function maps the input string to the
  * appropriate enum constant.
@@ -189,19 +99,7 @@ void pox509_fatal(const char *filename, const char *function, int line,
  * @return Upon successful completion, the appropriate enum constant
  * shall be returned. Otherwise -EINVAL shall be returned.
  */
-int config_lookup(enum pox509_sections sec, const char *key);
-
-/**
- * Set the syslog facility used by the logging functions.
- *
- * @param[in] log_facility Log facility name. Must not be @c NULL.
- *
- * @return Upon successful completion, 0 shall be returned with the log
- * facility set. Otherwise, -EINVAL shall be returned.
- *
- * @see man 3 syslog.
- */
-int set_log_facility(const char *log_facility);
+int str_to_enum(enum pox509_sections sec, const char *key);
 
 /**
  * Set default values of data transfer object.

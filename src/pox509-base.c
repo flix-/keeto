@@ -30,6 +30,7 @@
 
 #include "pox509-config.h"
 #include "pox509-ldap.h"
+#include "pox509-log.h"
 #include "pox509-util.h"
 
 #define MAX_UID_LENGTH 32
@@ -67,7 +68,7 @@ cleanup_x509_info(pam_handle_t *pamh, void *data, int error_status)
 
     struct pox509_info *x509_info = data;
     log_msg("freeing x509_info");
-    free(x509_info->log_facility);
+    free(x509_info->syslog_facility);
     free(x509_info->subject);
     free(x509_info->issuer);
     free(x509_info->serial);
@@ -99,11 +100,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     cfg_t *cfg = NULL;
     init_and_parse_config(&cfg, cfg_file);
 
-    /* set log facility */
-    char *log_facility = cfg_getstr(cfg, "log_facility");
-    int rc = set_log_facility(log_facility);
+    /* set syslog facility */
+    char *syslog_facility = cfg_getstr(cfg, "syslog_facility");
+    int rc = set_syslog_facility(syslog_facility);
     if (rc == -EINVAL) {
-        log_fail("set_log_facility(): '%s'", log_facility);
+        log_fail("set_syslog_facility(): '%s'", syslog_facility);
     }
 
     /* initialize data transfer object */
@@ -119,9 +120,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pam_set_data()");
     }
 
-    /* make log facility available in dto for downstream modules */
-    x509_info->log_facility = strdup(log_facility);
-    if (x509_info->log_facility == NULL) {
+    /* make syslog facility available in dto for downstream modules */
+    x509_info->syslog_facility = strdup(syslog_facility);
+    if (x509_info->syslog_facility == NULL) {
         fatal("strdup()");
     }
 

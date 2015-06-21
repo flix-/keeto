@@ -38,9 +38,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
 
-#define DEFAULT_LOG_FACILITY LOG_LOCAL1
-#define LOG_BUFFER_SIZE 4096
-#define LOG_PREFIX_BUFFER_SIZE 1024
+#include "pox509-log.h"
+
 #define GROUP_DN_BUFFER_SIZE 1024
 #define REGEX_PATTERN_UID "^[a-z][-a-z0-9]\\{0,31\\}$"
 
@@ -50,12 +49,12 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value) )
 
-struct pox509_cfg_entry {
-    char *name;
+struct pox509_str_to_enum_entry {
+    char *key;
     int value;
 };
 
-static struct pox509_cfg_entry syslog_facility[] = {
+static struct pox509_str_to_enum_entry syslog_facility_lt[] = {
     { "LOG_KERN", LOG_KERN },
     { "LOG_USER", LOG_USER },
     { "LOG_MAIL", LOG_MAIL },
@@ -80,7 +79,7 @@ static struct pox509_cfg_entry syslog_facility[] = {
     { NULL, 0 }
 };
 
-static struct pox509_cfg_entry libldap[] = {
+static struct pox509_str_to_enum_entry libldap_lt[] = {
     { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
     { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
     { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
@@ -93,90 +92,13 @@ static struct pox509_cfg_entry libldap[] = {
     { NULL, 0 }
 };
 
-static struct pox509_cfg_entry *cfg_lt[] = {
-    syslog_facility,
-    libldap
+static struct pox509_str_to_enum_entry *str_to_enum_lt[] = {
+    syslog_facility_lt,
+    libldap_lt
 };
 
-static int pox509_log_facility = DEFAULT_LOG_FACILITY;
-
-static void
-pox509_log(char *prefix, const char *fmt, va_list ap)
-{
-    if (prefix == NULL || fmt == NULL) {
-        fatal("prefix or fmt == NULL");
-    }
-
-    char buffer[LOG_BUFFER_SIZE];
-    vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    openlog("pox509", LOG_PID, pox509_log_facility);
-    syslog(pox509_log_facility, "%s %s\n", prefix, buffer);
-    closelog();
-}
-
-void
-log_msg(const char *fmt, ...)
-{
-    if (fmt == NULL) {
-        fatal("fmt == NULL");
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    pox509_log("[#]", fmt, ap);
-    va_end(ap);
-}
-
-void
-log_success(const char *fmt, ...)
-{
-    if (fmt == NULL) {
-        fatal("fmt == NULL");
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    pox509_log("[+]", fmt, ap);
-    va_end(ap);
-}
-
-void
-pox509_log_fail(const char *filename, const char *function, int line,
-    const char *fmt, ...)
-{
-    if (filename == NULL || function == NULL || fmt == NULL) {
-        fatal("filename, function or fmt == NULL");
-    }
-
-    char prefix[LOG_PREFIX_BUFFER_SIZE];
-    snprintf(prefix, sizeof prefix, "[-] [%s, %s(), %d]", filename, function,
-        line);
-    va_list ap;
-    va_start(ap, fmt);
-    pox509_log(prefix, fmt, ap);
-    va_end(ap);
-}
-
-void
-pox509_fatal(const char *filename, const char *function, int line,
-    const char *fmt, ...)
-{
-    if (filename == NULL || function == NULL || fmt == NULL) {
-        fatal("filename, function or fmt == NULL");
-    }
-
-    char prefix[LOG_PREFIX_BUFFER_SIZE];
-    snprintf(prefix, sizeof prefix, "[!] [%s, %s(), %d]", filename, function,
-        line);
-    va_list ap;
-    va_start(ap, fmt);
-    pox509_log(prefix, fmt, ap);
-    va_end(ap);
-    exit(EXIT_FAILURE);
-}
-
 int
-config_lookup(const enum pox509_sections sec, const char *key)
+str_to_enum(enum pox509_sections sec, const char *key)
 {
     if (key == NULL) {
         fatal("key == NULL");
@@ -186,30 +108,15 @@ config_lookup(const enum pox509_sections sec, const char *key)
         fatal("invalid section (%d)", sec);
     }
 
-    struct pox509_cfg_entry *cfg_entry_p = NULL;
-    for (cfg_entry_p = cfg_lt[sec]; cfg_entry_p->name != NULL; cfg_entry_p++) {
-        if(strcmp(cfg_entry_p->name, key) != 0) {
+    struct pox509_str_to_enum_entry *str_to_enum_entry = NULL;
+    for (str_to_enum_entry = str_to_enum_lt[sec];
+        str_to_enum_entry->key != NULL; str_to_enum_entry++) {
+        if(strcmp(str_to_enum_entry->key, key) != 0) {
             continue;
         }
-        return cfg_entry_p->value;
+        return str_to_enum_entry->value;
     }
     return -EINVAL;
-}
-
-int
-set_log_facility(const char *log_facility)
-{
-    if (log_facility == NULL) {
-        fatal("log_facility == NULL");
-    }
-
-    int value = config_lookup(SYSLOG, log_facility);
-    if (value == -EINVAL) {
-        return -EINVAL;
-    }
-
-    pox509_log_facility = value;
-    return 0;
 }
 
 void
@@ -231,7 +138,7 @@ init_data_transfer_object(struct pox509_info *x509_info)
     x509_info->subject = NULL;
     x509_info->ldap_online = 0x56;
     x509_info->has_access = 0x56;
-    x509_info->log_facility = NULL;
+    x509_info->syslog_facility = NULL;
 }
 
 bool
@@ -400,7 +307,7 @@ validate_x509(X509 *x509, char *cacerts_dir, struct pox509_info *x509_info)
     /* add algorithms */
     OpenSSL_add_all_algorithms();
 
-    /* create a new x509 store with ca certificates */
+    /* create a new x509 store with trusted ca certificates */
     X509_STORE *store = X509_STORE_new();
     if (store == NULL) {
         fatal("X509_STORE_new()");

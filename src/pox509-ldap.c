@@ -27,7 +27,7 @@
 #include <ldap.h>
 #include <openssl/x509.h>
 
-#include "pox509-util.h"
+#include "pox509-log.h"
 
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 

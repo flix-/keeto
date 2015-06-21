@@ -15,26 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
+#ifndef POX509_CHECK_LOG_H
+#define POX509_CHECK_LOG_H
 
 #include <check.h>
 
-#include "pox509-check-config.h"
-#include "pox509-check-log.h"
-#include "pox509-check-util.h"
-
-int
-main(int argc, char **argv)
-{
-    SRunner *sr = srunner_create(NULL);
-    srunner_add_suite(sr, make_config_suite());
-    srunner_add_suite(sr, make_log_suite());
-    srunner_add_suite(sr, make_util_suite());
-
-    srunner_run_all(sr, CK_VERBOSE);
-    int number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-
-    return(number_failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
-}
-
+Suite *make_log_suite(void);
+#endif

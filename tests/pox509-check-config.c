@@ -30,7 +30,7 @@ static char *init_and_parse_config_exit_lt[] = {
     CONFIGSDIR "/ldap-scope-negative-0.conf",
     CONFIGSDIR "/ldap-scope-negative-1.conf",
     CONFIGSDIR "/ldap-scope-negative-2.conf",
-    CONFIGSDIR "/log-facility-negative.conf",
+    CONFIGSDIR "/syslog-facility-negative.conf",
     CONFIGSDIR "/ldap-uri-negative.conf",
     CONFIGSDIR "/starttls-negative-0.conf",
     CONFIGSDIR "/starttls-negative-1.conf",
@@ -198,28 +198,28 @@ START_TEST
 END_TEST
 
 /*
- * cfg_validate_log_facility()
+ * cfg_validate_syslog_facility()
  */
 START_TEST
-(t_cfg_validate_log_facility_exit_cfg_null)
+(t_cfg_validate_syslog_facility_exit_cfg_null)
 {
     cfg_opt_t opt;
-    cfg_validate_log_facility(NULL, &opt);
+    cfg_validate_syslog_facility(NULL, &opt);
 }
 END_TEST
 
 START_TEST
-(t_cfg_validate_log_facility_exit_opt_null)
+(t_cfg_validate_syslog_facility_exit_opt_null)
 {
     cfg_t cfg;
-    cfg_validate_log_facility(&cfg, NULL);
+    cfg_validate_syslog_facility(&cfg, NULL);
 }
 END_TEST
 
 START_TEST
-(t_cfg_validate_log_facility_exit_cfg_opt_null)
+(t_cfg_validate_syslog_facility_exit_cfg_opt_null)
 {
-    cfg_validate_log_facility(NULL, NULL);
+    cfg_validate_syslog_facility(NULL, NULL);
 }
 END_TEST
 
@@ -411,13 +411,13 @@ make_config_suite(void)
         t_cfg_str_to_int_parser_libldap_exit_cfg_opt_value_result_null,
         EXIT_FAILURE);
 
-    /* cfg_validate_log_facility() */
+    /* cfg_validate_syslog_facility() */
     tcase_add_exit_test(tc_callbacks,
-        t_cfg_validate_log_facility_exit_cfg_null, EXIT_FAILURE);
+        t_cfg_validate_syslog_facility_exit_cfg_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-        t_cfg_validate_log_facility_exit_opt_null, EXIT_FAILURE);
+        t_cfg_validate_syslog_facility_exit_opt_null, EXIT_FAILURE);
     tcase_add_exit_test(tc_callbacks,
-        t_cfg_validate_log_facility_exit_cfg_opt_null, EXIT_FAILURE);
+        t_cfg_validate_syslog_facility_exit_cfg_opt_null, EXIT_FAILURE);
 
     /* cfg_validate_ldap_uri() */
     tcase_add_exit_test(tc_callbacks, t_cfg_validate_ldap_uri_exit_cfg_null,
