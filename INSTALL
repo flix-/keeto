@@ -180,7 +180,7 @@ OpenLDAP
      givenName: pox509-test-user
      sn: pox509-test-user
      cn: pox509-test-user
-     userCertificate;binary:: MIIC+...<omitted>   
+     userCertificate;binary:: MII...<omitted>
 
      dn: cn=pox509-test-server,ou=groups,dc=ssh,dc=hq
      objectClass: top
