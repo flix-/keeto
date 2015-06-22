@@ -20,7 +20,7 @@
  *
  * @file pox509-util.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-21
+ * @date 2015-06-22
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
@@ -29,10 +29,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
-#include <openssl/x509.h>
 
 /**
  * (D)ata (T)ransfer (O)bject
@@ -198,23 +194,4 @@ void create_ldap_search_filter(const char *rdn, const char *uid,
  */
 void check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *pox509_info);
-
-/**
- * Validate a x509 certificate.
- *
- * @param[in] x509 X509 certificate. Must not be @c NULL.
- * @param[in] cacerts_dir Path to directory with trusted root CA's
- * symlinked by their hash value. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void validate_x509(X509 *x509, char *cacerts_dir,
-    struct pox509_info *pox509_info);
-
-/**
- * Convert a public key to an OpenSSH authorized_keys file entry.
- *
- * @param[in] pkey Public Key. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *pox509_info);
 #endif

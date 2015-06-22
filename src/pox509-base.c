@@ -20,9 +20,6 @@
 #include <string.h>
 
 #include <confuse.h>
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
 #include <openssl/x509.h>
 
 #define PAM_SM_AUTH
@@ -32,6 +29,7 @@
 #include "pox509-ldap.h"
 #include "pox509-log.h"
 #include "pox509-util.h"
+#include "pox509-x509.h"
 
 #define MAX_UID_LENGTH 32
 #define AUTHORIZED_KEYS_FILE_BUFFER_SIZE 1024
@@ -167,24 +165,22 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     X509 *x509 = NULL;
     retrieve_authorization_and_x509_from_ldap(cfg, pox509_info, &x509);
 
-    /* process certificate if one has been found */
+    /* process x509 certificate if one has been found */
     if (x509 != NULL) {
-        /* validate certificate */
+        /* validate x509 certificate */
         char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
         validate_x509(x509, cacerts_dir, pox509_info);
 
-        /* TODO: own function */
-        pox509_info->subject = X509_NAME_oneline(X509_get_subject_name(x509), NULL, 0);
-        pox509_info->serial = BN_bn2hex(ASN1_INTEGER_to_BN(X509_get_serialNumber(x509), 0));
-        pox509_info->issuer = X509_NAME_oneline(X509_get_issuer_name(x509), NULL, 0);
+        /*
+         * convert public key of x509 certificate to OpenSSH
+         * authorized_keys format
+         */
+        x509_to_authorized_keys(x509, pox509_info);
 
-        /* extract public key and convert into OpenSSH format */
-        EVP_PKEY *pkey = X509_get_pubkey(x509);
-        if (pkey == NULL) {
-            fatal("X509_get_pubkey(): unable to load public key");
-        }
-        pkey_to_authorized_keys(pkey, pox509_info);
-        EVP_PKEY_free(pkey);
+        /* extract various information from x509 certificate */
+        get_serial_from_x509(x509, pox509_info);
+        get_issuer_from_x509(x509, pox509_info);
+        get_subject_from_x509(x509, pox509_info);
 
         /* free x509 structure */
         X509_free(x509);

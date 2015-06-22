@@ -22,6 +22,7 @@
 #include "pox509-check-config.h"
 #include "pox509-check-log.h"
 #include "pox509-check-util.h"
+#include "pox509-check-x509.h"
 
 int
 main(int argc, char **argv)
@@ -30,6 +31,7 @@ main(int argc, char **argv)
     srunner_add_suite(sr, make_config_suite());
     srunner_add_suite(sr, make_log_suite());
     srunner_add_suite(sr, make_util_suite());
+    srunner_add_suite(sr, make_x509_suite());
 
     srunner_run_all(sr, CK_VERBOSE);
     int number_failed = srunner_ntests_failed(sr);
