@@ -171,6 +171,84 @@ START_TEST
 }
 END_TEST
 
+/*
+ * get_serial_from_x509()
+ */
+START_TEST
+(t_get_serial_from_x509_exit_x509_null)
+{
+    struct pox509_info pox509_info;
+    get_serial_from_x509(NULL, &pox509_info);
+}
+END_TEST
+
+START_TEST
+(t_get_serial_from_x509_exit_pox509_info_null)
+{
+    X509 x509;
+    get_serial_from_x509(&x509, NULL);
+}
+END_TEST
+
+START_TEST
+(t_get_serial_from_x509_exit_x509_pox509_info_null)
+{
+    get_serial_from_x509(NULL, NULL);
+}
+END_TEST
+
+/*
+ * get_issuer_from_x509()
+ */
+START_TEST
+(t_get_issuer_from_x509_exit_x509_null)
+{
+    struct pox509_info pox509_info;
+    get_issuer_from_x509(NULL, &pox509_info);
+}
+END_TEST
+
+START_TEST
+(t_get_issuer_from_x509_exit_pox509_info_null)
+{
+    X509 x509;
+    get_issuer_from_x509(&x509, NULL);
+}
+END_TEST
+
+START_TEST
+(t_get_issuer_from_x509_exit_x509_pox509_info_null)
+{
+    get_issuer_from_x509(NULL, NULL);
+}
+END_TEST
+
+/*
+ * get_subject_from_x509()
+ */
+START_TEST
+(t_get_subject_from_x509_exit_x509_null)
+{
+    struct pox509_info pox509_info;
+    get_subject_from_x509(NULL, &pox509_info);
+}
+END_TEST
+
+START_TEST
+(t_get_subject_from_x509_exit_pox509_info_null)
+{
+    X509 x509;
+    get_subject_from_x509(&x509, NULL);
+}
+END_TEST
+
+START_TEST
+(t_get_subject_from_x509_exit_x509_pox509_info_null)
+{
+    get_subject_from_x509(NULL, NULL);
+}
+END_TEST
+
 Suite *
 make_x509_suite(void)
 {
@@ -203,6 +281,30 @@ make_x509_suite(void)
     tcase_add_exit_test(tc_main,
         t_pkey_to_authorized_keys_exit_pkey_pox509_info_null, EXIT_FAILURE);
     tcase_add_test(tc_main, t_pkey_to_authorized_keys);
+
+    /* get_serial_from_x509() */
+    tcase_add_exit_test(tc_main, t_get_serial_from_x509_exit_x509_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main, t_get_serial_from_x509_exit_pox509_info_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main,
+        t_get_serial_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
+
+    /* get_issuer_from_x509() */
+    tcase_add_exit_test(tc_main, t_get_issuer_from_x509_exit_x509_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main, t_get_issuer_from_x509_exit_pox509_info_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main,
+        t_get_issuer_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
+
+    /* get_subject_from_x509() */
+    tcase_add_exit_test(tc_main, t_get_subject_from_x509_exit_x509_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main, t_get_subject_from_x509_exit_pox509_info_null,
+        EXIT_FAILURE);
+    tcase_add_exit_test(tc_main,
+        t_get_subject_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
 
     return s;
 }
