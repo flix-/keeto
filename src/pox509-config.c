@@ -50,24 +50,6 @@ cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
  * used nor if the value is altered later.
  */
 static int
-cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
-    void *result)
-{
-    if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
-        fatal("cfg, opt, value or result == NULL");
-    }
-
-    int ldap_option = str_to_enum(LIBLDAP, value);
-    if (ldap_option == -EINVAL) {
-        cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
-            cfg_opt_name(opt), value);
-    }
-    long int *ptr_result = result;
-    *ptr_result = ldap_option;
-    return 0;
-}
-
-static int
 cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
@@ -137,6 +119,24 @@ cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
     }
     ldap_dnfree(dn);
 
+    return 0;
+}
+
+static int
+cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
+    void *result)
+{
+    if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
+        fatal("cfg, opt, value or result == NULL");
+    }
+
+    int ldap_option = str_to_enum(LIBLDAP, value);
+    if (ldap_option == -EINVAL) {
+        cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
+            cfg_opt_name(opt), value);
+    }
+    long int *ptr_result = result;
+    *ptr_result = ldap_option;
     return 0;
 }
 

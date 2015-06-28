@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <confuse.h>
 #include <lber.h>
@@ -103,7 +104,10 @@ bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
     char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
     char *ldap_pwd = cfg_getstr(cfg, "ldap_pwd");
     size_t ldap_pwd_length = strlen(ldap_pwd);
-    struct berval cred = { ldap_pwd_length, ldap_pwd };
+    struct berval cred = {
+        .bv_len = ldap_pwd_length,
+        .bv_val = ldap_pwd
+    };
     int rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE,
         &cred, NULL, NULL, NULL);
     memset(ldap_pwd, 0, ldap_pwd_length);
@@ -129,9 +133,16 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
         sizeof filter);
     char *ldap_attr_access = cfg_getstr(cfg, "ldap_attr_access");
     char *ldap_attr_cert = cfg_getstr(cfg, "ldap_attr_cert");
-    char *attrs[] = { ldap_attr_access, ldap_attr_cert, NULL };
+    char *attrs[] = {
+        ldap_attr_access,
+        ldap_attr_cert,
+        NULL
+    };
     int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
-    struct timeval search_timeout = { ldap_search_timeout, 0 };
+    struct timeval search_timeout = {
+        .tv_sec = ldap_search_timeout,
+        .tv_usec = 0
+    };
     int sizelimit = 1;
 
     /*

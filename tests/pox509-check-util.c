@@ -224,7 +224,7 @@ END_TEST
 START_TEST
 (t_substitute_token_exit_subst_null)
 {
-    int dst_length = 1024;
+    size_t dst_length = 1024;
     char dst[dst_length];
     substitute_token('u', NULL, "/home/%u/", dst, dst_length);
 }
@@ -233,7 +233,7 @@ END_TEST
 START_TEST
 (t_substitute_token_exit_src_null)
 {
-    int dst_length = 1024;
+    size_t dst_length = 1024;
     char dst[dst_length];
     substitute_token('u', "foo", NULL, dst, dst_length);
 }
@@ -291,30 +291,26 @@ END_TEST
 START_TEST
 (t_create_ldap_search_filter_exit_rdn_null)
 {
-    char *uid = "foo";
-    char dst[1024];
-    size_t dst_length = sizeof dst;
-    create_ldap_search_filter(NULL, uid, dst, dst_length);
+    size_t dst_length = 1024;
+    char dst[dst_length];
+    create_ldap_search_filter(NULL, "foo", dst, dst_length);
 }
 END_TEST
 
 START_TEST
 (t_create_ldap_search_filter_exit_uid_null)
 {
-    char *rdn = "cn";
-    char dst[1024];
-    size_t dst_length = sizeof dst;
-    create_ldap_search_filter(rdn, NULL, dst, dst_length);
+    size_t dst_length = 1024;
+    char dst[dst_length];
+    create_ldap_search_filter("cn", NULL, dst, dst_length);
 }
 END_TEST
 
 START_TEST
 (t_create_ldap_search_filter_exit_dst_null)
 {
-    char *rdn = "cn";
-    char *uid = "foo";
     size_t dst_length = 1024;
-    create_ldap_search_filter(rdn, uid, NULL, dst_length);
+    create_ldap_search_filter("cn", "foo", NULL, dst_length);
 }
 END_TEST
 
@@ -329,10 +325,8 @@ END_TEST
 START_TEST
 (t_create_ldap_search_filter_exit_dst_length_0)
 {
-    char *rdn = "cn";
-    char *uid = "foo";
     char dst[1024];
-    create_ldap_search_filter(rdn, uid, dst, 0);
+    create_ldap_search_filter("cn", "foo", dst, 0);
 }
 END_TEST
 
@@ -395,9 +389,8 @@ END_TEST
 START_TEST
 (t_check_access_permission_exit_group_dn_length_0)
 {
-    char *group_dn = "";
     struct pox509_info pox509_info;
-    check_access_permission(group_dn, "foo", &pox509_info);
+    check_access_permission("", "foo", &pox509_info);
 }
 END_TEST
 
@@ -408,8 +401,9 @@ START_TEST
     char *identifier = check_access_permission_lt[_i].identifier;
     char exp_result = check_access_permission_lt[_i].exp_result;
 
-    struct pox509_info pox509_info;
-    pox509_info.has_access = -1;
+    struct pox509_info pox509_info = {
+        .has_access = -1
+    };
     check_access_permission(group_dn, identifier, &pox509_info);
     ck_assert_int_eq(pox509_info.has_access, exp_result);
 }

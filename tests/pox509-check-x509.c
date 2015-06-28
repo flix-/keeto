@@ -31,7 +31,7 @@
 
 #include "../src/pox509-x509.c"
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 
 static struct pox509_validate_x509_entry validate_x509_lt[] = {
     { X509CERTSDIR "/not-trusted-ca.pem", 0 },
@@ -82,8 +82,9 @@ START_TEST
     char *x509_cert = validate_x509_lt[_i].file;
     char exp_result = validate_x509_lt[_i].exp_result;
 
-    struct pox509_info pox509_info;
-    pox509_info.has_valid_cert = -1;
+    struct pox509_info pox509_info = {
+        .has_valid_cert = -1
+    };
     char *ca_certs_dir = CACERTSDIR;
 
     FILE *x509_cert_file = fopen(x509_cert, "r");
@@ -91,7 +92,7 @@ START_TEST
         ck_abort_msg("fopen() failed ('%s')", x509_cert);
     }
 
-    X509* x509 = PEM_read_X509(x509_cert_file, NULL, NULL, NULL);
+    X509 *x509 = PEM_read_X509(x509_cert_file, NULL, NULL, NULL);
     if (x509 == NULL) {
         ck_abort_msg("PEM_read_X509() failed");
     }
@@ -141,8 +142,8 @@ START_TEST
     char line_buffer[BUFFER_SIZE];
     while (fgets(line_buffer, sizeof line_buffer, fh_oneliner) != NULL) {
         char *pem_file_rel = strtok(line_buffer, ":");
-        char *ssh_rsa = strtok(NULL, "\n");
-        if (pem_file_rel == NULL || ssh_rsa == NULL) {
+        char *exp_ssh_rsa = strtok(NULL, "\n");
+        if (pem_file_rel == NULL || exp_ssh_rsa == NULL) {
             ck_abort_msg("parsing failure");
         }
 
@@ -161,9 +162,9 @@ START_TEST
 
         struct pox509_info pox509_info;
         pkey_to_authorized_keys(pkey, &pox509_info);
-        char exp_ssh_rsa[BUFFER_SIZE];
-        snprintf(exp_ssh_rsa, sizeof exp_ssh_rsa, "%s %s",
-            pox509_info.ssh_keytype, pox509_info.ssh_key);
+        char ssh_rsa[BUFFER_SIZE];
+        snprintf(ssh_rsa, sizeof ssh_rsa, "%s %s", pox509_info.ssh_keytype,
+            pox509_info.ssh_key);
         ck_assert_str_eq(ssh_rsa, exp_ssh_rsa);
         fclose(f_pem_file);
     }
@@ -270,7 +271,7 @@ make_x509_suite(void)
         EXIT_FAILURE);
     tcase_add_exit_test(tc_main,
         t_validate_x509_exit_x509_cacerts_dir_pox509_info_null, EXIT_FAILURE);
-    int length_vx509_lt = sizeof validate_x509_lt /sizeof validate_x509_lt[0];
+    int length_vx509_lt = sizeof validate_x509_lt / sizeof validate_x509_lt[0];
     tcase_add_loop_test(tc_main, t_validate_x509, 0, length_vx509_lt);
 
     /* pkey_to_authorized_keys() */
