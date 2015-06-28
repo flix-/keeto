@@ -110,24 +110,23 @@ void init_data_transfer_object(struct pox509_info *pox509_info);
  * @param[in] file Path to file. Must not be @c NULL.
  *
  * @return Shall return true if file is a regular and readable file or
- * false otherwise. Process shall terminate on error.
+ * false otherwise.
  */
 bool is_readable_file(const char *file);
 
 /**
- * Check uid against a regular expression.
+ * Check UID against a regular expression.
  *
  * @param[in] uid UID that shall be checked. Must not be @c NULL.
  *
- * @return Shall return true if uid matches regex or false otherwise.
- * Process shall terminate on error.
+ * @return Shall return true if UID matches regex or false otherwise.
  */
 bool is_valid_uid(const char *uid);
 
 /**
  * Overwrite a token in a string with a substitution value.
  *
- * The token has the form '\%@p token' and will be completely replaced
+ * The token has the form '\%token' and will be completely replaced
  * with the value pointed by subst.
  * For example the string "/etc/ssh/keystore/%u/authorized_keys" with
  * the token 'u' and the substitution value "foo" will yield
@@ -163,7 +162,7 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
 
 /**
- * Create LDAP search filter from rdn attribute and uid.
+ * Create LDAP search filter from RDN attribute and UID.
  *
  * @param[in] rdn RDN attribute. Must not be @c NULL.
  * @param[in] uid UID. Must not be @c NULL.
@@ -185,12 +184,12 @@ void create_ldap_search_filter(const char *rdn, const char *uid,
  * first RDN value of the group dn.
  *
  * This function checks if the user has access to the OpenSSH server or
- * not and writes the result to the DTO.
+ * not and writes the result to @p pox509_info.
  *
  * @param[in] group_dn DN of an OpenSSH server group. Must not be
  * @c NULL. Length must be > 0.
  * @param[in] identifier Identifier for the OpenSSH server.
- * @param[out] pox509_info DTO
+ * @param[out] pox509_info DTO.
  */
 void check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *pox509_info);
