@@ -3,8 +3,8 @@ compiler: gcc
 
 branches:
     only:
-        - master
         - develop
+        - master
 
 notifications:
     email: false
