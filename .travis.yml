@@ -1,6 +1,11 @@
 language: c
 compiler: gcc
 
+branches:
+    only:
+        - master
+        - develop
+
 notifications:
     email: false
     irc: "chat.freenode.net#pam-openssh-x509"
