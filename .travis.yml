@@ -22,9 +22,9 @@ install:
         libconfuse-dev libpam0g libpam0g-dev libtool
     - cd ..
     - wget --no-check-certificate
-        https://www.openssl.org/source/openssl-1.0.2c.tar.gz
-    - tar xvfz openssl-1.0.2c.tar.gz
-    - cd openssl-1.0.2c
+        https://www.openssl.org/source/openssl-1.0.2d.tar.gz
+    - tar xvfz openssl-1.0.2d.tar.gz
+    - cd openssl-1.0.2d
     - ./config --prefix=/usr shared && make && sudo make install
     - cd ${repo}
 
