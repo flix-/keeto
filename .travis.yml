@@ -12,7 +12,7 @@ before_install:
 
 install:
     - sudo apt-get install -y autotools-dev autoconf automake check
-        libconfuse-dev libpam0g libpam0g-dev libssl-dev libtool
+        libconfuse-dev libpam0g-dev libssl-dev libtool
 
 before_script:
     - ./autogen.sh
