@@ -41,8 +41,8 @@ Solution stack
  * PAM >= 1.1.8
  * OpenSSL >= 1.0.1e
  * OpenSSH >= 6.2
- * libldap 2.4.39
- * OpenLDAP 2.4.39
+ * libldap >= 2.4.39
+ * OpenLDAP >= 2.4.39
  * libConfuse 2.7
  * pam-openssh-x509
  * PuTTY-CAC 0.62
@@ -98,9 +98,8 @@ OpenSSH
 7) Run OpenSSH:
    $ /usr/bin/sshd -f /usr/local/etc/ssh/sshd_config
 
-8) (optional) Make sure PAM support is disabled for other OpenSSH
-   instances running on the same machine, as they would use the modules
-   as well.
+8) /!\ Make sure PAM support is disabled for other OpenSSH instances
+   running on the same machine, as they would use the modules as well.
 
 
 OpenLDAP
@@ -202,6 +201,10 @@ pam-openssh-x509
 ----------------
 
 1) Build and install modules:
+   1.1) 32 bit system
+      $ ./configure --libdir=/lib/security --disable-dependency-tracking
+   1.2) 64 bit system
+      $ ./configure --libdir=/lib64/security --disable-dependency-tracking
    $ ./configure --libdir=/lib/security --disable-dependency-tracking
    $ make
    $ make check
@@ -240,7 +243,7 @@ Overview
 --------
 
 Log files:
-   /var/log/ssh/sshd-5580.log
+   /var/log/ssh/sshd-5522.log
    /var/log/ssh/pox509.log
    /var/log/slapd/slapd.log
 
