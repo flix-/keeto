@@ -201,11 +201,10 @@ pam-openssh-x509
 ----------------
 
 1) Build and install modules:
-   1.1) 32 bit system
+   32 bit system
       $ ./configure --libdir=/lib/security --disable-dependency-tracking
-   1.2) 64 bit system
+   64 bit system
       $ ./configure --libdir=/lib64/security --disable-dependency-tracking
-   $ ./configure --libdir=/lib/security --disable-dependency-tracking
    $ make
    $ make check
    $ sudo make install
