@@ -108,7 +108,7 @@ Module stack
 
 pam-openssh-x509 is made up of the following modules:
 
-pam-openssh-x509_base.so
+pox509-base.so
 
  * Checks access permissions through LDAP groups.
  * Validates x509 certificate.
@@ -116,11 +116,11 @@ pam-openssh-x509_base.so
  * Creates and updates the data transfer object passed to downstream
    modules with all determined information.
 
-pam-openssh-x509_audit.so (optional)
+pox509-audit.so (optional)
 
  * Logs information from the data transfer object.
 
-pam-openssh-x509_validate.so
+pox509-validate.so
 
  * Keeps the policy that evaluates the data transfer object and updates
    the authorized_keys file.
