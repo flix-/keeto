@@ -132,7 +132,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
     /*
      * an attacker could provide a malicious uid
-     * (e.g. '../keystore/foo') that can cause problems with the
+     * (e.g. '../authorized_keys/foo') that can cause problems with the
      * resulting authorized_keys path after token substitution.
      * to minimize this attack vector the given uid will be tested
      * against a restrictive regular expression.

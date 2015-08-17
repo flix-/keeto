@@ -82,23 +82,20 @@ OpenSSH
    $ cp samples/sshd_config /usr/local/etc/ssh/
 
 4) Create directory for users public keys:
-   $ mkdir /usr/local/etc/ssh/keystore
+   $ mkdir /usr/local/etc/ssh/authorized_keys
 
-   In this directory every user gets a subdirectory named after their
-   UID. The authorized_keys file will be stored there.
-
-5) Create keystore for 'pox509-test-user':
-   $ mkdir /usr/local/etc/ssh/keystore/pox509-test-user
+   In this directory every user gets a file named after their UID. The
+   authorized_keys entry will be stored there.
 
    /!\ As the authorized_keys file will be managed by pam-openssh-x509,
    we have to make sure that noone besides root can change the
    authorized_keys file. Standard permissions (755) with ownership
-   root:root should be fine.
+   root:root for the directory should be fine.
 
-7) Run OpenSSH:
+5) Run OpenSSH:
    $ /usr/bin/sshd -f /usr/local/etc/ssh/sshd_config
 
-8) /!\ Make sure PAM support is disabled for other OpenSSH instances
+6) /!\ Make sure PAM support is disabled for other OpenSSH instances
    running on the same machine, as they would use the modules as well.
 
 
@@ -246,8 +243,8 @@ Log files:
    /var/log/ssh/pox509.log
    /var/log/slapd/slapd.log
 
-Keystore:
-   /usr/local/etc/ssh/keystore/
+Authorized_keys files:
+   /usr/local/etc/ssh/authorized_keys/
 
 Configurations:
    /usr/local/etc/ssh/sshd_config

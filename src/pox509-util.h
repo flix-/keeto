@@ -128,9 +128,9 @@ bool is_valid_uid(const char *uid);
  *
  * The token has the form '\%token' and will be completely replaced
  * with the value pointed by subst.
- * For example the string "/etc/ssh/keystore/%u/authorized_keys" with
+ * For example the string "/usr/local/etc/ssh/authorized_keys/%u" with
  * the token 'u' and the substitution value "foo" will yield
- * "/etc/ssh/keystore/foo/authorized_keys".
+ * "/usr/local/etc/ssh/authorized_keys/foo".
  *
  *
  * @param[in] token Token that shall be replaced.
@@ -150,13 +150,13 @@ bool is_valid_uid(const char *uid);
  * in a path.
  *
  * @warning Consider the following path:
- * "/etc/ssh/keystore/%u/authorized_keys"
+ * "/usr/local/etc/ssh/authorized_keys/%u"
  *
  * @warning An attacker can change the path easily if he provides the
- * following substitution value: "../../../root/.ssh"
+ * following substitution value: "../authorized_keys/root"
  *
  * @warning This will lead to the following path:
- * "/etc/ssh/keystore/../../../root/.ssh/authorized_keys"
+ * /usr/local/etc/ssh/authorized_keys/../authorized_keys/root"
  */
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);

@@ -61,7 +61,7 @@ static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
     { "1pox509", false },
     { "abcdefghijklmnopqrstuvwxyzaabbcc", true },
     { "abcdefghijklmnopqrstuvwxyzaabbccd", false },
-    { "../keystore/foo", false },
+    { "../authorized_keys/root", false },
     { "..", false },
     { "_foo", false }
 };
