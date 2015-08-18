@@ -88,9 +88,9 @@ OpenSSH
    authorized_keys entry will be stored there.
 
    /!\ As the authorized_keys file will be managed by pam-openssh-x509,
-   we have to make sure that noone besides root can change the
-   authorized_keys file. Standard permissions (755) with ownership
-   root:root for the directory should be fine.
+   we have to make sure that noone besides root can change them.
+   Standard permissions (755) with ownership root:root for the directory
+   should be fine.
 
 5) Run OpenSSH:
    $ /usr/bin/sshd -f /usr/local/etc/ssh/sshd_config
