@@ -209,7 +209,10 @@ pam-openssh-x509
 2) Copy pam-openssh-x509 configuration file:
    $ cp samples/pox509.conf /usr/local/etc/ssh/
 
-3) Copy PAM configuration:
+3) Protect pam-openssh-x509 configuration file:
+   $ chmod 600 /usr/local/etc/ssh/pox509.conf
+
+4) Copy PAM configuration:
    $ cp -i samples/sshd /etc/pam.d/
 
 
