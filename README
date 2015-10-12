@@ -26,14 +26,13 @@ pam-openssh-x509 enables you to...
    certificates.
  * Distribute OpenSSH public keys in a secure manner.
  * Periodically update key material without manual interaction.
+ * Adopt to different environments by the usage of policies.
  * Be completely independent of changes to OpenSSH itself by using a
    long established and supported standard interface.
 
  * Highly protect private keys by using Smartcard technology.
  * Simply implement two factor authentication.
- * Revoke keys in a standard way.
  * Gain back control of the key creation process.
- * Adopt to different environments by the usage of policies.
  * Reveal the theft of private keys and make it hard to duplicate them.
 
  * KEEP IT SIMPLE \o/
