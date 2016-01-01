@@ -14,12 +14,12 @@ LT_INIT([disable-static dlopen pic-only])
 AC_PROG_CC
 
 # Checks for libraries.
-PKG_CHECK_MODULES([libcheck], [check >= 0.9.10], [],
-    [AC_MSG_ERROR([cannot find libcheck (>= 0.9.10)])])
+PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
+    [AC_MSG_ERROR([cannot find libcheck (>= 0.9.9)])])
 PKG_CHECK_MODULES([libconfuse], [libconfuse >= 2.7], [],
     [AC_MSG_ERROR([cannot find libconfuse (>= 2.7)])])
-PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0.1j], [],
-    [AC_MSG_ERROR([cannot find libcrypto (>= 1.0.1j)])])
+PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0.1e], [],
+    [AC_MSG_ERROR([cannot find libcrypto (>= 1.0.1e)])])
 AC_CHECK_LIB([ldap], [ldap_sasl_bind_s], [],
     [AC_MSG_ERROR([cannot find libldap])])
 AC_CHECK_LIB([lber], [ber_free], [], [AC_MSG_ERROR([cannot find liblber])])

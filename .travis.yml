@@ -1,11 +1,6 @@
 language: c
 compiler: gcc
 
-branches:
-    only:
-        - develop
-        - master
-
 notifications:
     email: false
     irc: "chat.freenode.net#pam-openssh-x509"
@@ -14,19 +9,10 @@ before_install:
     - sudo add-apt-repository "deb http://de.archive.ubuntu.com/ubuntu trusty
         main restricted universe multiverse"
     - sudo apt-get update -qq
-    - sudo apt-get remove libssl-dev
 
 install:
-    - repo=$(pwd)
-    - sudo apt-get install -y autotools-dev autoconf automake check
-        libconfuse-dev libpam0g libpam0g-dev libtool
-    - cd ..
-    - wget --no-check-certificate
-        https://www.openssl.org/source/openssl-1.0.2d.tar.gz
-    - tar xvfz openssl-1.0.2d.tar.gz
-    - cd openssl-1.0.2d
-    - ./config --prefix=/usr shared && make && sudo make install
-    - cd ${repo}
+    - sudo apt-get install -y autotools-dev autoconf automake check doxygen
+        libconfuse-dev libpam0g-dev libssl-dev libtool
 
 before_script:
     - ./autogen.sh

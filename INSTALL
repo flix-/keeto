@@ -8,7 +8,7 @@ Contents of this file
  * OpenSSH
  * OpenLDAP
  * pam-openssh-x509
- * PuTTY-CAC 0.62
+ * PuTTY-CAC
  * Trusted CA's store
  * Overview
 
@@ -38,15 +38,15 @@ Solution stack
 --------------
 
  * syslog-ng 3.5.6
- * PAM 0.83
- * OpenSSL >= 1.0.1j
+ * PAM >= 1.1.8
+ * OpenSSL >= 1.0.1e
  * OpenSSH >= 6.2
- * libldap 2.4.40
- * OpenLDAP 2.4.40
+ * libldap >= 2.4.39
+ * OpenLDAP >= 2.4.39
  * libConfuse 2.7
  * pam-openssh-x509
  * PuTTY-CAC 0.62
- * check >= 0.9.10
+ * check >= 0.9.9
 
 
 Prerequisites
@@ -82,25 +82,21 @@ OpenSSH
    $ cp samples/sshd_config /usr/local/etc/ssh/
 
 4) Create directory for users public keys:
-   $ mkdir /usr/local/etc/ssh/keystore
+   $ mkdir /usr/local/etc/ssh/authorized_keys
 
-   In this directory every user gets a subdirectory named after their
-   UID. The authorized_keys file will be stored there.
-
-5) Create keystore for 'pox509-test-user':
-   $ mkdir /usr/local/etc/ssh/keystore/pox509-test-user
+   In this directory every user gets a file named after their UID. The
+   authorized_keys entry will be stored there.
 
    /!\ As the authorized_keys file will be managed by pam-openssh-x509,
-   we have to make sure that noone besides root can change the
-   authorized_keys file. Standard permissions (755) with ownership
-   root:root should be fine.
+   we have to make sure that noone besides root can change them.
+   Standard permissions (755) with ownership root:root for the directory
+   should be fine.
 
-7) Run OpenSSH:
+5) Run OpenSSH:
    $ /usr/bin/sshd -f /usr/local/etc/ssh/sshd_config
 
-8) (optional) Make sure PAM support is disabled for other OpenSSH
-   instances running on the same machine, as they would use the modules
-   as well.
+6) /!\ Make sure PAM support is disabled for other OpenSSH instances
+   running on the same machine, as they would use the modules as well.
 
 
 OpenLDAP
@@ -202,7 +198,10 @@ pam-openssh-x509
 ----------------
 
 1) Build and install modules:
-   $ ./configure --libdir=/lib/security --disable-dependency-tracking
+   32 bit system
+      $ ./configure --libdir=/lib/security --disable-dependency-tracking
+   64 bit system
+      $ ./configure --libdir=/lib64/security --disable-dependency-tracking
    $ make
    $ make check
    $ sudo make install
@@ -210,7 +209,10 @@ pam-openssh-x509
 2) Copy pam-openssh-x509 configuration file:
    $ cp samples/pox509.conf /usr/local/etc/ssh/
 
-3) Copy PAM configuration:
+3) Protect pam-openssh-x509 configuration file:
+   $ chmod 600 /usr/local/etc/ssh/pox509.conf
+
+4) Copy PAM configuration:
    $ cp -i samples/sshd /etc/pam.d/
 
 
@@ -240,12 +242,12 @@ Overview
 --------
 
 Log files:
-   /var/log/ssh/sshd-5580.log
+   /var/log/ssh/sshd-5522.log
    /var/log/ssh/pox509.log
    /var/log/slapd/slapd.log
 
-Keystore:
-   /usr/local/etc/ssh/keystore/
+Authorized_keys files:
+   /usr/local/etc/ssh/authorized_keys/
 
 Configurations:
    /usr/local/etc/ssh/sshd_config
