@@ -4,7 +4,8 @@ EXTRA_DIST = tests/ca_certificates \
              tests/pkey_to_authorized_keys \
              tests/is_readable_file \
              samples \
-             doc
+             doc \
+             autogen.sh
 SUBDIRS = src . tests
 AM_DISTCHECK_CONFIGURE_FLAGS = --disable-dependency-tracking
 

@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = pam-openssh-x509
-PROJECT_NUMBER         = 
+PROJECT_NUMBER         = 0.1.0
 PROJECT_BRIEF          = "Collection of PAM modules for an automatized and" \
                          "secure OpenSSH key and access management"
 PROJECT_LOGO           = 

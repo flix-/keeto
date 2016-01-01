@@ -10,7 +10,7 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-Port 5580
+Port 5522
 AddressFamily inet
 #ListenAddress 0.0.0.0
 #ListenAddress ::
@@ -36,7 +36,7 @@ AddressFamily inet
 # Logging
 # obsoletes QuietMode and FascistLogging
 SyslogFacility LOCAL0
-LogLevel DEBUG3
+LogLevel INFO
 
 # Authentication:
 
@@ -51,7 +51,7 @@ PermitRootLogin no
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile /usr/local/etc/ssh/keystore/%u/authorized_keys
+AuthorizedKeysFile /usr/local/etc/ssh/authorized_keys/%u
 
 #AuthorizedPrincipalsFile none
 
@@ -70,7 +70,7 @@ AuthorizedKeysFile /usr/local/etc/ssh/keystore/%u/authorized_keys
 
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication no
-#PermitEmptyPasswords no
+PermitEmptyPasswords no
 
 # Change to no to disable s/key passwords
 ChallengeResponseAuthentication yes
@@ -114,7 +114,7 @@ UsePrivilegeSeparation no	# Default for new installations.
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS yes
-PidFile /run/sshd-5580.pid
+PidFile /run/sshd-5522.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
@@ -124,7 +124,7 @@ PidFile /run/sshd-5580.pid
 #Banner none
 
 # override default of no subsystems
-#Subsystem	sftp	/usr/lib/ssh/sftp-server
+Subsystem	sftp	/usr/lib/ssh/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs

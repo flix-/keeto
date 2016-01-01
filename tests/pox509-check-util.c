@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,7 +61,7 @@ static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
     { "1pox509", false },
     { "abcdefghijklmnopqrstuvwxyzaabbcc", true },
     { "abcdefghijklmnopqrstuvwxyzaabbccd", false },
-    { "../keystore/foo", false },
+    { "../authorized_keys/root", false },
     { "..", false },
     { "_foo", false }
 };

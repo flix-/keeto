@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -196,8 +196,8 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
         CFG_STR("ldap_attr_access", "memberOf", CFGF_NONE),
         CFG_STR("ldap_attr_cert", "userCertificate;binary", CFGF_NONE),
         CFG_STR("ldap_group_identifier", "pox509-test-server", CFGF_NONE),
-        CFG_STR("authorized_keys_file",
-            "/usr/local/etc/ssh/keystore/%u/authorized_keys", CFGF_NONE),
+        CFG_STR("authorized_keys_file", "/usr/local/etc/ssh/authorized_keys/%u",
+            CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
         CFG_END()
     };
