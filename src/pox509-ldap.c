@@ -102,40 +102,28 @@ bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
     }
 
     char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
-    char *ldap_pwd = cfg_getstr(cfg, "ldap_pwd");
-    size_t ldap_pwd_length = strlen(ldap_pwd);
+    char *ldap_bind_pwd = cfg_getstr(cfg, "ldap_bind_pwd");
+    size_t ldap_bind_pwd_length = strlen(ldap_bind_pwd);
     struct berval cred = {
-        .bv_len = ldap_pwd_length,
-        .bv_val = ldap_pwd
+        .bv_len = ldap_bind_pwd_length,
+        .bv_val = ldap_bind_pwd
     };
     int rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE,
         &cred, NULL, NULL, NULL);
-    memset(ldap_pwd, 0, ldap_pwd_length);
+    memset(ldap_bind_pwd, 0, ldap_bind_pwd_length);
     return rc;
 }
 
-static int
-search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
-    struct pox509_info *pox509_info)
+static char **
+get_attr_values_as_string(LDAP *ldap_handle, cfg_t *cfg, char *dn,
+    char *attr)
 {
-    if (ldap_handle == NULL || ldap_result == NULL || cfg == NULL ||
-        pox509_info == NULL) {
-        fatal("ldap_handle, ldap_result, cfg or pox509_info == NULL");
+    if (ldap_handle == NULL || cfg == NULL || dn == NULL || attr == NULL) {
+        fatal("ldap_handle, cfg, dn or attr == NULL");
     }
 
-    /* collect arguments for ldap search */
-    char *ldap_base = cfg_getstr(cfg, "ldap_base");
-    int ldap_scope = cfg_getint(cfg, "ldap_scope");
-    /* construct search filter */
-    char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
-    char *ldap_attr_rdn_person = cfg_getstr(cfg, "ldap_attr_rdn_person");
-    create_ldap_search_filter(ldap_attr_rdn_person, pox509_info->uid, filter,
-        sizeof filter);
-    char *ldap_attr_access = cfg_getstr(cfg, "ldap_attr_access");
-    char *ldap_attr_cert = cfg_getstr(cfg, "ldap_attr_cert");
     char *attrs[] = {
-        ldap_attr_access,
-        ldap_attr_cert,
+        attr,
         NULL
     };
     int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
@@ -144,14 +132,65 @@ search_ldap(LDAP *ldap_handle, LDAPMessage **ldap_result, cfg_t *cfg,
         .tv_usec = 0
     };
     int sizelimit = 1;
+    LDAPMessage *result = NULL;
 
-    /*
-     * search people tree for given uid and retrieve group memberships
-     * and x509 certificates.
-     */
-    int rc = ldap_search_ext_s(ldap_handle, ldap_base, ldap_scope, filter,
-        attrs, 0, NULL, NULL, &search_timeout, sizelimit, ldap_result);
-    return rc;
+    int rc = ldap_search_ext_s(ldap_handle, dn, LDAP_SCOPE_BASE, NULL, attrs,
+        0, NULL, NULL, &search_timeout, sizelimit, &result);
+    if (rc != LDAP_SUCCESS) {
+        fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+    }
+
+    rc = ldap_count_entries(ldap_handle, result);
+    if (rc == 0) {
+        log_fail("ldap_count_entries() == 0");
+        return NULL;
+    }
+    /* get attribute values */
+    result = ldap_first_entry(ldap_handle, result);
+    if (result == NULL) {
+        fatal("ldap_first_entry() == NULL");
+    }
+    struct berval **values = ldap_get_values_len(ldap_handle, result, attr);
+    if (values == NULL) {
+        log_fail("ldap_get_values_len() == NULL");
+        return NULL;
+    }
+    int count = ldap_count_values_len(values);
+    if (count == 0) {
+        log_fail("ldap_count_values_len() == 0");
+        return NULL;
+    }
+
+    char **ret = malloc(sizeof(char *) * (count + 1));
+    if (ret == NULL) {
+        fatal("malloc");
+    }
+
+    int i;
+    for (i = 0; values[i] != NULL; i++) {
+        char *value = values[i]->bv_val;
+        ber_len_t len = values[i]->bv_len;
+        ret[i] = strndup(value, len + 1);
+        ret[i][len] = '\0';
+    }
+    ret[count] = NULL;
+    ldap_value_free_len(values);
+
+    return ret;
+}
+
+static void
+free_string_array(char **strings)
+{
+    if (strings == NULL) {
+        fatal("strings == NULL");
+    }
+
+    int i;
+    for (i = 0; strings[i] != NULL; i++) {
+        free(strings[i]);
+    }
+    free(strings);
 }
 
 static void
@@ -209,17 +248,19 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                  */
                 char *ldap_group_identifier =
                     cfg_getstr(cfg, "ldap_group_identifier");
-                check_access_permission(value, ldap_group_identifier,
-                    pox509_info);
+                /* check_access_permission(value, ldap_group_identifier,
+                    pox509_info);*/
                 /*
                  * stop looping over group memberships when access has
                  * been granted.
                  */
+                 /*
                 if (pox509_info->has_access == 1) {
                     log_msg("group membership found");
                     log_msg("group_dn: %s", value);
                     break;
                 }
+                */
 
             /* process x509 certificates */
             } else if (is_attr_cert) {
@@ -231,7 +272,9 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
                     continue;
                 }
 
+                /*
                 pox509_info->has_cert = 1;
+                */
                 /*
                  * stop looping over x509 certificates when a valid one
                  * has been found.
@@ -247,48 +290,133 @@ handle_ldap_res_search_entry(LDAP *ldap_handle, LDAPMessage *ldap_result,
 }
 
 static void
-handle_ldap_res_search_reference(LDAP *ldap_handle, LDAPMessage *ldap_result)
+add_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
+    struct pox509_info *pox509_info)
 {
-    if (ldap_handle == NULL || ldap_result == NULL) {
-        fatal("ldap_handle or ldap_result == NULL");
+    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
+        fatal("ldap_handle, cfg or pox509_info == NULL");
     }
 
-    log_fail("LDAP_RES_SEARCH_REFERENCE handling is not yet implemented");
-}
+    /* collect arguments for ldap search */
+    char *ldap_base = cfg_getstr(cfg, "ldap_server_base_dn");
+    int ldap_search_scope = cfg_getint(cfg, "ldap_server_search_scope");
+    /* construct search filter */
+    char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
+    char *ldap_server_uid_attr = cfg_getstr(cfg, "ldap_server_uid_attr");
+    char *server_uid = cfg_getstr(cfg, "server_uid");
+    create_ldap_search_filter(ldap_server_uid_attr, server_uid, filter,
+        sizeof filter);
+    char *ldap_server_access_profile_attr = cfg_getstr(cfg,
+        "ldap_server_access_profile_attr");
+    char *attrs[] = {
+        ldap_server_access_profile_attr,
+        NULL
+    };
+    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
+    struct timeval search_timeout = {
+        .tv_sec = ldap_search_timeout,
+        .tv_usec = 0
+    };
+    int sizelimit = 1;
+    LDAPMessage *result = NULL;
 
-static void
-handle_ldap_res_search_result(LDAP *ldap_handle, LDAPMessage *ldap_result)
-{
-    if (ldap_handle == NULL || ldap_result == NULL) {
-        fatal("ldap_handle or ldap_result == NULL");
-    }
-
-    int error_code;
-    char *error_msg = NULL;
-    int rc = ldap_parse_result(ldap_handle, ldap_result, &error_code, NULL,
-        &error_msg, NULL, NULL, 0);
+    int rc = ldap_search_ext_s(ldap_handle, ldap_base, ldap_search_scope,
+        filter, attrs, 0, NULL, NULL, &search_timeout,  sizelimit, &result);
     if (rc != LDAP_SUCCESS) {
-        log_fail("ldap_parse_result()");
+        fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+    }
+
+    /* sizelimit == 1 */
+    rc = ldap_count_entries(ldap_handle, result);
+    if (rc == 0) {
+        log_fail("ssh server not found in ldap");
         return;
     }
 
-    /* only log errors */
-    if (error_code != LDAP_SUCCESS) {
-        log_fail("ldap_parse_result(): '%s' (%d)", ldap_err2string(error_code),
-            error_code);
+    result = ldap_first_entry(ldap_handle, result);
+    if (result == NULL) {
+        fatal("ldap_first_entry() == NULL");
     }
-    if (error_msg != NULL) {
-        log_fail("ldap_parse_result(): '%s'", error_msg);
-        ldap_memfree(error_msg);
+
+    struct berval **profiles = ldap_get_values_len(ldap_handle, result,
+        ldap_server_access_profile_attr);
+    if (profiles == NULL) {
+        log_msg("no access profile found");
+        return;
+    }
+
+    int i;
+    for (i = 0; profiles[i] != NULL; i++) {
+        char *dn = profiles[i]->bv_val;
+        int dn_length = profiles[i]->bv_len;
+        struct pox509_profile *access_profile =
+        malloc(sizeof(struct pox509_profile));
+        if (access_profile == NULL) {
+            fatal("malloc");
+        }
+        access_profile->dn = strndup(dn, dn_length + 1);
+        access_profile->dn[dn_length] = '\0';
+        STAILQ_INSERT_TAIL(&pox509_info->profile_head, access_profile,
+            profiles);
+    }
+    ldap_value_free_len(profiles);
+}
+
+static void
+strip_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
+    struct pox509_info *pox509_info)
+{
+    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
+        fatal("ldap_handle, cfg or pox509_info == NULL");
+    }
+
+    char *ldap_target_group_attr = cfg_getstr(cfg, "ldap_target_group_attr");
+    char *ldap_target_uid_attr = cfg_getstr(cfg, "ldap_target_uid_attr");
+
+    struct pox509_profile *ptr = NULL;
+    STAILQ_FOREACH(ptr, &pox509_info->profile_head, profiles) {
+        /* get dn of group holdings target keystore dn's */
+        char **target_keystore_group_dn = get_attr_values_as_string(ldap_handle,
+            cfg, ptr->dn, POX509_TARGET_KEYSTORE);
+        if (target_keystore_group_dn == NULL) {
+            fatal("target_keystore_group_dn == NULL");
+        }
+
+        log_msg("target keystore group dn: %s", target_keystore_group_dn[0]);
+
+        /* get dn's of target keystore ee's */
+        char **target_keystore_ee_dns = get_attr_values_as_string(ldap_handle,
+            cfg, target_keystore_group_dn[0], ldap_target_group_attr);
+        if (target_keystore_ee_dns == NULL) {
+            fatal("target_keystore_ee_dns == NULL");
+        }
+
+        int i;
+        for (i = 0; target_keystore_ee_dns[i] != NULL; i++) {
+            log_msg("dn: %s", target_keystore_ee_dns[i]);
+
+            /* get ee's and compare uid to uid logging in */
+            char **target_keystore_ee_uid = get_attr_values_as_string(
+                ldap_handle, cfg, target_keystore_ee_dns[i],
+                ldap_target_uid_attr);
+            if (target_keystore_ee_uid == NULL) {
+                fatal("target_keystore_ee_uid == NULL");
+            }
+            log_msg("uid: %s", target_keystore_ee_uid[0]);
+            free_string_array(target_keystore_ee_uid);
+        }
+
+        /* free string arrays */
+        free_string_array(target_keystore_group_dn);
+        free_string_array(target_keystore_ee_dns);
     }
 }
 
 void
-retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-    struct pox509_info *pox509_info, X509 **x509)
+get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
 {
-    if (cfg == NULL || pox509_info == NULL || x509 == NULL) {
-        fatal("cfg, pox509_info or x509 == NULL");
+    if (cfg == NULL || pox509_info == NULL) {
+        fatal("cfg or pox509_info == NULL");
     }
 
     /* init handle */
@@ -318,51 +446,10 @@ retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
     log_success("bind_to_ldap()");
     pox509_info->ldap_online = 1;
 
-    /* query ldap */
-    LDAPMessage *ldap_result = NULL;
-    rc = search_ldap(ldap_handle, &ldap_result, cfg, pox509_info);
-    if (rc != LDAP_SUCCESS) {
-        log_fail("search_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
-        goto unbind_and_free_handle;
-    }
-
-    log_success("search_ldap()");
-    /*
-     * iterate over matching entries
-     *
-     * even though sizelimit is 1 at least 2 messages will be returned
-     * (1x LDAP_RES_SEARCH_ENTRY + 1x LDAP_RES_SEARCH_RESULT) so that
-     * we need to iterate over the result set instead of just retrieve
-     * and process the first message.
-     */
-    for (ldap_result = ldap_first_message(ldap_handle, ldap_result);
-        ldap_result != NULL;
-        ldap_result = ldap_next_message(ldap_handle, ldap_result)) {
-
-        int msgtype = ldap_msgtype(ldap_result);
-        switch (msgtype) {
-        case -1:
-            fatal("ldap_msgtype()");
-        case LDAP_RES_SEARCH_ENTRY:
-            handle_ldap_res_search_entry(ldap_handle, ldap_result, cfg,
-                pox509_info, x509);
-            break;
-        case LDAP_RES_SEARCH_REFERENCE:
-            handle_ldap_res_search_reference(ldap_handle, ldap_result);
-            break;
-        case LDAP_RES_SEARCH_RESULT:
-            handle_ldap_res_search_result(ldap_handle, ldap_result);
-            break;
-        default:
-            /* unlikely */
-            log_fail("undefined msgtype '(0x%x)'", msgtype);
-        }
-    }
-    /*
-     * clear result structure - even if no result has been found
-     * (see man page).
-     */
-    ldap_msgfree(ldap_result);
+    /* add access profiles to pox509_info */
+    add_access_profiles(ldap_handle, cfg, pox509_info);
+    /* strip access profiles */
+    strip_access_profiles(ldap_handle, cfg, pox509_info);
 
 unbind_and_free_handle:
     /*

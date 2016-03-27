@@ -184,19 +184,29 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     /* setup config options */
     cfg_opt_t opts[] = { 
         CFG_STR("syslog_facility", "LOG_LOCAL1", CFGF_NONE),
+
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
         CFG_INT("ldap_starttls", 0, CFGF_NONE),
         CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=ssh,dc=hq", CFGF_NONE),
-        CFG_STR("ldap_pwd", "test123", CFGF_NONE),
-        CFG_STR("ldap_base", "ou=people,dc=ssh,dc=hq", CFGF_NONE),
-        CFG_INT_CB("ldap_scope", LDAP_SCOPE_ONE, CFGF_NONE,
-            &cfg_str_to_int_parser_libldap),
+        CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
-        CFG_STR("ldap_attr_rdn_person", "uid", CFGF_NONE),
-        CFG_STR("ldap_attr_access", "memberOf", CFGF_NONE),
-        CFG_STR("ldap_attr_cert", "userCertificate;binary", CFGF_NONE),
-        CFG_STR("ldap_group_identifier", "pox509-test-server", CFGF_NONE),
-        CFG_STR("authorized_keys_file", "/usr/local/etc/ssh/authorized_keys/%u",
+
+        CFG_STR("ldap_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
+            CFGF_NONE),
+        CFG_INT_CB("ldap_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
+            &cfg_str_to_int_parser_libldap),
+        CFG_STR("ldap_server_uid_attr", "cn", CFGF_NONE),
+        CFG_STR("ldap_server_access_profile_attr", "member", CFGF_NONE),
+
+        CFG_STR("ldap_target_group_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_target_uid_attr", "uid", CFGF_NONE),
+
+        CFG_STR("ldap_provider_group_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_provider_uid_attr", "uid", CFGF_NONE),
+        CFG_STR("ldap_provider_cert_attr", "userCertificate;binary", CFGF_NONE),
+
+        CFG_STR("server_uid", "pox509-test-server", CFGF_NONE),
+        CFG_STR("keystore_location", "/usr/local/etc/ssh/authorized_keys/%u",
             CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
         CFG_END()
@@ -211,9 +221,9 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
     cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
     cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
     cfg_set_validate_func(*cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(*cfg, "ldap_base", &cfg_validate_ldap_dn);
     cfg_set_validate_func(*cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
+    cfg_set_validate_func(*cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
     cfg_set_validate_func(*cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
 
     /* parse config */

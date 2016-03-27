@@ -116,16 +116,9 @@ init_data_transfer_object(struct pox509_info *pox509_info)
 
     memset(pox509_info, 0, sizeof *pox509_info);
     pox509_info->uid = NULL;
-    pox509_info->authorized_keys_file = NULL;
-    pox509_info->ssh_keytype = NULL;
-    pox509_info->ssh_key = NULL;
-    pox509_info->has_cert = 0x56;
-    pox509_info->has_valid_cert = 0x56;
-    pox509_info->serial = NULL;
-    pox509_info->issuer = NULL;
-    pox509_info->subject = NULL;
+    pox509_info->keystore_location = NULL;
+    STAILQ_INIT(&pox509_info->profile_head);
     pox509_info->ldap_online = 0x56;
-    pox509_info->has_access = 0x56;
     pox509_info->syslog_facility = NULL;
 }
 
@@ -220,20 +213,21 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
 }
 
 void
-create_ldap_search_filter(const char *rdn, const char *uid, char *dst,
+create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length)
 {
-    if (rdn == NULL || uid == NULL || dst == NULL) {
-        fatal("rdn, uid or dst == NULL");
+    if (attr == NULL || value == NULL || dst == NULL) {
+        fatal("attr, value or dst == NULL");
     }
 
     if (dst_length == 0) {
         fatal("dst_length must be > 0");
     }
 
-    snprintf(dst, dst_length, "%s=%s", rdn, uid);
+    snprintf(dst, dst_length, "%s=%s", attr, value);
 }
 
+/*
 void
 check_access_permission(const char *group_dn, const char *identifier,
     struct pox509_info *pox509_info)
@@ -274,4 +268,5 @@ check_access_permission(const char *group_dn, const char *identifier,
     ldap_memfree(rdn_value);
     ldap_dnfree(dn);
 }
+*/
 

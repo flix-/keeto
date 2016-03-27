@@ -20,7 +20,7 @@
  *
  * @file pox509-util.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-22
+ * @date 2016-03-26
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
@@ -30,44 +30,38 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/**
- * (D)ata (T)ransfer (O)bject
- *
- * Structure that holds all relevant information gathered in the base
- * module. Downstream modules can obtain a pointer to it through the PAM
- * handle.
- */
-struct pox509_info {
-    /** UID of the user about to authenticate */
-    char *uid; 
-    /** Path to authorized_keys file */
-    char *authorized_keys_file;
-    /** Type of the OpenSSH key */
-    char *ssh_keytype;
-    /** String representation of the OpenSSH public key for pasting into
-     *  authorized_keys file */
-    char *ssh_key;
+#include <openssl/x509.h>
+#include <sys/queue.h>
 
-    /** Indicates whether a x509 certificate has been found or not */
-    char has_cert;
-    /** Indicates whether the x509 certificate is valid or not */
+struct pox509_key_provider {
+    char *uid;
+    X509 *x509;
     char has_valid_cert;
-    /** Serial number of the x509 certificate */
-    char *serial;
-    /** Issuer of the x509 certificate */
-    char *issuer;
-    /** Subject of the x509 certificate */
-    char *subject;
+    char *ssh_keytype;
+    char *ssh_key;
+    STAILQ_ENTRY(pox509_key_provider) key_providers;
+};
 
-    /** Indicates whether the LDAP server has been reached or not */
+struct pox509_profile {
+    char *dn;
+    char *profile_name;
+    char *keystore_options;
+    STAILQ_HEAD(pox509_key_provider_head, pox509_key_provider)
+        key_provider_head;
+    STAILQ_ENTRY(pox509_profile) profiles;
+};
+
+struct pox509_info {
+    /* target keystore */
+    char *uid;
+    char *keystore_location;
+    /* keystore data */
+    STAILQ_HEAD(pox509_profile_head, pox509_profile) profile_head;
+    /* general */
     char ldap_online;
-    /** Indicates whether the user is authorized to access the server or
-     *  not */
-    char has_access;
-
-    /** Syslog logging facility */
     char *syslog_facility;
 };
+
 
 /**
  * Sections for config lookup table.
@@ -164,13 +158,13 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
 /**
  * Create LDAP search filter from RDN attribute and UID.
  *
- * @param[in] rdn RDN attribute. Must not be @c NULL.
- * @param[in] uid UID. Must not be @c NULL.
+ * @param[in] attr Attribute. Must not be @c NULL.
+ * @param[in] value Value. Must not be @c NULL.
  * @param[out] dst Output buffer where result shall be written to. Must
  * not be @c NULL.
  * @param[in] dst_length Length of the output buffer. Must be > 0.
  */
-void create_ldap_search_filter(const char *rdn, const char *uid,
+void create_ldap_search_filter(const char *attr, const char *value,
     char *dst, size_t dst_length);
 
 /**

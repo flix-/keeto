@@ -1,0 +1,52 @@
+dn: dc=ssh,dc=hq
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+dc: ssh
+o: ssh headquarter
+
+dn: ou=people,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=technical-users,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: technical-users
+
+dn: ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: ssh
+
+dn: ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: technical-users
+
+dn: ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: keystore-profiles
+
+dn: ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: access-profiles
+
+dn: ou=server,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: organizationalUnit
+ou: server
+

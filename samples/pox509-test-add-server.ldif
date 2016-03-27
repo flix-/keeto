@@ -1,7 +1,8 @@
-dn: cn=pox509-test-server,ou=groups,dc=ssh,dc=hq
+dn: cn=pox509-test-server,ou=server,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: groupOfNames
 cn: pox509-test-server
 description: pox509-test-server
-member: uid=__LAST_MAN_STANDING__
+member: cn=grouptargetkeystore-groupkeyprovider-from,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=grouptargetkeystore-groupkeyprovider-noopts,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 

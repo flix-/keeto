@@ -1,0 +1,24 @@
+dn: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: foobartux
+member: uid=foo,ou=people,dc=ssh,dc=hq
+member: uid=bar,ou=people,dc=ssh,dc=hq
+member: uid=tux,ou=people,dc=ssh,dc=hq
+description: foobartux group
+
+dn: cn=foobar,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: foobar
+member: uid=foo,ou=people,dc=ssh,dc=hq
+member: uid=bar,ou=people,dc=ssh,dc=hq
+description: foobar group
+
+dn: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: foo
+member: uid=foo,ou=people,dc=ssh,dc=hq
+description: foo only group
+

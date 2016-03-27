@@ -32,7 +32,11 @@
 
 #include "pox509-util.h"
 
-/**
+#define POX509_TARGET_KEYSTORE "pox509TargetKeystore"
+#define POX509_KEY_PROVIDER "pox509KeyProvider"
+#define POX509_KEYSTORE_OPTIONS "pox509KeystoreOptions"
+
+/**FIXME
  * Obtain access permission and x509 certificate of user from LDAP.
  *
  * The user object corresponding to the given UID is searched in the
@@ -44,6 +48,5 @@
  * Must not be @c NULL.
  * @param[out] x509 The parsed x509 certificate.
  */
-void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-    struct pox509_info *pox509_info, X509 **x509);
+void get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info);
 #endif

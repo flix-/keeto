@@ -14,11 +14,11 @@ olcLogLevel: stats
 #############
 # cn=module #
 #############
-dn: cn=module,cn=config
-objectClass: olcModuleList
-cn: module
-olcModulePath: /usr/lib/openldap
-olcModuleLoad: memberof
+#dn: cn=module,cn=config
+#objectClass: olcModuleList
+#cn: module
+#olcModulePath: /usr/lib/openldap
+#olcModuleLoad: memberof
 
 #############
 # cn=schema #
@@ -33,6 +33,7 @@ include: file:///etc/openldap/schema/inetorgperson.ldif
 include: file:///etc/openldap/schema/openldap.ldif
 include: file:///etc/openldap/schema/nis.ldif
 include: file:///etc/openldap/schema/misc.ldif
+include: file:///etc/openldap/schema/pox509.ldif
 
 ################
 # olcBackend=x #
@@ -68,10 +69,10 @@ olcDbIndex: uid
 olcDbIndex: objectclass pres,eq
 
 # add memberof overlay
-dn: olcOverlay=memberof,olcDatabase={1}hdb,cn=config
-objectClass: olcMemberOf
-olcOverlay: memberof
-olcMemberOfGroupOC: groupOfNames
-olcMemberOfMemberAD: member
-olcMemberOfMemberOfAD: memberOf
+#dn: olcOverlay=memberof,olcDatabase={1}hdb,cn=config
+#objectClass: olcMemberOf
+#olcOverlay: memberof
+#olcMemberOfGroupOC: groupOfNames
+#olcMemberOfMemberAD: member
+#olcMemberOfMemberOfAD: memberOf
 

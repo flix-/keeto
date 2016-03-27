@@ -32,7 +32,7 @@
 #include "pox509-x509.h"
 
 #define MAX_UID_LENGTH 32
-#define AUTHORIZED_KEYS_FILE_BUFFER_SIZE 1024
+#define KEYSTORE_PATH_BUFFER_SIZE 1024
 
 static void
 cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
@@ -66,6 +66,7 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
 
     struct pox509_info *pox509_info = data;
     log_msg("freeing pox509_info");
+    /* FIXME
     free(pox509_info->syslog_facility);
     free(pox509_info->subject);
     free(pox509_info->issuer);
@@ -75,6 +76,7 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
     free(pox509_info->authorized_keys_file);
     free(pox509_info->uid);
     free(pox509_info);
+    */
     log_msg("pox509_info freed");
 }
 
@@ -151,40 +153,39 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("strndup()");
     }
 
-    /* expand authorized_keys_file option and add to dto */
-    char *expanded_path = malloc(AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
+    /* expand keystore path and add to dto */
+    char *expanded_path = malloc(KEYSTORE_PATH_BUFFER_SIZE);
     if (expanded_path == NULL) {
         fatal("malloc()");
     }
-    char *authorized_keys_file = cfg_getstr(cfg, "authorized_keys_file");
-    substitute_token('u', pox509_info->uid, authorized_keys_file, expanded_path,
-        AUTHORIZED_KEYS_FILE_BUFFER_SIZE);
-    pox509_info->authorized_keys_file = expanded_path;
+    char *keystore_location = cfg_getstr(cfg, "keystore_location");
+    substitute_token('u', pox509_info->uid, keystore_location, expanded_path,
+        KEYSTORE_PATH_BUFFER_SIZE);
+    pox509_info->keystore_location = expanded_path;
 
     /* query ldap server */
-    X509 *x509 = NULL;
-    retrieve_authorization_and_x509_from_ldap(cfg, pox509_info, &x509);
+    get_keystore_data_from_ldap(cfg, pox509_info);
 
     /* process x509 certificate if one has been found */
-    if (x509 != NULL) {
+    //if (x509 != NULL) {
         /* validate x509 certificate */
-        char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
-        validate_x509(x509, cacerts_dir, pox509_info);
+    //    char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
+    //    validate_x509(x509, cacerts_dir, pox509_info);
 
         /*
          * convert public key of x509 certificate to OpenSSH
          * authorized_keys format
          */
-        x509_to_authorized_keys(x509, pox509_info);
+    //    x509_to_authorized_keys(x509, pox509_info);
 
         /* extract various information from x509 certificate */
-        get_serial_from_x509(x509, pox509_info);
-        get_issuer_from_x509(x509, pox509_info);
-        get_subject_from_x509(x509, pox509_info);
+    //    get_serial_from_x509(x509, pox509_info);
+    //    get_issuer_from_x509(x509, pox509_info);
+    //    get_subject_from_x509(x509, pox509_info);
 
         /* free x509 structure */
-        X509_free(x509);
-    }
+    //    X509_free(x509);
+    //}
 
     /* free config */
     release_config(cfg);
