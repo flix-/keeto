@@ -108,18 +108,48 @@ str_to_enum(enum pox509_sections sec, const char *key)
 }
 
 void
-init_data_transfer_object(struct pox509_info *pox509_info)
+init_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
         fatal("pox509_info == NULL");
     }
 
     memset(pox509_info, 0, sizeof *pox509_info);
-    pox509_info->uid = NULL;
-    pox509_info->keystore_location = NULL;
-    STAILQ_INIT(&pox509_info->profile_head);
+    STAILQ_INIT(&pox509_info->direct_access_profiles);
+    STAILQ_INIT(&pox509_info->access_on_behalf_profiles);
     pox509_info->ldap_online = 0x56;
-    pox509_info->syslog_facility = NULL;
+}
+
+void
+init_direct_access_profile(struct pox509_direct_access_profile *profile)
+{
+    if (profile == NULL) {
+        fatal("profile == NULL");
+    }
+
+    memset(profile, 0, sizeof *profile);
+}
+
+void
+init_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
+{
+    if (profile == NULL) {
+        fatal("profile == NULL");
+    }
+
+    memset(profile, 0, sizeof *profile);
+    STAILQ_INIT(&profile->key_providers);
+}
+
+void
+init_key_provider(struct pox509_key_provider *key_provider)
+{
+    if (key_provider == NULL) {
+        fatal("key_provider == NULL");
+    }
+
+    memset(key_provider, 0, sizeof *key_provider);
+    key_provider->has_valid_cert = 0x56;
 }
 
 bool
@@ -189,8 +219,7 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
     int cdt = 0;
     int j = 0;
     size_t strlen_subst = strlen(subst);
-    int i;
-    for (i = 0; (src[i] != '\0') && (j < dst_length - 1); i++) {
+    for (int i = 0; (src[i] != '\0') && (j < dst_length - 1); i++) {
         if (cdt) {
             cdt = 0;
             if (src[i] == token) {
@@ -227,46 +256,130 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
     snprintf(dst, dst_length, "%s=%s", attr, value);
 }
 
-/*
 void
-check_access_permission(const char *group_dn, const char *identifier,
-    struct pox509_info *pox509_info)
+get_rdn_value_from_dn(const char *dn, char **buffer)
 {
-    if (group_dn == NULL || identifier == NULL || pox509_info == NULL) {
-        fatal("group_dn, identifier or pox509_info == NULL");
+    if (dn == NULL || buffer == NULL) {
+        fatal("dn or buffer == NULL");
     }
 
-    size_t group_dn_length = strlen(group_dn);
-    if (group_dn_length == 0) {
-        fatal("group_dn must be > 0");
+    size_t dn_length = strlen(dn);
+    if (dn_length == 0) {
+        fatal("dn must be > 0");
     }
 
-    LDAPDN dn = NULL;
-    int rc = ldap_str2dn(group_dn, &dn, LDAP_DN_FORMAT_LDAPV3);
+    LDAPDN ldap_dn = NULL;
+    int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
         fatal("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
     }
 
-    if (dn == NULL) {
-        fatal("dn == NULL");
+    if (ldap_dn == NULL) {
+        fatal("ldap_dn == NULL");
     }
 
-    LDAPRDN rdn = dn[0];
-    char *rdn_value = NULL;
-    rc = ldap_rdn2str(rdn, &rdn_value, LDAP_DN_FORMAT_UFN);
+    LDAPRDN ldap_rdn = ldap_dn[0];
+    rc = ldap_rdn2str(ldap_rdn, buffer, LDAP_DN_FORMAT_UFN);
     if (rc != LDAP_SUCCESS) {
         fatal("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
     }
+    ldap_dnfree(ldap_dn);
+}
 
-    rc = strcmp(rdn_value, identifier);
-    if (rc == 0) {
-        pox509_info->has_access = 1;
-    } else {
-        pox509_info->has_access = 0;
+void
+free_key_provider(struct pox509_key_provider *key_provider)
+{
+    if (key_provider == NULL) {
+        fatal("key_provider == NULL");
     }
 
-    ldap_memfree(rdn_value);
-    ldap_dnfree(dn);
+    free(key_provider->dn);
+    free(key_provider->uid);
+    X509_free(key_provider->x509);
+    free(key_provider->ssh_keytype);
+    free(key_provider->ssh_key);
+    free(key_provider);
 }
-*/
+
+void
+free_keystore_options(struct pox509_keystore_options *options)
+{
+    if (options == NULL) {
+        fatal("options == NULL");
+    }
+
+    free(options->dn);
+    free(options->name);
+    free(options->from_option);
+    free(options->command_option);
+    free(options->oneliner);
+    free(options);
+}
+
+void
+free_direct_access_profile(struct pox509_direct_access_profile *profile)
+{
+    if (profile == NULL) {
+        fatal("profile == NULL");
+    }
+
+    free(profile->dn);
+    free(profile->name);
+    free_key_provider(profile->key_provider);
+    free_keystore_options(profile->keystore_options);
+    free(profile);
+}
+
+void
+free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
+{
+    if (profile == NULL) {
+        fatal("profile == NULL");
+    }
+
+    free(profile->dn);
+    free(profile->name);
+    /* free key providers */
+    struct pox509_key_provider *key_provider = NULL;
+    while (!STAILQ_EMPTY(&profile->key_providers)) {
+        log_msg("freeing key providers");
+        key_provider = STAILQ_FIRST(&profile->key_providers);
+        STAILQ_REMOVE_HEAD(&profile->key_providers, key_providers);
+        free_key_provider(key_provider);
+    }
+    free_keystore_options(profile->keystore_options);
+    free(profile);
+}
+
+void
+free_pox509_info(struct pox509_info *pox509_info)
+{
+    if (pox509_info == NULL) {
+        fatal("pox509_info == NULL");
+    }
+
+    free(pox509_info->uid);
+    free(pox509_info->keystore_location);
+    free(pox509_info->dn);
+    /* free direct access profiles */
+    struct pox509_direct_access_profile *direct_access_profile = NULL;
+    while (!STAILQ_EMPTY(&pox509_info->direct_access_profiles)) {
+        log_msg("freeing direct access profiles");
+        direct_access_profile =
+            STAILQ_FIRST(&pox509_info->direct_access_profiles);
+        STAILQ_REMOVE_HEAD(&pox509_info->direct_access_profiles, profiles);
+        free_direct_access_profile(direct_access_profile);
+    }
+    /* free access on behalf profiles */
+    struct pox509_access_on_behalf_profile *access_on_behalf_profile = NULL;
+    while (!STAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
+        log_msg("freeing direct access profiles");
+        access_on_behalf_profile =
+            STAILQ_FIRST(&pox509_info->access_on_behalf_profiles);
+        STAILQ_REMOVE_HEAD(&pox509_info->access_on_behalf_profiles, profiles);
+        free_access_on_behalf_profile(access_on_behalf_profile);
+    }
+    free(pox509_info->syslog_facility);
+    free(pox509_info);
+}
 

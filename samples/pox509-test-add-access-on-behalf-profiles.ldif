@@ -1,0 +1,9 @@
+dn: cn=access-on-behalf-from,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509AccessOnBehalfProfile
+cn: access-on-behalf-from
+pox509TargetKeystore: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=from-only,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+description: access-on-behalf-from profile
+

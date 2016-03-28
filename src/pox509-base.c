@@ -112,7 +112,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     if (pox509_info == NULL) {
         fatal("malloc()");
     }
-    init_data_transfer_object(pox509_info);
+    init_dto(pox509_info);
 
     /* make data transfer object available to module stack */
     rc = pam_set_data(pamh, "pox509_info", pox509_info, &cleanup_pox509_info);

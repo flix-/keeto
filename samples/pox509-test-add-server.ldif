@@ -3,6 +3,6 @@ objectClass: top
 objectClass: groupOfNames
 cn: pox509-test-server
 description: pox509-test-server
-member: cn=grouptargetkeystore-groupkeyprovider-from,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=grouptargetkeystore-groupkeyprovider-noopts,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=direct-access-noopts,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-from,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 

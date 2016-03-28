@@ -31,15 +31,23 @@ attributetype ( 1.0.86.86.86.86.2.1.5
 
 # objectclasses
 objectclass	( 1.0.86.86.86.86.2.2.1
-    NAME 'pox509AccessProfile'
-	DESC 'access profile'
+    NAME 'pox509DirectAccessProfile'
+	DESC 'direct access profile'
+    SUP top
+    STRUCTURAL
+    MUST ( cn $ pox509KeyProvider $ pox509KeystoreOptions )
+	MAY description )
+
+objectclass	( 1.0.86.86.86.86.2.2.2
+    NAME 'pox509AccessOnBehalfProfile'
+	DESC 'access on behalf profile'
     SUP top
     STRUCTURAL
     MUST ( cn $ pox509TargetKeystore $ pox509KeyProvider $
         pox509KeystoreOptions )
 	MAY description )
 
-objectclass	( 1.0.86.86.86.86.2.2.2
+objectclass	( 1.0.86.86.86.86.2.2.3
     NAME 'pox509KeystoreProfile'
 	DESC 'keystore profile'
     SUP top

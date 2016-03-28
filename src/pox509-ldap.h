@@ -32,9 +32,20 @@
 
 #include "pox509-util.h"
 
-#define POX509_TARGET_KEYSTORE "pox509TargetKeystore"
-#define POX509_KEY_PROVIDER "pox509KeyProvider"
-#define POX509_KEYSTORE_OPTIONS "pox509KeystoreOptions"
+#define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
+#define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
+#define POX509_DAP_KEY_PROVIDER_ATTR "pox509KeyProvider"
+#define POX509_DAP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
+#define POX509_AOBP_TARGET_KEYSTORE_ATTR "pox509TargetKeystore"
+#define POX509_AOBP_KEY_PROVIDER_ATTR "pox509KeyProvider"
+#define POX509_AOBP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
+
+enum pox509_access_profile_type {
+    UNKNOWN = 0,
+    DIRECT_ACCESS,
+    ACCESS_ON_BEHALF
+};
+
 
 /**FIXME
  * Obtain access permission and x509 certificate of user from LDAP.

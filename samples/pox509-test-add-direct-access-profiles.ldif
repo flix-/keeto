@@ -1,0 +1,8 @@
+dn: cn=direct-access-noopts,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509DirectAccessProfile
+cn: direct-access-noopts
+pox509KeyProvider: uid=foo,ou=people,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+description: direct-access-noopts profile
+

@@ -34,6 +34,7 @@
 #include <sys/queue.h>
 
 struct pox509_key_provider {
+    char *dn;
     char *uid;
     X509 *x509;
     char has_valid_cert;
@@ -42,26 +43,45 @@ struct pox509_key_provider {
     STAILQ_ENTRY(pox509_key_provider) key_providers;
 };
 
-struct pox509_profile {
+struct pox509_keystore_options {
     char *dn;
-    char *profile_name;
-    char *keystore_options;
+    char *name;
+    char *from_option;
+    char *command_option;
+    char *oneliner;
+};
+
+struct pox509_direct_access_profile {
+    char *dn;
+    char *name;
+    struct pox509_key_provider *key_provider;
+    struct pox509_keystore_options *keystore_options;
+    STAILQ_ENTRY(pox509_direct_access_profile) profiles;
+};
+
+struct pox509_access_on_behalf_profile {
+    char *dn;
+    char *name;
     STAILQ_HEAD(pox509_key_provider_head, pox509_key_provider)
-        key_provider_head;
-    STAILQ_ENTRY(pox509_profile) profiles;
+        key_providers;
+    struct pox509_keystore_options *keystore_options; 
+    STAILQ_ENTRY(pox509_access_on_behalf_profile) profiles;
 };
 
 struct pox509_info {
-    /* target keystore */
+    /* target keystore for uid trying to login */
     char *uid;
     char *keystore_location;
-    /* keystore data */
-    STAILQ_HEAD(pox509_profile_head, pox509_profile) profile_head;
+    char *dn;
+    /* access profiles */
+    STAILQ_HEAD(pox509_direct_access_profile_head, pox509_direct_access_profile)
+        direct_access_profiles;
+    STAILQ_HEAD(pox509_access_on_behalf_profile_head,
+        pox509_access_on_behalf_profile) access_on_behalf_profiles;
     /* general */
     char ldap_online;
     char *syslog_facility;
 };
-
 
 /**
  * Sections for config lookup table.
@@ -90,13 +110,6 @@ enum pox509_sections {
  * shall be returned. Otherwise -EINVAL shall be returned.
  */
 int str_to_enum(enum pox509_sections sec, const char *key);
-
-/**
- * Set default values of data transfer object.
- *
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void init_data_transfer_object(struct pox509_info *pox509_info);
 
 /**
  * Check if file is a regular and readable file.
@@ -166,25 +179,16 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
  */
 void create_ldap_search_filter(const char *attr, const char *value,
     char *dst, size_t dst_length);
+void get_rdn_value_from_dn(const char *, char **buffer);
+void init_dto(struct pox509_info *pox509_info);
+void init_direct_access_profile(struct pox509_direct_access_profile *profile);
+void init_access_on_behalf_profile(struct pox509_access_on_behalf_profile
+    *profile);
+void init_key_provider(struct pox509_key_provider *key_provider);
 
-/**
- * Extract first RDN value of @p group_dn and compare to identifier.
- *
- * Every OpenSSH server has a corresponding group in the LDAP server.
- * A user has the permission to access a certain OpenSSH server if he
- * has a group membership for that OpenSSH server.
- * To identify the group of the OpenSSH server an identifier in the
- * config file of pam-openssh-x509 is set that has to correspond to the
- * first RDN value of the group dn.
- *
- * This function checks if the user has access to the OpenSSH server or
- * not and writes the result to @p pox509_info.
- *
- * @param[in] group_dn DN of an OpenSSH server group. Must not be
- * @c NULL. Length must be > 0.
- * @param[in] identifier Identifier for the OpenSSH server.
- * @param[out] pox509_info DTO.
- */
-void check_access_permission(const char *group_dn, const char *identifier,
-    struct pox509_info *pox509_info);
+void free_key_provider(struct pox509_key_provider *key_provider);
+void free_direct_access_profile(struct pox509_direct_access_profile *profile);
+void free_access_on_behalf_profile(struct pox509_access_on_behalf_profile
+    *profile);
+void free_pox509_info(struct pox509_info *pox509_info);
 #endif
