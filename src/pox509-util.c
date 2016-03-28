@@ -152,6 +152,15 @@ init_key_provider(struct pox509_key_provider *key_provider)
     key_provider->has_valid_cert = 0x56;
 }
 
+void
+init_keystore_options(struct pox509_keystore_options *options) {
+    if (options == NULL) {
+        fatal("options == NULL");
+    }
+
+    memset(options, 0, sizeof *options);
+}
+
 bool
 is_readable_file(const char *file)
 {
@@ -339,6 +348,8 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 
     free(profile->dn);
     free(profile->name);
+    free(profile->target_keystore_group_dn);
+    free(profile->key_provider_group_dn);
     /* free key providers */
     struct pox509_key_provider *key_provider = NULL;
     while (!STAILQ_EMPTY(&profile->key_providers)) {
@@ -352,7 +363,7 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 }
 
 void
-free_pox509_info(struct pox509_info *pox509_info)
+free_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
         fatal("pox509_info == NULL");

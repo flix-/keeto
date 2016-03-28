@@ -62,6 +62,8 @@ struct pox509_direct_access_profile {
 struct pox509_access_on_behalf_profile {
     char *dn;
     char *name;
+    char *target_keystore_group_dn;
+    char *key_provider_group_dn;
     STAILQ_HEAD(pox509_key_provider_head, pox509_key_provider)
         key_providers;
     struct pox509_keystore_options *keystore_options; 
@@ -185,10 +187,12 @@ void init_direct_access_profile(struct pox509_direct_access_profile *profile);
 void init_access_on_behalf_profile(struct pox509_access_on_behalf_profile
     *profile);
 void init_key_provider(struct pox509_key_provider *key_provider);
+void init_keystore_options(struct pox509_keystore_options *options);
 
+void free_keystore_options(struct pox509_keystore_options *options);
 void free_key_provider(struct pox509_key_provider *key_provider);
 void free_direct_access_profile(struct pox509_direct_access_profile *profile);
 void free_access_on_behalf_profile(struct pox509_access_on_behalf_profile
     *profile);
-void free_pox509_info(struct pox509_info *pox509_info);
+void free_dto(struct pox509_info *pox509_info);
 #endif

@@ -413,7 +413,7 @@ free_string_array(char **strings)
 
 static void
 get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
-    char ***access_profile_dns)
+    struct pox509_info *pox509_info, char ***access_profile_dns)
 {
     if (ldap_handle == NULL || cfg == NULL || access_profile_dns == NULL) {
         fatal("ldap_handle, cfg or access_profile_dns == NULL");
@@ -445,13 +445,19 @@ get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
     if (rc != LDAP_SUCCESS) {
         fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
+    /* set dn in dto */
+    pox509_info->dn = ldap_get_dn(ldap_handle, result);
+    if (pox509_info->dn == NULL) {
+        log_fail("ldap_get_dn() failed");
+    }
     /* get dn's as strings */
     get_attr_values_as_string(ldap_handle, result, access_profile_attr,
         access_profile_dns);
 }
 
 void
-get_access_profiles(LDAP *ldap_handle, cfg_t *cfg, char **access_profile_dns)
+get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
+    struct pox509_info *pox509_info, char **access_profile_dns)
 {
     if (ldap_handle == NULL || cfg == NULL || access_profile_dns == NULL) {
         fatal("ldap_handle, cfg or access_profile_dns == NULL");
@@ -501,11 +507,13 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg, char **access_profile_dns)
         case DIRECT_ACCESS:
         {
             log_msg("got direct access profile");
-            struct pox509_direct_access_profile *profile = NULL;
-            profile = malloc(sizeof *profile);
+            /* create new direct access profile */
+            struct pox509_direct_access_profile *profile =
+                malloc(sizeof *profile);
             if (profile == NULL) {
                 fatal("malloc()");
             }
+            init_direct_access_profile(profile);
 
             profile->dn = strdup(dn);
             get_rdn_value_from_dn(dn, &profile->name);
@@ -521,6 +529,8 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg, char **access_profile_dns)
             if (profile->key_provider == NULL) {
                 fatal("malloc()");
             }
+            init_key_provider(profile->key_provider);
+
             profile->key_provider->dn = strdup(key_provider[0]);
             free_string_array(key_provider);
 
@@ -536,13 +546,73 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg, char **access_profile_dns)
             if (profile->keystore_options == NULL) {
                 fatal("malloc()");
             }
+            init_keystore_options(profile->keystore_options);
+
             profile->keystore_options->dn = strdup(keystore_options[0]);
+            get_rdn_value_from_dn(keystore_options[0],
+                &profile->keystore_options->name);
             free_string_array(keystore_options);
+
+            /* add to direct access profile list */
+            STAILQ_INSERT_TAIL(&pox509_info->direct_access_profiles, profile,
+                profiles);
             break;
         }
         case ACCESS_ON_BEHALF:
         {
             log_msg("got access on behalf profile");
+            struct pox509_access_on_behalf_profile *profile = NULL;
+            profile = malloc(sizeof *profile);
+            if (profile == NULL) {
+                fatal("malloc()");
+            }
+            init_access_on_behalf_profile(profile);
+
+            profile->dn = strdup(dn);
+            get_rdn_value_from_dn(dn, &profile->name);
+
+            /* set target keystore group dn */
+            char **target_keystore = NULL;
+            get_attr_values_as_string(ldap_handle, result,
+                POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore);
+            if (target_keystore == NULL) {
+                fatal("target_keystore == NULL");
+            }
+            profile->target_keystore_group_dn = strdup(target_keystore[0]);
+            free_string_array(target_keystore);
+
+            /* set key provider */
+            char **key_provider = NULL;
+            get_attr_values_as_string(ldap_handle, result,
+                POX509_AOBP_KEY_PROVIDER_ATTR, &key_provider);
+            if (key_provider == NULL) {
+                fatal("key_provider == NULL");
+            }
+            profile->key_provider_group_dn = strdup(key_provider[0]);
+            free_string_array(key_provider);
+
+            /* set keystore options */
+            char **keystore_options = NULL;
+            get_attr_values_as_string(ldap_handle, result,
+                POX509_AOBP_KEYSTORE_OPTIONS_ATTR, &keystore_options);
+            if (keystore_options == NULL) {
+                fatal("keystore_options == NULL");
+            }
+            profile->keystore_options =
+                malloc(sizeof(struct pox509_keystore_options));
+            if (profile->keystore_options == NULL) {
+                fatal("malloc()");
+            }
+            init_keystore_options(profile->keystore_options);
+
+            profile->keystore_options->dn = strdup(keystore_options[0]);
+            get_rdn_value_from_dn(keystore_options[0],
+                &profile->keystore_options->name);
+            free_string_array(keystore_options);
+
+            /* add to access on behalf proflile list */
+            STAILQ_INSERT_TAIL(&pox509_info->access_on_behalf_profiles, profile,
+                profiles);
             break;
         }
         case UNKNOWN:
@@ -552,7 +622,6 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg, char **access_profile_dns)
         default:
             fatal("profile_type undefined: %d", profile_type);
         }
-
         ldap_msgfree(result);
     }
 }
@@ -591,17 +660,16 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
 
     /* get access profile dn's*/
     char **access_profile_dns = NULL;
-    get_access_profile_dns(ldap_handle, cfg, &access_profile_dns);
+    get_access_profile_dns(ldap_handle, cfg, pox509_info, &access_profile_dns);
     if (access_profile_dns == NULL) {
         fatal("access_profile_dns == NULL");
     }
-    get_access_profiles(ldap_handle, cfg, access_profile_dns);
-
+    get_access_profiles(ldap_handle, cfg, pox509_info, access_profile_dns);
     free_string_array(access_profile_dns);
 
-    //if (STAILQ_EMPTY(&pox509_info->profile_head)) {
-    //    log_msg("access profile list == EMPTY");
-    //}
+//    if (STAILQ_EMPTY(&pox509_info->profiles)) {
+//        log_msg("access profile list == EMPTY");
+//    }
 
 unbind_and_free_handle:
     /*
