@@ -149,7 +149,6 @@ init_key_provider(struct pox509_key_provider *key_provider)
     }
 
     memset(key_provider, 0, sizeof *key_provider);
-    key_provider->has_valid_cert = 0x56;
 }
 
 void
