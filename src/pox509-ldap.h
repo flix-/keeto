@@ -34,16 +34,20 @@
 
 #define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
 #define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
+
 #define POX509_DAP_KEY_PROVIDER_ATTR "pox509KeyProvider"
 #define POX509_DAP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
 #define POX509_AOBP_TARGET_KEYSTORE_ATTR "pox509TargetKeystore"
 #define POX509_AOBP_KEY_PROVIDER_ATTR "pox509KeyProvider"
 #define POX509_AOBP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
 
+#define POX509_KEYSTORE_OPTIONS_FROM_ATTR "pox509KeystoreOptionFrom"
+#define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
+
 enum pox509_access_profile_type {
-    UNKNOWN = 0,
-    DIRECT_ACCESS,
-    ACCESS_ON_BEHALF
+    DIRECT_ACCESS = 0,
+    ACCESS_ON_BEHALF,
+    UNKNOWN
 };
 
 
