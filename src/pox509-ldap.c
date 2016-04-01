@@ -214,68 +214,6 @@ free_attr_values_as_binary_array(struct berval **values)
     ldap_value_free_len(values);
 }
 
-//static void
-//strip_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
-//    struct pox509_info *pox509_info)
-//{
-//    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
-//        fatal("ldap_handle, cfg or pox509_info == NULL");
-//    }
-//
-//    char *ldap_target_group_attr = cfg_getstr(cfg, "ldap_target_group_attr");
-//    char *ldap_target_uid_attr = cfg_getstr(cfg, "ldap_target_uid_attr");
-//
-//    /* iterate access profiles */
-//    struct pox509_profile *ptr = NULL;
-//    STAILQ_FOREACH(ptr, &pox509_info->profile_head, profiles) {
-//        bool strip_profile = true;
-//        /* get dn of group holdings target keystore dn's */
-//        char **target_keystore_group_dn = get_attr_values_as_string(ldap_handle,
-//            cfg, ptr->dn, POX509_TARGET_KEYSTORE);
-//        if (target_keystore_group_dn == NULL) {
-//            fatal("target_keystore_group_dn == NULL");
-//        }
-//
-//        log_msg("target keystore group dn: %s", target_keystore_group_dn[0]);
-//
-//        /* get dn's of target keystore ee's */
-//        char **target_keystore_ee_dns = get_attr_values_as_string(ldap_handle,
-//            cfg, target_keystore_group_dn[0], ldap_target_group_attr);
-//        if (target_keystore_ee_dns == NULL) {
-//            fatal("target_keystore_ee_dns == NULL");
-//        }
-//
-//        int i;
-//        for (i = 0; target_keystore_ee_dns[i] != NULL && strip_profile; i++) {
-//            log_msg("dn: %s", target_keystore_ee_dns[i]);
-//
-//            /* get ee's and compare uid to uid logging in */
-//            char **target_keystore_ee_uid = get_attr_values_as_string(
-//                ldap_handle, cfg, target_keystore_ee_dns[i],
-//                ldap_target_uid_attr);
-//            if (target_keystore_ee_uid == NULL) {
-//                fatal("target_keystore_ee_uid == NULL");
-//            }
-//
-//            log_msg("uid: %s", target_keystore_ee_uid[0]);
-//            if (strcmp(target_keystore_ee_uid[0], pox509_info->uid) == 0) {
-//                strip_profile = false;
-//            }
-//            free_attr_values_as_string_array(target_keystore_ee_uid);
-//        }
-//
-//        if (strip_profile) {
-//            STAILQ_REMOVE(&pox509_info->profile_head, ptr, pox509_profile,
-//                profiles);
-//            free_profile(ptr);
-//        }
-//
-//        /* free string arrays */
-//        free_attr_values_as_string_array(target_keystore_group_dn);
-//        free_attr_values_as_string_array(target_keystore_ee_dns);
-//    }
-//}
-
 static void
 get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_info *pox509_info, char ***access_profile_dns)
