@@ -260,10 +260,16 @@ get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
 
 static void
 get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
-    struct pox509_info *pox509_info, char **access_profile_dns)
+    struct pox509_info *pox509_info)
 {
-    if (ldap_handle == NULL || cfg == NULL || access_profile_dns == NULL) {
-        fatal("ldap_handle, cfg or access_profile_dns == NULL");
+    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
+        fatal("ldap_handle, cfg or pox509_info == NULL");
+    }
+
+    char **access_profile_dns = NULL;
+    get_access_profile_dns(ldap_handle, cfg, pox509_info, &access_profile_dns);
+    if (access_profile_dns == NULL) {
+        fatal("access_profile_dns == NULL");
     }
 
     /* iterate access profiles */
@@ -427,6 +433,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         }
         ldap_msgfree(result);
     }
+    free_attr_values_as_string_array(access_profile_dns);
 }
 
 static void
@@ -678,26 +685,11 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     log_success("bind_to_ldap()");
     pox509_info->ldap_online = 1;
 
-    /* get access profile dn's*/
-    char **access_profile_dns = NULL;
-    get_access_profile_dns(ldap_handle, cfg, pox509_info, &access_profile_dns);
-    if (access_profile_dns == NULL) {
-        fatal("access_profile_dns == NULL");
-    }
-    get_access_profiles(ldap_handle, cfg, pox509_info, access_profile_dns);
-    free_attr_values_as_string_array(access_profile_dns);
-    /* process access profiles */
+    get_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
-    #include <unistd.h>
-    sleep(100000);
 
 unbind_and_free_handle:
-    /*
-     * it is important to unbind even though the bind has actually
-     * failed because else the ldap_handle structure that has been
-     * initialized before would never be freed leading to a memory leak.
-     */
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);
     if (rc == LDAP_SUCCESS) {
         log_success("ldap_unbind_ext_s()");
