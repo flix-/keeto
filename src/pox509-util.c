@@ -265,7 +265,7 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
 }
 
 void
-get_rdn_value_from_dn(const char *dn, char **buffer)
+set_rdn_value_from_dn(const char *dn, char **buffer)
 {
     if (dn == NULL || buffer == NULL) {
         fatal("dn or buffer == NULL");
@@ -333,6 +333,8 @@ free_direct_access_profile(struct pox509_direct_access_profile *profile)
 
     free(profile->dn);
     free(profile->name);
+    free(profile->key_provider_dn);
+    free(profile->keystore_options_dn);
     free_key_provider(profile->key_provider);
     free_keystore_options(profile->keystore_options);
     free(profile);
@@ -349,6 +351,7 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
     free(profile->name);
     free(profile->target_keystore_group_dn);
     free(profile->key_provider_group_dn);
+    free(profile->keystore_options_dn);
     /* free key providers */
     struct pox509_key_provider *key_provider = NULL;
     while (!STAILQ_EMPTY(&profile->key_providers)) {

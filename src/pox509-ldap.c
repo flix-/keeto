@@ -236,6 +236,36 @@ free_attr_values_as_binary_array(struct berval **values)
     ldap_value_free_len(values);
 }
 
+static bool
+is_relevant_dap(struct pox509_info *pox509_info,
+    struct pox509_key_provider *provider)
+{
+    if (pox509_info == NULL || provider == NULL) {
+        fatal("pox509_info or provider == NULL");
+    }
+
+    if (strcmp(pox509_info->uid, provider->uid) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static bool
+is_relevant_aobp(struct pox509_info *pox509_info, char *target)
+{
+    if (pox509_info == NULL || target == NULL) {
+        fatal("pox509_info or target == NULL");
+    }
+
+    /*
+    if (strcmp(pox509_info->uid, target->uid) == 0) {
+        return true;
+    }
+    return false;
+    */
+    return true;
+}
+
 static void
 get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_info *pox509_info, char ***access_profile_dns)
@@ -347,42 +377,27 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             init_direct_access_profile(profile);
 
             profile->dn = strdup(dn);
-            get_rdn_value_from_dn(dn, &profile->name);
+            set_rdn_value_from_dn(dn, &profile->name);
 
-            /* set key provider */
-            char **key_provider = NULL;
+            /* set key provider dn */
+            char **key_provider_dn = NULL;
             get_attr_values_as_string(ldap_handle, result,
-                POX509_DAP_KEY_PROVIDER_ATTR, &key_provider);
-            if (key_provider == NULL) {
-                fatal("key_provider == NULL");
+                POX509_DAP_KEY_PROVIDER_ATTR, &key_provider_dn);
+            if (key_provider_dn == NULL) {
+                fatal("key_provider_dn == NULL");
             }
-            profile->key_provider = malloc(sizeof(struct pox509_key_provider));
-            if (profile->key_provider == NULL) {
-                fatal("malloc()");
-            }
-            init_key_provider(profile->key_provider);
+            profile->key_provider_dn = strdup(key_provider_dn[0]);
+            free_attr_values_as_string_array(key_provider_dn);
 
-            profile->key_provider->dn = strdup(key_provider[0]);
-            free_attr_values_as_string_array(key_provider);
-
-            /* set keystore options */
-            char **keystore_options = NULL;
+            /* set keystore options dn */
+            char **keystore_options_dn = NULL;
             get_attr_values_as_string(ldap_handle, result,
-                POX509_DAP_KEYSTORE_OPTIONS_ATTR, &keystore_options);
-            if (keystore_options == NULL) {
-                fatal("keystore_options == NULL");
+                POX509_DAP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
+            if (keystore_options_dn == NULL) {
+                fatal("keystore_options_dn == NULL");
             }
-            profile->keystore_options =
-                malloc(sizeof(struct pox509_keystore_options));
-            if (profile->keystore_options == NULL) {
-                fatal("malloc()");
-            }
-            init_keystore_options(profile->keystore_options);
-
-            profile->keystore_options->dn = strdup(keystore_options[0]);
-            get_rdn_value_from_dn(keystore_options[0],
-                &profile->keystore_options->name);
-            free_attr_values_as_string_array(keystore_options);
+            profile->keystore_options_dn = strdup(keystore_options_dn[0]);
+            free_attr_values_as_string_array(keystore_options_dn);
 
             /* add to direct access profile list */
             STAILQ_INSERT_TAIL(&pox509_info->direct_access_profiles, profile,
@@ -400,46 +415,38 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             init_access_on_behalf_profile(profile);
 
             profile->dn = strdup(dn);
-            get_rdn_value_from_dn(dn, &profile->name);
+            set_rdn_value_from_dn(dn, &profile->name);
 
             /* set target keystore group dn */
-            char **target_keystore = NULL;
+            char **target_keystore_group_dn = NULL;
             get_attr_values_as_string(ldap_handle, result,
-                POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore);
-            if (target_keystore == NULL) {
-                fatal("target_keystore == NULL");
+                POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
+            if (target_keystore_group_dn == NULL) {
+                fatal("target_keystore_group_dn == NULL");
             }
-            profile->target_keystore_group_dn = strdup(target_keystore[0]);
-            free_attr_values_as_string_array(target_keystore);
+            profile->target_keystore_group_dn =
+                strdup(target_keystore_group_dn[0]);
+            free_attr_values_as_string_array(target_keystore_group_dn);
 
-            /* set key provider */
-            char **key_provider = NULL;
+            /* set key provider group dn*/
+            char **key_provider_group_dn = NULL;
             get_attr_values_as_string(ldap_handle, result,
-                POX509_AOBP_KEY_PROVIDER_ATTR, &key_provider);
-            if (key_provider == NULL) {
-                fatal("key_provider == NULL");
+                POX509_AOBP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
+            if (key_provider_group_dn == NULL) {
+                fatal("key_provider_group_dn == NULL");
             }
-            profile->key_provider_group_dn = strdup(key_provider[0]);
-            free_attr_values_as_string_array(key_provider);
+            profile->key_provider_group_dn = strdup(key_provider_group_dn[0]);
+            free_attr_values_as_string_array(key_provider_group_dn);
 
             /* set keystore options */
-            char **keystore_options = NULL;
+            char **keystore_options_dn = NULL;
             get_attr_values_as_string(ldap_handle, result,
-                POX509_AOBP_KEYSTORE_OPTIONS_ATTR, &keystore_options);
-            if (keystore_options == NULL) {
-                fatal("keystore_options == NULL");
+                POX509_AOBP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
+            if (keystore_options_dn == NULL) {
+                fatal("keystore_options_dn == NULL");
             }
-            profile->keystore_options =
-                malloc(sizeof(struct pox509_keystore_options));
-            if (profile->keystore_options == NULL) {
-                fatal("malloc()");
-            }
-            init_keystore_options(profile->keystore_options);
-
-            profile->keystore_options->dn = strdup(keystore_options[0]);
-            get_rdn_value_from_dn(keystore_options[0],
-                &profile->keystore_options->name);
-            free_attr_values_as_string_array(keystore_options);
+            profile->keystore_options_dn = strdup(keystore_options_dn[0]);
+            free_attr_values_as_string_array(keystore_options_dn);
 
             /* add to access on behalf profile list */
             STAILQ_INSERT_TAIL(&pox509_info->access_on_behalf_profiles, profile,
@@ -458,6 +465,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     free_attr_values_as_string_array(access_profile_dns);
 }
 
+/*
 static void
 get_keystore_options(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_keystore_options *keystore_options)
@@ -484,8 +492,9 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg,
     if (rc != LDAP_SUCCESS) {
         fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
-
+*/
     /* optional attributes --> can be NULL */
+/*
     char **keystore_options_from = NULL;
     get_attr_values_as_string(ldap_handle, result,
         POX509_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
@@ -509,8 +518,8 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg,
 }
 
 static void
-get_key_provider(LDAP *ldap_handle, cfg_t *cfg,
-    struct pox509_key_provider *provider)
+get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
+    struct pox509_key_provider **provider)
 {
     if (ldap_handle == NULL || cfg == NULL || provider == NULL) {
         fatal("ldap_handle, cfg or provider == NULL");
@@ -557,7 +566,9 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg,
         provider->x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
         if (provider->x509 == NULL) {
             log_fail("d2i_X509(): cannot decode certificate");
+            */
             /* try next certificate if existing */
+            /*
             continue;
         }
         break;
@@ -565,8 +576,9 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg,
     free_attr_values_as_binary_array(provider_cert);
     ldap_msgfree(result);
 }
+*/
 
-static void
+static void // TODO: move this code to is_relevant_aobp_profile
 strip_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_info *pox509_info)
 {
@@ -667,8 +679,13 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     /* iterate direct access profiles */
     struct pox509_direct_access_profile *profile = NULL;
     STAILQ_FOREACH(profile, &pox509_info->direct_access_profiles, profiles) {
-        get_key_provider(ldap_handle, cfg, profile->key_provider);
-        get_keystore_options(ldap_handle, cfg, profile->keystore_options);
+        /*
+        get_key_provider(profile->key_provider_dn);
+        if (!is_relevant_dap(pox509_info, profile->key_provider)) {
+            free and remove
+        }
+        get_keystore_options(profile->keystore_options_dn);
+        */
     }
 }
 
@@ -685,7 +702,19 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
         return;
     }
 
-    strip_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
+    /* iterate access on behalf profiles */
+    struct pox509_access_on_behalf_profile *profile = NULL;
+    STAILQ_FOREACH(profile, &pox509_info->access_on_behalf_profiles, profiles) {
+        /*
+        if (!is_relevant_aobp(profile->target_keystore_group_dn)) {
+            free and remove;
+        }
+        for each dn in key_provider_group_dn {
+            get_key_provider();
+        }
+        get_keystore_options(profile->keystore_options_dn);
+        */
+    }
 }
 
 void
