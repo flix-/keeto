@@ -265,7 +265,7 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
 }
 
 void
-set_rdn_value_from_dn(const char *dn, char **buffer)
+get_rdn_value_from_dn(const char *dn, char **buffer)
 {
     if (dn == NULL || buffer == NULL) {
         fatal("dn or buffer == NULL");
@@ -298,7 +298,8 @@ void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
-        fatal("key_provider == NULL");
+        log_msg("key_provider == NULL");
+        return;
     }
 
     free(key_provider->dn);
@@ -313,7 +314,8 @@ void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
-        fatal("options == NULL");
+        log_msg("options == NULL");
+        return;
     }
 
     free(options->dn);
@@ -328,7 +330,8 @@ void
 free_direct_access_profile(struct pox509_direct_access_profile *profile)
 {
     if (profile == NULL) {
-        fatal("profile == NULL");
+        log_msg("profile == NULL");
+        return;
     }
 
     free(profile->dn);
@@ -344,7 +347,8 @@ void
 free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 {
     if (profile == NULL) {
-        fatal("profile == NULL");
+        log_msg("profile == NULL");
+        return;
     }
 
     free(profile->dn);
@@ -368,7 +372,8 @@ void
 free_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
-        fatal("pox509_info == NULL");
+        log_msg("pox509_info == NULL");
+        return;
     }
 
     free(pox509_info->uid);
