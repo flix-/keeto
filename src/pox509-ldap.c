@@ -238,32 +238,105 @@ free_attr_values_as_binary_array(struct berval **values)
 
 static bool
 is_relevant_dap(struct pox509_info *pox509_info,
-    struct pox509_key_provider *provider)
+    struct pox509_direct_access_profile *profile)
 {
-    if (pox509_info == NULL || provider == NULL) {
-        fatal("pox509_info or provider == NULL");
+    if (pox509_info == NULL || profile == NULL) {
+        fatal("pox509_info or profile == NULL");
     }
 
-    if (strcmp(pox509_info->uid, provider->uid) == 0) {
+    if (pox509_info->uid == NULL) {
+        fatal("pox509_info uid == NULL");
+    }
+
+    if (profile->key_provider == NULL) {
+        fatal("key provider == NULL");
+    }
+
+    if (profile->key_provider->uid == NULL) {
+        fatal("key provider uid == NULL");
+    }
+
+    if (strcmp(pox509_info->uid, profile->key_provider->uid) == 0) {
         return true;
     }
     return false;
 }
 
 static bool
-is_relevant_aobp(struct pox509_info *pox509_info, char *target)
+is_relevant_aobp(LDAP *ldap_handle, cfg_t *cfg, struct pox509_info *pox509_info,
+    struct pox509_access_on_behalf_profile *profile)
 {
-    if (pox509_info == NULL || target == NULL) {
-        fatal("pox509_info or target == NULL");
+    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL ||
+        profile == NULL) {
+
+        fatal("ldap_handle, cfg, pox509_info or profile == NULL");
     }
 
-    /*
-    if (strcmp(pox509_info->uid, target->uid) == 0) {
-        return true;
+    if (pox509_info->uid == NULL) {
+        fatal("pox509_info uid == NULL");
     }
-    return false;
-    */
-    return true;
+
+    char *target_group_attr = cfg_getstr(cfg, "ldap_target_group_attr");
+    char *target_group_attrs[] = {
+        target_group_attr,
+        NULL
+    };
+    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
+    struct timeval search_timeout = {
+        .tv_sec = ldap_search_timeout,
+        .tv_usec = 0
+    };
+    int sizelimit = 1;
+    LDAPMessage *result = NULL;
+
+    int rc = ldap_search_ext_s(ldap_handle,
+        profile->target_keystore_group_dn, LDAP_SCOPE_BASE, NULL,
+        target_group_attrs, 0, NULL, NULL, &search_timeout, sizelimit, &result);
+    if (rc != LDAP_SUCCESS) {
+        fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+    }
+
+    /* get dn's of target keystore ee's */
+    char **target_ee_dns = NULL;
+    get_attr_values_as_string(ldap_handle, result, target_group_attr,
+        &target_ee_dns);
+    if (target_ee_dns == NULL) {
+        fatal("target_ee_dns == NULL");
+    }
+    ldap_msgfree(result);
+
+    bool target_has_uid = false;
+    for (int i = 0; target_ee_dns[i] != NULL && !target_has_uid; i++) {
+        /* get ee's and compare uid to uid logging in */
+        char *target_uid_attr = cfg_getstr(cfg, "ldap_target_uid_attr");
+        char *target_ee_attrs[] = {
+            target_uid_attr,
+            NULL
+        };
+        result = NULL;
+        rc = ldap_search_ext_s(ldap_handle, target_ee_dns[i], LDAP_SCOPE_BASE,
+            NULL, target_ee_attrs, 0, NULL, NULL, &search_timeout, sizelimit,
+            &result);
+        if (rc != LDAP_SUCCESS) {
+            fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        }
+
+        char **target_ee_uid = NULL;
+        get_attr_values_as_string(ldap_handle, result, target_uid_attr,
+            &target_ee_uid);
+        if (target_ee_uid == NULL) {
+            fatal("target_ee_uid == NULL");
+        }
+        ldap_msgfree(result);
+
+        if(strcmp(pox509_info->uid, target_ee_uid[0]) == 0) {
+            target_has_uid = true;
+        }
+        free_attr_values_as_string_array(target_ee_uid);
+    }
+    free_attr_values_as_string_array(target_ee_dns);
+
+    return target_has_uid;
 }
 
 static void
@@ -539,6 +612,7 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
     }
 
     options->dn = strdup(keystore_options_dn);
+    get_rdn_value_from_dn(keystore_options_dn, &options->name);
     char *attrs[] = {
         POX509_KEYSTORE_OPTIONS_FROM_ATTR,
         POX509_KEYSTORE_OPTIONS_CMD_ATTR,
@@ -580,93 +654,6 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
     ldap_msgfree(result);
 }
 
-/*
-static void // TODO: move this code to is_relevant_aobp_profile
-strip_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
-    struct pox509_info *pox509_info)
-{
-    if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
-        fatal("ldap_handle, cfg or pox509_info == NULL");
-    }
-
-    if (STAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
-        log_msg("access on behalf profile list EMPTY");
-        return;
-    }
-
-    //iterate access on behalf profiles
-    struct pox509_access_on_behalf_profile *profile = NULL;
-    STAILQ_FOREACH(profile, &pox509_info->access_on_behalf_profiles, profiles) {
-        char *target_group_attr = cfg_getstr(cfg, "ldap_target_group_attr");
-        char *target_group_attrs[] = {
-            target_group_attr,
-            NULL
-        };
-        int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
-        struct timeval search_timeout = {
-            .tv_sec = ldap_search_timeout,
-            .tv_usec = 0
-        };
-        int sizelimit = 1;
-        LDAPMessage *result = NULL;
-
-        int rc = ldap_search_ext_s(ldap_handle,
-            profile->target_keystore_group_dn, LDAP_SCOPE_BASE, NULL,
-            target_group_attrs, 0, NULL, NULL, &search_timeout, sizelimit,
-            &result);
-        if (rc != LDAP_SUCCESS) {
-            fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
-        }
-
-        // get dn's of target keystore ee's 
-        char **target_ee_dns = NULL;
-        get_attr_values_as_string(ldap_handle, result, target_group_attr,
-            &target_ee_dns);
-        if (target_ee_dns == NULL) {
-            fatal("target_ee_dns == NULL");
-        }
-        ldap_msgfree(result);
-
-        bool strip_profile = true;
-        for (int i = 0; target_ee_dns[i] != NULL && strip_profile; i++) {
-            // get ee's and compare uid to uid logging in
-            char *target_uid_attr = cfg_getstr(cfg, "ldap_target_uid_attr");
-            char *target_ee_attrs[] = {
-                target_uid_attr,
-                NULL
-            };
-            result = NULL;
-            rc = ldap_search_ext_s(ldap_handle, target_ee_dns[i],
-                LDAP_SCOPE_BASE, NULL, target_ee_attrs, 0, NULL, NULL,
-                &search_timeout, sizelimit, &result);
-            if (rc != LDAP_SUCCESS) {
-                fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc),
-                    rc);
-            }
-
-            char **target_ee_uid = NULL;
-            get_attr_values_as_string(ldap_handle, result, target_uid_attr,
-                &target_ee_uid);
-            if (target_ee_uid == NULL) {
-                fatal("target_ee_uid == NULL");
-            }
-
-            if (strcmp(target_ee_uid[0], pox509_info->uid) == 0) {
-                strip_profile = false;
-            }
-            free_attr_values_as_string_array(target_ee_uid);
-        }
-
-        if (strip_profile) {
-            STAILQ_REMOVE(&pox509_info->access_on_behalf_profiles, profile,
-            pox509_access_on_behalf_profile, profiles);
-            free_access_on_behalf_profile(profile);
-        }
-        free_attr_values_as_string_array(target_ee_dns);
-    }
-}
-*/
-
 static void
 process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_info *pox509_info)
@@ -691,12 +678,13 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         init_key_provider(profile->key_provider);
         get_key_provider(ldap_handle, cfg, profile->key_provider_dn,
             profile->key_provider);
-        if (!is_relevant_dap(pox509_info, profile->key_provider)) {
+        if (!is_relevant_dap(pox509_info, profile)) {
             STAILQ_REMOVE(&pox509_info->direct_access_profiles, profile,
                 pox509_direct_access_profile, profiles);
             free_direct_access_profile(profile);
             continue;
         }
+
         /* get keystore options */
         profile->keystore_options =
             malloc(sizeof(struct pox509_keystore_options));
@@ -725,15 +713,35 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
     /* iterate access on behalf profiles */
     struct pox509_access_on_behalf_profile *profile = NULL;
     STAILQ_FOREACH(profile, &pox509_info->access_on_behalf_profiles, profiles) {
-        /*
-        if (!is_relevant_aobp(profile->target_keystore_group_dn)) {
-            free and remove;
+        if (!is_relevant_aobp(ldap_handle, cfg, pox509_info, profile)) {
+            STAILQ_REMOVE(&pox509_info->access_on_behalf_profiles, profile,
+                pox509_access_on_behalf_profile, profiles);
+            free_access_on_behalf_profile(profile);
+            continue;
         }
+
+        /* get key provider(s) */
+        /*
         for each dn in key_provider_group_dn {
+        profile->key_provider = malloc(sizeof(struct pox509_key_provider));
+        if (profile->key_provider == NULL) {
+            fatal("malloc()");
+        }
+        init_key_provider(profile->key_provider);
+        get_key_provider(ldap_handle, cfg, profile->key_provider_dn,
+            profile->key_provider);
             get_key_provider();
         }
-        get_keystore_options(profile->keystore_options_dn);
         */
+        /* get keystore options */
+        profile->keystore_options =
+            malloc(sizeof(struct pox509_keystore_options));
+        if (profile->keystore_options == NULL) {
+            fatal("malloc()");
+        }
+        init_keystore_options(profile->keystore_options);
+        get_keystore_options(ldap_handle, cfg, profile->keystore_options_dn,
+            profile->keystore_options);
     }
 }
 
@@ -760,9 +768,9 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     /* retrieve data */
     get_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
+    process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
     #include <unistd.h>
     sleep(100000);
-    //process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
 
 unbind_and_free_handle:
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);
