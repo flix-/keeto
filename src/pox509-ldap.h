@@ -32,9 +32,12 @@
 
 #include "pox509-util.h"
 
+#define LDAP_BOOL_TRUE "TRUE"
+
 #define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
 #define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
 
+#define POX509_AP_IS_ENABLED "pox509IsEnabled"
 #define POX509_DAP_KEY_PROVIDER_ATTR "pox509KeyProvider"
 #define POX509_DAP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
 #define POX509_AOBP_TARGET_KEYSTORE_ATTR "pox509TargetKeystore"

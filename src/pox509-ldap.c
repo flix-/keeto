@@ -385,7 +385,7 @@ get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
 }
 
 static void
-get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
+get_enabled_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     struct pox509_info *pox509_info)
 {
     if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL) {
@@ -413,6 +413,23 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             0, NULL, NULL, &search_timeout, sizelimit, &result);
         if (rc != LDAP_SUCCESS) {
             fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        }
+
+        /* skip if access profile is disabled */
+        char **access_profile_state = NULL;
+        get_attr_values_as_string(ldap_handle, result, POX509_AP_IS_ENABLED,
+            &access_profile_state);
+        if (access_profile_state == NULL) {
+            fatal("access_profile_state == NULL");
+        }
+        bool is_disabled = true;
+        if (strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0) {
+            is_disabled = false;
+        }
+        free_attr_values_as_string_array(access_profile_state);
+        if (is_disabled) {
+            log_msg("profile disabled (%s)", access_profile_dns[i]);
+            continue;
         }
 
         /* get objectclass attribute in order to decide whether we have
@@ -796,7 +813,7 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     pox509_info->ldap_online = 1;
 
     /* retrieve data */
-    get_access_profiles(ldap_handle, cfg, pox509_info);
+    get_enabled_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
 

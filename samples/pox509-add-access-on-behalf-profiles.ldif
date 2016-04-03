@@ -1,27 +1,33 @@
 dn: cn=access-on-behalf-from1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
+objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
 cn: access-on-behalf-from1
 pox509TargetKeystore: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+pox509IsEnabled: TRUE
 description: access-on-behalf-from1 profile
 
 dn: cn=access-on-behalf-from2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
+objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
 cn: access-on-behalf-from2
 pox509TargetKeystore: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foobar,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+pox509IsEnabled: TRUE
 description: access-on-behalf-from2 profile
 
 dn: cn=access-on-behalf-from3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
+objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
 cn: access-on-behalf-from3
 pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+pox509IsEnabled: TRUE
 description: access-on-behalf-from3 profile
 
