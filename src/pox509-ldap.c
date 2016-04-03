@@ -721,18 +721,48 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
         }
 
         /* get key provider(s) */
-        /*
-        for each dn in key_provider_group_dn {
-        profile->key_provider = malloc(sizeof(struct pox509_key_provider));
-        if (profile->key_provider == NULL) {
-            fatal("malloc()");
+        char *provider_group_attr = cfg_getstr(cfg, "ldap_provider_group_attr");
+        char *provider_group_attrs[] = {
+            provider_group_attr,
+            NULL
+        };
+        int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
+        struct timeval search_timeout = {
+            .tv_sec = ldap_search_timeout,
+            .tv_usec = 0
+        };
+        int sizelimit = 1;
+        LDAPMessage *result = NULL;
+
+        int rc = ldap_search_ext_s(ldap_handle, profile->key_provider_group_dn,
+            LDAP_SCOPE_BASE, NULL, provider_group_attrs, 0, NULL, NULL,
+            &search_timeout, sizelimit, &result);
+        if (rc != LDAP_SUCCESS) {
+            fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
         }
-        init_key_provider(profile->key_provider);
-        get_key_provider(ldap_handle, cfg, profile->key_provider_dn,
-            profile->key_provider);
-            get_key_provider();
+
+        /* get dn's of keystore provider ee's */
+        char **provider_ee_dns = NULL;
+        get_attr_values_as_string(ldap_handle, result, provider_group_attr,
+            &provider_ee_dns);
+        if (provider_ee_dns == NULL) {
+            fatal("provider_ee_dns == NULL");
         }
-        */
+        ldap_msgfree(result);
+
+        for (int i = 0; provider_ee_dns[i] != NULL; i++) {
+            struct pox509_key_provider *provider =
+                malloc(sizeof(struct pox509_key_provider));
+            if (provider == NULL) {
+                fatal("malloc()");
+            }
+            init_key_provider(provider);
+            get_key_provider(ldap_handle, cfg, provider_ee_dns[i], provider);
+            STAILQ_INSERT_TAIL(&profile->key_providers, provider,
+                key_providers);
+        }
+        free_attr_values_as_string_array(provider_ee_dns);
+
         /* get keystore options */
         profile->keystore_options =
             malloc(sizeof(struct pox509_keystore_options));
@@ -769,8 +799,6 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     get_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
-    #include <unistd.h>
-    sleep(100000);
 
 unbind_and_free_handle:
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);

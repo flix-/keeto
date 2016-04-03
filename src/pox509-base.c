@@ -66,17 +66,7 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
 
     struct pox509_info *pox509_info = data;
     log_msg("freeing pox509_info");
-    /* FIXME
-    free(pox509_info->syslog_facility);
-    free(pox509_info->subject);
-    free(pox509_info->issuer);
-    free(pox509_info->serial);
-    free(pox509_info->ssh_key);
-    free(pox509_info->ssh_keytype);
-    free(pox509_info->authorized_keys_file);
-    free(pox509_info->uid);
-    free(pox509_info);
-    */
+    free_dto(pox509_info);
     log_msg("pox509_info freed");
 }
 
@@ -166,26 +156,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* query ldap server */
     get_keystore_data_from_ldap(cfg, pox509_info);
 
-    /* process x509 certificate if one has been found */
-    //if (x509 != NULL) {
-        /* validate x509 certificate */
-    //    char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
-    //    validate_x509(x509, cacerts_dir, pox509_info);
+    /* validate certificates and convert public key to OpenSSH
+     * authorized_keys format
+     */
+    char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
+    //validate_x509(x509, cacerts_dir, pox509_info);
+    //x509_to_authorized_keys(x509, pox509_info);
 
-        /*
-         * convert public key of x509 certificate to OpenSSH
-         * authorized_keys format
-         */
-    //    x509_to_authorized_keys(x509, pox509_info);
-
-        /* extract various information from x509 certificate */
-    //    get_serial_from_x509(x509, pox509_info);
-    //    get_issuer_from_x509(x509, pox509_info);
-    //    get_subject_from_x509(x509, pox509_info);
-
-        /* free x509 structure */
-    //    X509_free(x509);
-    //}
+    /* create oneliner for authorized_keys option */
 
     /* free config */
     release_config(cfg);
