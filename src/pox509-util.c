@@ -336,7 +336,7 @@ free_direct_access_profile(struct pox509_direct_access_profile *profile)
 
     free(profile->dn);
     free(profile->name);
-    free(profile->key_provider_dn);
+    free(profile->key_provider_group_dn);
     free(profile->keystore_options_dn);
     free_key_provider(profile->key_provider);
     free_keystore_options(profile->keystore_options);

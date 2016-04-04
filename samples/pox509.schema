@@ -6,14 +6,14 @@ attributetype ( 1.0.86.86.86.86.2.1.1
     SINGLE-VALUE )
 
 attributetype ( 1.0.86.86.86.86.2.1.2
-	NAME 'pox509TargetKeystore'
-	DESC 'entry that receives keys'
+	NAME 'pox509KeyProvider'
+	DESC 'entry that provides key material'
     SUP distinguishedName
     SINGLE-VALUE )
 
 attributetype ( 1.0.86.86.86.86.2.1.3
-	NAME 'pox509KeyProvider'
-	DESC 'entry that provides key material'
+	NAME 'pox509TargetKeystore'
+	DESC 'entry that receives keys'
     SUP distinguishedName
     SINGLE-VALUE )
 
@@ -41,24 +41,21 @@ objectclass	( 1.0.86.86.86.86.2.2.1
 	DESC 'access profile'
 	SUP top
 	ABSTRACT
-	MUST pox509IsEnabled )
+	MUST ( cn $ pox509KeyProvider $ pox509KeystoreOptions $ pox509IsEnabled )
+    MAY description )
 
 objectclass	( 1.0.86.86.86.86.2.2.2
     NAME 'pox509DirectAccessProfile'
 	DESC 'direct access profile'
     SUP pox509AccessProfile
-    STRUCTURAL
-    MUST ( cn $ pox509KeyProvider $ pox509KeystoreOptions )
-	MAY description )
+    STRUCTURAL )
 
 objectclass	( 1.0.86.86.86.86.2.2.3
     NAME 'pox509AccessOnBehalfProfile'
 	DESC 'access on behalf profile'
     SUP pox509AccessProfile
     STRUCTURAL
-    MUST ( cn $ pox509TargetKeystore $ pox509KeyProvider $
-        pox509KeystoreOptions )
-	MAY description )
+    MUST pox509TargetKeystore )
 
 objectclass	( 1.0.86.86.86.86.2.2.4
     NAME 'pox509KeystoreProfile'

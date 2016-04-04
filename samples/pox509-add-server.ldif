@@ -4,10 +4,7 @@ objectClass: groupOfNames
 cn: pox509-test-server
 description: pox509-test-server
 member: cn=direct-access-noopts1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=direct-access-noopts2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=direct-access-noopts3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=irregularDN,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 

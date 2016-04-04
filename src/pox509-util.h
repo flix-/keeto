@@ -54,7 +54,7 @@ struct pox509_keystore_options {
 struct pox509_direct_access_profile {
     char *dn;
     char *name;
-    char *key_provider_dn;
+    char *key_provider_group_dn;
     char *keystore_options_dn;
     struct pox509_key_provider *key_provider;
     struct pox509_keystore_options *keystore_options;

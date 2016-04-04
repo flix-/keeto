@@ -3,28 +3,8 @@ objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
 cn: direct-access-noopts1
-pox509KeyProvider: uid=foo,ou=people,dc=ssh,dc=hq
+pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
 pox509IsEnabled: TRUE
 description: direct-access-noopts1 profile
-
-dn: cn=direct-access-noopts2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509DirectAccessProfile
-cn: direct-access-noopts2
-pox509KeyProvider: uid=bar,ou=people,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: TRUE
-description: direct-access-noopts2 profile
-
-dn: cn=direct-access-noopts3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509DirectAccessProfile
-cn: direct-access-noopts3
-pox509KeyProvider: uid=tux,ou=people,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: TRUE
-description: direct-access-noopts3 profile
 
