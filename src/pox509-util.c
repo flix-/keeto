@@ -115,8 +115,8 @@ init_dto(struct pox509_info *pox509_info)
     }
 
     memset(pox509_info, 0, sizeof *pox509_info);
-    STAILQ_INIT(&pox509_info->direct_access_profiles);
-    STAILQ_INIT(&pox509_info->access_on_behalf_profiles);
+    TAILQ_INIT(&pox509_info->direct_access_profiles);
+    TAILQ_INIT(&pox509_info->access_on_behalf_profiles);
     pox509_info->ldap_online = 0x56;
 }
 
@@ -128,6 +128,7 @@ init_direct_access_profile(struct pox509_direct_access_profile *profile)
     }
 
     memset(profile, 0, sizeof *profile);
+    TAILQ_INIT(&profile->key_providers);
 }
 
 void
@@ -138,7 +139,7 @@ init_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
     }
 
     memset(profile, 0, sizeof *profile);
-    STAILQ_INIT(&profile->key_providers);
+    TAILQ_INIT(&profile->key_providers);
 }
 
 void
@@ -338,7 +339,13 @@ free_direct_access_profile(struct pox509_direct_access_profile *profile)
     free(profile->name);
     free(profile->key_provider_group_dn);
     free(profile->keystore_options_dn);
-    free_key_provider(profile->key_provider);
+    /* free key providers */
+    struct pox509_key_provider *key_provider = NULL;
+    while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
+        log_msg("freeing key providers");
+        TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
+        free_key_provider(key_provider);
+    }
     free_keystore_options(profile->keystore_options);
     free(profile);
 }
@@ -358,10 +365,9 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
     free(profile->keystore_options_dn);
     /* free key providers */
     struct pox509_key_provider *key_provider = NULL;
-    while (!STAILQ_EMPTY(&profile->key_providers)) {
+    while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
         log_msg("freeing key providers");
-        key_provider = STAILQ_FIRST(&profile->key_providers);
-        STAILQ_REMOVE_HEAD(&profile->key_providers, key_providers);
+        TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
         free_key_provider(key_provider);
     }
     free_keystore_options(profile->keystore_options);
@@ -381,20 +387,22 @@ free_dto(struct pox509_info *pox509_info)
     free(pox509_info->dn);
     /* free direct access profiles */
     struct pox509_direct_access_profile *direct_access_profile = NULL;
-    while (!STAILQ_EMPTY(&pox509_info->direct_access_profiles)) {
+    while ((direct_access_profile =
+        TAILQ_FIRST(&pox509_info->direct_access_profiles))) {
+
         log_msg("freeing direct access profiles");
-        direct_access_profile =
-            STAILQ_FIRST(&pox509_info->direct_access_profiles);
-        STAILQ_REMOVE_HEAD(&pox509_info->direct_access_profiles, profiles);
+        TAILQ_REMOVE(&pox509_info->direct_access_profiles,
+            direct_access_profile, profiles);
         free_direct_access_profile(direct_access_profile);
     }
     /* free access on behalf profiles */
     struct pox509_access_on_behalf_profile *access_on_behalf_profile = NULL;
-    while (!STAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
-        log_msg("freeing direct access profiles");
-        access_on_behalf_profile =
-            STAILQ_FIRST(&pox509_info->access_on_behalf_profiles);
-        STAILQ_REMOVE_HEAD(&pox509_info->access_on_behalf_profiles, profiles);
+    while ((access_on_behalf_profile =
+        TAILQ_FIRST(&pox509_info->access_on_behalf_profiles))) {
+
+        log_msg("freeing access on behalf profiles");
+        TAILQ_REMOVE(&pox509_info->access_on_behalf_profiles,
+            access_on_behalf_profile, profiles);
         free_access_on_behalf_profile(access_on_behalf_profile);
     }
     free(pox509_info->syslog_facility);

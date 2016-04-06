@@ -27,8 +27,8 @@
 #ifndef POX509_LDAP_H
 #define POX509_LDAP_H
 
+#include "queue.h"
 #include <confuse.h>
-#include <openssl/x509.h>
 
 #include "pox509-util.h"
 

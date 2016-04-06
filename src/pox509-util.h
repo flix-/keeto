@@ -27,11 +27,12 @@
 #ifndef POX509_UTIL_H
 #define POX509_UTIL_H
 
+#include "queue.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 
 #include <openssl/x509.h>
-#include <sys/queue.h>
 
 struct pox509_key_provider {
     char *dn;
@@ -40,7 +41,7 @@ struct pox509_key_provider {
     char has_valid_cert;
     char *ssh_keytype;
     char *ssh_key;
-    STAILQ_ENTRY(pox509_key_provider) key_providers;
+    TAILQ_ENTRY(pox509_key_provider) key_providers;
 };
 
 struct pox509_keystore_options {
@@ -56,9 +57,9 @@ struct pox509_direct_access_profile {
     char *name;
     char *key_provider_group_dn;
     char *keystore_options_dn;
-    struct pox509_key_provider *key_provider;
+    TAILQ_HEAD(, pox509_key_provider) key_providers;
     struct pox509_keystore_options *keystore_options;
-    STAILQ_ENTRY(pox509_direct_access_profile) profiles;
+    TAILQ_ENTRY(pox509_direct_access_profile) profiles;
 };
 
 struct pox509_access_on_behalf_profile {
@@ -67,10 +68,9 @@ struct pox509_access_on_behalf_profile {
     char *target_keystore_group_dn;
     char *key_provider_group_dn;
     char *keystore_options_dn;
-    STAILQ_HEAD(pox509_key_provider_head, pox509_key_provider)
-        key_providers;
+    TAILQ_HEAD(, pox509_key_provider) key_providers;
     struct pox509_keystore_options *keystore_options; 
-    STAILQ_ENTRY(pox509_access_on_behalf_profile) profiles;
+    TAILQ_ENTRY(pox509_access_on_behalf_profile) profiles;
 };
 
 struct pox509_info {
@@ -79,10 +79,8 @@ struct pox509_info {
     char *keystore_location;
     char *dn;
     /* access profiles */
-    STAILQ_HEAD(pox509_direct_access_profile_head, pox509_direct_access_profile)
-        direct_access_profiles;
-    STAILQ_HEAD(pox509_access_on_behalf_profile_head,
-        pox509_access_on_behalf_profile) access_on_behalf_profiles;
+    TAILQ_HEAD(, pox509_direct_access_profile) direct_access_profiles;
+    TAILQ_HEAD(, pox509_access_on_behalf_profile) access_on_behalf_profiles;
     /* general */
     char ldap_online;
     char *syslog_facility;

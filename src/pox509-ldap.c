@@ -465,7 +465,7 @@ get_enabled_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             free_attr_values_as_string_array(keystore_options_dn);
 
             /* add to direct access profile list */
-            STAILQ_INSERT_TAIL(&pox509_info->direct_access_profiles, profile,
+            TAILQ_INSERT_TAIL(&pox509_info->direct_access_profiles, profile,
                 profiles);
             break;
         }
@@ -514,7 +514,7 @@ get_enabled_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             free_attr_values_as_string_array(keystore_options_dn);
 
             /* add to access on behalf profile list */
-            STAILQ_INSERT_TAIL(&pox509_info->access_on_behalf_profiles, profile,
+            TAILQ_INSERT_TAIL(&pox509_info->access_on_behalf_profiles, profile,
                 profiles);
             break;
         }
@@ -654,14 +654,17 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         fatal("ldap_handle, cfg or pox509_info == NULL");
     }
 
-    if (STAILQ_EMPTY(&pox509_info->direct_access_profiles)) {
-        log_msg("access profile list EMPTY");
+    if (TAILQ_EMPTY(&pox509_info->direct_access_profiles)) {
+        log_msg("direct access profile list EMPTY");
         return;
     }
 
     /* iterate direct access profiles */
     struct pox509_direct_access_profile *profile = NULL;
-    STAILQ_FOREACH(profile, &pox509_info->direct_access_profiles, profiles) {
+    struct pox509_direct_access_profile *tmp = NULL;
+    TAILQ_FOREACH_SAFE(profile, &pox509_info->direct_access_profiles, profiles,
+        tmp) {
+
         /* get key provider */
         char *provider_group_attr = cfg_getstr(cfg, "ldap_provider_group_attr");
         char *provider_group_attrs[] = {
@@ -701,7 +704,8 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             init_key_provider(provider);
             get_key_provider(ldap_handle, cfg, provider_ee_dns[i], provider);
             if (strcmp(provider->uid, pox509_info->uid) == 0) {
-                profile->key_provider = provider;
+                /* TODO add */
+                //profile->key_provider = provider;
                 break;
             }
             free_key_provider(provider);
@@ -709,11 +713,14 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         free_attr_values_as_string_array(provider_ee_dns);
 
         /* remove profile if no matching key provider has been found */
+        /*
         if (profile->key_provider == NULL) {
-            STAILQ_REMOVE(&pox509_info->direct_access_profiles, profile,
-                pox509_direct_access_profile, profiles);
+            TAILQ_REMOVE(&pox509_info->direct_access_profiles, profile,
+                profiles);
+            free_direct_access_profile(profile);
             continue;
         }
+        */
 
         /* get keystore options */
         profile->keystore_options =
@@ -735,17 +742,20 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
         fatal("ldap_handle, cfg or pox509_info == NULL");
     }
 
-    if (STAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
+    if (TAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
         log_msg("access on behalf profile list EMPTY");
         return;
     }
 
     /* iterate access on behalf profiles */
     struct pox509_access_on_behalf_profile *profile = NULL;
-    STAILQ_FOREACH(profile, &pox509_info->access_on_behalf_profiles, profiles) {
+    struct pox509_access_on_behalf_profile *tmp = NULL;
+    TAILQ_FOREACH_SAFE(profile, &pox509_info->access_on_behalf_profiles,
+        profiles, tmp) {
+
         if (!is_relevant_aobp(ldap_handle, cfg, pox509_info, profile)) {
-            STAILQ_REMOVE(&pox509_info->access_on_behalf_profiles, profile,
-                pox509_access_on_behalf_profile, profiles);
+            TAILQ_REMOVE(&pox509_info->access_on_behalf_profiles, profile,
+                profiles);
             free_access_on_behalf_profile(profile);
             continue;
         }
@@ -788,8 +798,7 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
             }
             init_key_provider(provider);
             get_key_provider(ldap_handle, cfg, provider_ee_dns[i], provider);
-            STAILQ_INSERT_TAIL(&profile->key_providers, provider,
-                key_providers);
+            TAILQ_INSERT_TAIL(&profile->key_providers, provider, key_providers);
         }
         free_attr_values_as_string_array(provider_ee_dns);
 
