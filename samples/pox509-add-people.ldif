@@ -1,12 +1,11 @@
-dn: uid=foo,ou=people,dc=ssh,dc=hq
+dn: cn=foo,ou=people,dc=ssh,dc=hq
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+cn: foo
+sn: foo
 uid: foo
-givenName: foo
-sn: oof
-cn: foo oof
 userCertificate;binary:: 
  MIIE+DCCAuACAQUwDQYJKoZIhvcNAQELBQAwQjEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIxEzARBgoJkiaJk/IsZAEZFgNzc2gxEjAQBgoJkiaJk/IsZAEZFgJocTAg
@@ -36,15 +35,14 @@ userCertificate;binary::
  o4hZLUvJC1phCSZ+BnVbrhxuJ2JEfwfhs71idtefDfk7nEcB42CUkMaz5Scg3qFD
  QS07DCMMDRkL+WNPSMlzHwV98c9B0/0MWLOAog==
 
-dn: uid=bar,ou=people,dc=ssh,dc=hq
+dn: cn=bar,ou=people,dc=ssh,dc=hq
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+cn: bar
+sn: bar
 uid: bar
-givenName: bar
-sn: rab
-cn: bar rab
 userCertificate;binary:: 
  MIIE+DCCAuACAQUwDQYJKoZIhvcNAQELBQAwQjEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIxEzARBgoJkiaJk/IsZAEZFgNzc2gxEjAQBgoJkiaJk/IsZAEZFgJocTAg
@@ -74,15 +72,51 @@ userCertificate;binary::
  o4hZLUvJC1phCSZ+BnVbrhxuJ2JEfwfhs71idtefDfk7nEcB42CUkMaz5Scg3qFD
  QS07DCMMDRkL+WNPSMlzHwV98c9B0/0MWLOAog==
 
-dn: uid=tux,ou=people,dc=ssh,dc=hq
+dn: cn=tux,ou=people,dc=ssh,dc=hq
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+cn: tux
+sn: tux
 uid: tux
-givenName: tux
-sn: xut
-cn: tux xut
+userCertificate;binary:: 
+ MIIE+DCCAuACAQUwDQYJKoZIhvcNAQELBQAwQjEXMBUGA1UEAwwOMDEtY2EtaW50
+ LXVzZXIxEzARBgoJkiaJk/IsZAEZFgNzc2gxEjAQBgoJkiaJk/IsZAEZFgJocTAg
+ Fw0xNTA2MTYwODAwMTRaGA8yMTE1MDUyMzA4MDAxNFowQDEVMBMGA1UEAwwMMTAt
+ ZWUtdXNlci0xMRMwEQYKCZImiZPyLGQBGRYDc3NoMRIwEAYKCZImiZPyLGQBGRYC
+ aHEwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDFVcG24L8Yg+uNRNkM
+ rQhCJKjL/q+1q2BHIPvt/yXncmrF+yEJX9CnI9RANBSy0GckqK3bhTdfla+6HcDA
+ pHidPWB1ZYKU8IEJlgqanssvUaMxAB93vi/0iMBxwyjNqfDW6+/qd4aN/7I4YCZ7
+ pyo+reK6fHEKhhT2OEC4h2RNeSHC2H5lNdj+yuyuHCazMo5DlappkBIVRHKPzU6U
+ IOl3xcjEAdtfhN0/TQOFghc4Ivc6B3Fsd9dbbKFyoCNl8jNruz8pE4ln9JRUXwxr
+ Xcfp9F6R/s0I8KM+RULXuGvADXCnV/5YsH8U/OZxMnO6ipEWfNtwZzoVzsbx6u9e
+ ekBKTJrVArZGmYEZX10Ktlz81K+JJAQ5A3Wu9++TgXBTe3/Gif34mUh7cLvTT7Ni
+ 7FFv3uwGE4tBqu5/rXMcnPn7Ar9onYHXM3gwyDQVtai6NyM5XSyzrCKo4RJgPuUe
+ JYsSsP5L51LAkwkyMJ6jqGPzKF6nYq2O0kbi+TuKmA3RGCt8RTwFiY357tHYmmt1
+ PiovPK+JHz1VSERrKczDDIDfXwqD4ulI0tiI0ByPvJAuyYEA6haEdfHT6u19M8I+
+ ytTZ1xlBcDvn18cqNgAqIeBHORc7yEz6Zm+h7tel+z9qBwF328RSdx1XvLPmulcw
+ xQKCuRdHhJtXtMw499GCpwGNSQIDAQABMA0GCSqGSIb3DQEBCwUAA4ICAQCfVoPA
+ ObbHZcRL7KWquqsUez5nxCpc55Q7ZTV4q0/KLbb82vM9dCAK//tPT3LPa8RdoYcO
+ 36Frwcg9ldmlNONpx90IkRvDwALjw+ZuWxdbjn/xlUXjXq0cFCK0uBI8/kXilX3T
+ UI4O8aRHtkqtdfS2PO6pxo6vmDrlJBe5Xw//Hobmi2QgljaBra/xdnSzi8EjEADf
+ fD7kGF7Q+ZrS9/tiQpCAQgc7oks/c19F6aC3gxN47yslGHnLAnHA0IKufC647vBn
+ F0ORUzBTqIeS5/vehjO1rG1KdkNO/56VzofXc+W50m+JXYamTk31Weni7k1LbxYz
+ 9mTAARAAvaY0fY1PuW4vtyLDzQpiQFiMk0mDXPR6A+TzIoCJOEQhhP2ocxMJPLUS
+ F/ON+KGAimSRQ/dXoTX6rzthKcnHp+IU8SmmW8zaYzgJzwqOyU5RNjKLAeJqV0yv
+ qC2fsddt7sIS+ihjrLdWke4LVLEc5bX4fhiW1nVV+q43vKOxlnzI22wngKuqQGx+
+ A1P6qz4oZZCIjhNd2AIV+QfgjOs6urWhJX29GOAkOmejNufoOO7tCQsapb+uSDtZ
+ o4hZLUvJC1phCSZ+BnVbrhxuJ2JEfwfhs71idtefDfk7nEcB42CUkMaz5Scg3qFD
+ QS07DCMMDRkL+WNPSMlzHwV98c9B0/0MWLOAog==
+
+dn: cn=tux_legacy,ou=people,dc=ssh,dc=hq
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: tux_legacy
+sn: tux
+uid: tux
 userCertificate;binary:: 
  MIIE+DCCAuACAQUwDQYJKoZIhvcNAQELBQAwQjEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIxEzARBgoJkiaJk/IsZAEZFgNzc2gxEjAQBgoJkiaJk/IsZAEZFgJocTAg

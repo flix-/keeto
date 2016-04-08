@@ -396,10 +396,8 @@ get_enabled_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         if (access_profile_state == NULL) {
             fatal("access_profile_state == NULL");
         }
-        bool is_disabled = true;
-        if (strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0) {
-            is_disabled = false;
-        }
+        bool is_disabled = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) ==
+            0 ? false : true;
         free_attr_values_as_string_array(access_profile_state);
         if (is_disabled) {
             log_msg("profile disabled (%s)", access_profile_dns[i]);
@@ -703,24 +701,24 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             }
             init_key_provider(provider);
             get_key_provider(ldap_handle, cfg, provider_ee_dns[i], provider);
-            if (strcmp(provider->uid, pox509_info->uid) == 0) {
-                /* TODO add */
-                //profile->key_provider = provider;
-                break;
+            bool is_authorized = strcmp(provider->uid, pox509_info->uid) == 0 ?
+                true : false;
+            if (is_authorized) {
+                TAILQ_INSERT_TAIL(&profile->key_providers, provider,
+                    key_providers);
+            } else {
+                free_key_provider(provider);
             }
-            free_key_provider(provider);
         }
         free_attr_values_as_string_array(provider_ee_dns);
 
         /* remove profile if no matching key provider has been found */
-        /*
-        if (profile->key_provider == NULL) {
+        if (TAILQ_EMPTY(&profile->key_providers)) {
             TAILQ_REMOVE(&pox509_info->direct_access_profiles, profile,
                 profiles);
             free_direct_access_profile(profile);
             continue;
         }
-        */
 
         /* get keystore options */
         profile->keystore_options =
