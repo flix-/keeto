@@ -107,6 +107,21 @@ str_to_enum(enum pox509_sections sec, const char *key)
     return -EINVAL;
 }
 
+struct timeval
+get_ldap_search_timeout(cfg_t *cfg)
+{
+    if (cfg == NULL) {
+        fatal("cfg == NULL");
+    }
+
+    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
+    struct timeval search_timeout = {
+        .tv_sec = ldap_search_timeout,
+        .tv_usec = 0
+    };
+    return search_timeout;
+}
+
 void
 init_dto(struct pox509_info *pox509_info)
 {
@@ -299,7 +314,6 @@ void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
-        log_msg("key_provider == NULL");
         return;
     }
 
@@ -315,7 +329,6 @@ void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
-        log_msg("options == NULL");
         return;
     }
 
@@ -331,7 +344,6 @@ void
 free_direct_access_profile(struct pox509_direct_access_profile *profile)
 {
     if (profile == NULL) {
-        log_msg("profile == NULL");
         return;
     }
 

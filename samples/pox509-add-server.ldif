@@ -8,4 +8,5 @@ member: cn=direct-access-noopts2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 member: cn=access-on-behalf-from3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-from4,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 

@@ -31,7 +31,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <time.h>
 
+#include <confuse.h>
 #include <openssl/x509.h>
 
 struct pox509_key_provider {
@@ -183,6 +185,7 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
 void create_ldap_search_filter(const char *attr, const char *value,
     char *dst, size_t dst_length);
 void get_rdn_value_from_dn(const char *, char **buffer);
+struct timeval get_ldap_search_timeout(cfg_t *cfg);
 void init_dto(struct pox509_info *pox509_info);
 void init_direct_access_profile(struct pox509_direct_access_profile *profile);
 void init_access_on_behalf_profile(struct pox509_access_on_behalf_profile

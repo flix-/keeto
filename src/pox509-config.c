@@ -123,24 +123,6 @@ cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
 }
 
 static int
-cfg_str_to_int_parser_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
-    void *result)
-{
-    if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
-        fatal("cfg, opt, value or result == NULL");
-    }
-
-    int ldap_option = str_to_enum(LIBLDAP, value);
-    if (ldap_option == -EINVAL) {
-        cfg_error(cfg, "cfg_value_parser_int(): option: '%s', value: '%s'",
-            cfg_opt_name(opt), value);
-    }
-    long int *ptr_result = result;
-    *ptr_result = ldap_option;
-    return 0;
-}
-
-static int
 cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
@@ -152,6 +134,24 @@ cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
         cfg_error(cfg, "cfg_validate_ldap_search_timeout(): option: '%s', "
             "value: '%li' (value must be > 0)", cfg_opt_name(opt), timeout);
     }
+    return 0;
+}
+
+static int
+cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
+    void *result)
+{
+    if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
+        fatal("cfg, opt, value or result == NULL");
+    }
+
+    int ldap_option = str_to_enum(LIBLDAP, value);
+    if (ldap_option == -EINVAL) {
+        cfg_error(cfg, "cfg_str_to_int_cb_libldap(): option: '%s', value: '%s'",
+            cfg_opt_name(opt), value);
+    }
+    long int *ptr_result = result;
+    *ptr_result = ldap_option;
     return 0;
 }
 
@@ -194,14 +194,14 @@ init_and_parse_config(cfg_t **cfg, const char *cfg_file)
         CFG_STR("ldap_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
             CFGF_NONE),
         CFG_INT_CB("ldap_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
-            &cfg_str_to_int_parser_libldap),
+            &cfg_str_to_int_cb_libldap),
         CFG_STR("ldap_server_uid_attr", "cn", CFGF_NONE),
         CFG_STR("ldap_server_access_profile_attr", "member", CFGF_NONE),
 
-        CFG_STR("ldap_target_group_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_target_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_uid_attr", "uid", CFGF_NONE),
 
-        CFG_STR("ldap_provider_group_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_provider_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_provider_uid_attr", "uid", CFGF_NONE),
         CFG_STR("ldap_provider_cert_attr", "userCertificate;binary", CFGF_NONE),
 
