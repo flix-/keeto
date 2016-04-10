@@ -170,6 +170,9 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
         char *value = values[i]->bv_val;
         ber_len_t len = values[i]->bv_len;
         (*ret)[i] = strndup(value, len);
+        if ((*ret)[i] == NULL) {
+            fatal("strndup()");
+        }
     }
     (*ret)[count] = NULL;
     ldap_value_free_len(values);
@@ -393,6 +396,9 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
     }
 
     provider->dn = strdup(key_provider_dn);
+    if (provider->dn == NULL) {
+        fatal("strdup()");
+    }
     char *provider_uid_attr = cfg_getstr(cfg, "ldap_provider_uid_attr");
     char *provider_cert_attr = cfg_getstr(cfg, "ldap_provider_cert_attr");
     char *attrs[] = {
@@ -417,6 +423,9 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
         fatal("provider_uid == NULL");
     }
     provider->uid = strdup(provider_uid[0]);
+    if (provider->uid == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(provider_uid);
 
     struct berval **provider_cert = NULL;
@@ -456,6 +465,9 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
     }
 
     options->dn = strdup(keystore_options_dn);
+    if (options->dn == NULL) {
+        fatal("strdup()");
+    }
     get_rdn_value_from_dn(keystore_options_dn, &options->name);
     char *attrs[] = {
         POX509_KEYSTORE_OPTIONS_FROM_ATTR,
@@ -479,6 +491,9 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
         log_msg("keystore_options_from_attr == NULL");
     } else {
         options->from_option = strdup(keystore_options_from[0]);
+        if (options->from_option == NULL) {
+            fatal("strdup()");
+        }
         free_attr_values_as_string_array(keystore_options_from);
     }
 
@@ -489,6 +504,9 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
         log_msg("keystore_options_cmd_attr == NULL");
     } else {
         options->command_option = strdup(keystore_options_cmd[0]);
+        if (options->command_option == NULL) {
+            fatal("strdup()");
+        }
         free_attr_values_as_string_array(keystore_options_cmd);
     }
     ldap_msgfree(result);
@@ -682,6 +700,9 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
     init_access_on_behalf_profile(profile);
 
     profile->dn = strdup(dn);
+    if (profile->dn == NULL) {
+        fatal("strdup()");
+    }
     get_rdn_value_from_dn(dn, &profile->name);
 
     /* set target keystore group dn */
@@ -691,8 +712,10 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
     if (target_keystore_group_dn == NULL) {
         fatal("target_keystore_group_dn == NULL");
     }
-    profile->target_keystore_group_dn =
-        strdup(target_keystore_group_dn[0]);
+    profile->target_keystore_group_dn = strdup(target_keystore_group_dn[0]);
+    if (profile->target_keystore_group_dn == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(target_keystore_group_dn);
 
     /* set key provider group dn*/
@@ -703,6 +726,9 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         fatal("key_provider_group_dn == NULL");
     }
     profile->key_provider_group_dn = strdup(key_provider_group_dn[0]);
+    if (profile->key_provider_group_dn == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(key_provider_group_dn);
 
     /* set keystore options */
@@ -713,6 +739,9 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         fatal("keystore_options_dn == NULL");
     }
     profile->keystore_options_dn = strdup(keystore_options_dn[0]);
+    if (profile->keystore_options_dn == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(keystore_options_dn);
 
     /* add to access on behalf profile list */
@@ -738,6 +767,9 @@ get_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
     init_direct_access_profile(profile);
 
     profile->dn = strdup(dn);
+    if (profile->dn == NULL) {
+        fatal("strdup()");
+    }
     get_rdn_value_from_dn(dn, &profile->name);
 
     /* set key provider group dn */
@@ -748,6 +780,9 @@ get_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         fatal("key_provider_group_dn == NULL");
     }
     profile->key_provider_group_dn = strdup(key_provider_group_dn[0]);
+    if (profile->key_provider_group_dn == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(key_provider_group_dn);
 
     /* set keystore options dn */
@@ -758,6 +793,9 @@ get_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         fatal("keystore_options_dn == NULL");
     }
     profile->keystore_options_dn = strdup(keystore_options_dn[0]);
+    if (profile->keystore_options_dn == NULL) {
+        fatal("strdup()");
+    }
     free_attr_values_as_string_array(keystore_options_dn);
 
     /* add to direct access profile list */
