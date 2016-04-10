@@ -155,6 +155,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 
     /* query ldap server */
     get_keystore_data_from_ldap(cfg, pox509_info);
+    #include <unistd.h>
+    sleep(100000);
 
     /* validate certificates and convert public key to OpenSSH
      * authorized_keys format

@@ -36,13 +36,19 @@
 #include <confuse.h>
 #include <openssl/x509.h>
 
+struct pox509_key {
+    X509 *x509;
+    bool is_valid;
+    char *ssh_keytype;
+    char *ssh_key;
+    TAILQ_ENTRY(pox509_key) keys;
+};
+
 struct pox509_key_provider {
     char *dn;
     char *uid;
-    X509 *x509;
-    char has_valid_cert;
-    char *ssh_keytype;
-    char *ssh_key;
+    TAILQ_HEAD(, pox509_key) keys;
+    bool has_valid_key;
     TAILQ_ENTRY(pox509_key_provider) key_providers;
 };
 
@@ -192,7 +198,9 @@ void init_access_on_behalf_profile(struct pox509_access_on_behalf_profile
     *profile);
 void init_key_provider(struct pox509_key_provider *key_provider);
 void init_keystore_options(struct pox509_keystore_options *options);
+void init_key(struct pox509_key *key);
 
+void free_key(struct pox509_key *key);
 void free_keystore_options(struct pox509_keystore_options *options);
 void free_key_provider(struct pox509_key_provider *key_provider);
 void free_direct_access_profile(struct pox509_direct_access_profile *profile);

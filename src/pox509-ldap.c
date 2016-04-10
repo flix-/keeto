@@ -144,8 +144,7 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
 
     int rc = ldap_count_entries(ldap_handle, result);
     if (rc == 0) {
-        log_fail("ldap_count_entries() == 0");
-        goto error;
+        goto ret;
     }
 
     /* get attribute values */
@@ -155,13 +154,11 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     }
     struct berval **values = ldap_get_values_len(ldap_handle, result, attr);
     if (values == NULL) {
-        log_fail("ldap_get_values_len() == NULL");
-        goto error;
+        goto ret;
     }
     int count = ldap_count_values_len(values);
     if (count == 0) {
-        log_fail("ldap_count_values_len() == 0");
-        goto error;
+        goto ret;
     }
 
     *ret = malloc(sizeof(char *) * (count + 1));
@@ -172,17 +169,14 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     for (int i = 0; values[i] != NULL; i++) {
         char *value = values[i]->bv_val;
         ber_len_t len = values[i]->bv_len;
-        (*ret)[i] = strndup(value, len + 1);
-        /* FIXME: Check strndup() function --> possibly writing to buffer not
-        owned */
-        (*ret)[i][len] = '\0';
+        (*ret)[i] = strndup(value, len);
     }
     (*ret)[count] = NULL;
     ldap_value_free_len(values);
 
     return;
 
-error:
+ret:
     *ret = NULL;
     return;
 }
@@ -314,9 +308,6 @@ get_group_member_dns(LDAP *ldap_handle, cfg_t *cfg, char *group_dn,
     /* get dn's of group members*/
     get_attr_values_as_string(ldap_handle, result, group_member_attr,
         group_member_dns);
-    if (group_member_dns == NULL) {
-        fatal("key_provider_dns == NULL");
-    }
     ldap_msgfree(result);
 }
 
@@ -388,9 +379,6 @@ get_target_keystore(LDAP *ldap_handle, cfg_t *cfg, char *target_keystore_dn,
     }
 
     get_attr_values_as_string(ldap_handle, result, target_uid_attr, target_uid);
-    if (target_uid == NULL) {
-        fatal("target_uid == NULL");
-    }
     ldap_msgfree(result);
 }
 
@@ -440,13 +428,18 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
     for (int i = 0; provider_cert[i] != NULL; i++) {
         char *value = provider_cert[i]->bv_val;
         ber_len_t len = provider_cert[i]->bv_len;
-        provider->x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
-        if (provider->x509 == NULL) {
+        struct pox509_key *key = malloc(sizeof(struct pox509_key));
+        if (key == NULL) {
+            fatal("malloc()");
+        }
+        init_key(key);
+        key->x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
+        if (key->x509 == NULL) {
             log_fail("d2i_X509(): cannot decode certificate");
-            /* try next certificate if existing */
+            free_key(key);
             continue;
         }
-        break;
+        TAILQ_INSERT_TAIL(&provider->keys, key, keys);
     }
     free_attr_values_as_binary_array(provider_cert);
     ldap_msgfree(result);
@@ -529,6 +522,10 @@ is_relevant_aobp(LDAP *ldap_handle, cfg_t *cfg, struct pox509_info *pox509_info,
     bool target_has_uid = false;
     for (int i = 0; target_dns[i] != NULL && !target_has_uid; i++) {
         get_target_keystore(ldap_handle, cfg, target_dns[i], &target_uid);
+        if (target_uid == NULL) {
+            fatal("target_uid == NULL");
+        }
+
         if(strcmp(pox509_info->uid, target_uid[0]) == 0) {
             target_has_uid = true;
         }
@@ -640,7 +637,8 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             bool is_authorized = strcmp(provider->uid, pox509_info->uid) == 0 ?
                 true : false;
             if (is_authorized) {
-                TAILQ_INSERT_TAIL(&profile->key_providers, provider, key_providers);
+                TAILQ_INSERT_TAIL(&profile->key_providers, provider,
+                    key_providers);
             } else {
                 free_key_provider(provider);
             }
@@ -798,8 +796,8 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             log_msg("profile disabled (%s)", access_profile_dns[i]);
             continue;
         }
-        enum pox509_access_profile_type profile_type = get_access_profile_type(
-            ldap_handle, result);
+        enum pox509_access_profile_type profile_type =
+            get_access_profile_type(ldap_handle, result);
 
         switch(profile_type) {
         case DIRECT_ACCESS:

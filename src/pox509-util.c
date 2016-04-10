@@ -165,6 +165,8 @@ init_key_provider(struct pox509_key_provider *key_provider)
     }
 
     memset(key_provider, 0, sizeof *key_provider);
+    key_provider->has_valid_key = false;
+    TAILQ_INIT(&key_provider->keys);
 }
 
 void
@@ -174,6 +176,17 @@ init_keystore_options(struct pox509_keystore_options *options) {
     }
 
     memset(options, 0, sizeof *options);
+}
+
+void
+init_key(struct pox509_key *key)
+{
+    if (key == NULL) {
+        fatal("key == NULL");
+    }
+
+    memset(key, 0, sizeof *key);
+    key->is_valid = false;
 }
 
 bool
@@ -311,6 +324,19 @@ get_rdn_value_from_dn(const char *dn, char **buffer)
 }
 
 void
+free_key(struct pox509_key *key)
+{
+    if (key == NULL) {
+        return;
+    }
+
+    X509_free(key->x509);
+    free(key->ssh_keytype);
+    free(key->ssh_key);
+    free(key);
+}
+
+void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
@@ -319,9 +345,12 @@ free_key_provider(struct pox509_key_provider *key_provider)
 
     free(key_provider->dn);
     free(key_provider->uid);
-    X509_free(key_provider->x509);
-    free(key_provider->ssh_keytype);
-    free(key_provider->ssh_key);
+    /* free certificates */
+    struct pox509_key *key = NULL;
+    while ((key = TAILQ_FIRST(&key_provider->keys))) {
+        TAILQ_REMOVE(&key_provider->keys, key, keys);
+        free_key(key);
+    }
     free(key_provider);
 }
 
@@ -354,7 +383,6 @@ free_direct_access_profile(struct pox509_direct_access_profile *profile)
     /* free key providers */
     struct pox509_key_provider *key_provider = NULL;
     while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
-        log_msg("freeing key providers");
         TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
         free_key_provider(key_provider);
     }
@@ -366,7 +394,6 @@ void
 free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 {
     if (profile == NULL) {
-        log_msg("profile == NULL");
         return;
     }
 
@@ -378,7 +405,6 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
     /* free key providers */
     struct pox509_key_provider *key_provider = NULL;
     while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
-        log_msg("freeing key providers");
         TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
         free_key_provider(key_provider);
     }
@@ -390,7 +416,6 @@ void
 free_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
-        log_msg("pox509_info == NULL");
         return;
     }
 
@@ -402,7 +427,6 @@ free_dto(struct pox509_info *pox509_info)
     while ((direct_access_profile =
         TAILQ_FIRST(&pox509_info->direct_access_profiles))) {
 
-        log_msg("freeing direct access profiles");
         TAILQ_REMOVE(&pox509_info->direct_access_profiles,
             direct_access_profile, profiles);
         free_direct_access_profile(direct_access_profile);
@@ -412,7 +436,6 @@ free_dto(struct pox509_info *pox509_info)
     while ((access_on_behalf_profile =
         TAILQ_FIRST(&pox509_info->access_on_behalf_profiles))) {
 
-        log_msg("freeing access on behalf profiles");
         TAILQ_REMOVE(&pox509_info->access_on_behalf_profiles,
             access_on_behalf_profile, profiles);
         free_access_on_behalf_profile(access_on_behalf_profile);
