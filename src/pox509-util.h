@@ -32,9 +32,18 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <confuse.h>
 #include <openssl/x509.h>
+
+#include "pox509-log.h"
+
+#define POX509_DEBUG \
+int sleepy = 1; \
+while (sleepy) { \
+    sleep(5); \
+}
 
 struct pox509_key {
     X509 *x509;
@@ -207,4 +216,5 @@ void free_direct_access_profile(struct pox509_direct_access_profile *profile);
 void free_access_on_behalf_profile(struct pox509_access_on_behalf_profile
     *profile);
 void free_dto(struct pox509_info *pox509_info);
+
 #endif

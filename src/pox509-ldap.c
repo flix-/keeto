@@ -269,8 +269,8 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *result)
     }
 
     enum pox509_access_profile_type profile_type = UNKNOWN;
-    for (int j = 0; access_profile_objectclass[j] != NULL; j++) {
-        char *objectclass = access_profile_objectclass[j];
+    for (int i = 0; access_profile_objectclass[i] != NULL; i++) {
+        char *objectclass = access_profile_objectclass[i];
         if (strcmp(objectclass, POX509_DAP_OBJCLASS) == 0) {
             profile_type = DIRECT_ACCESS;
             break;
@@ -692,8 +692,8 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         fatal("ldap_handle, result, dn or pox509_info == NULL");
     }
 
-    struct pox509_access_on_behalf_profile *profile = NULL;
-    profile = malloc(sizeof *profile);
+    /* create new access on behalf profile */
+    struct pox509_access_on_behalf_profile *profile = malloc(sizeof *profile);
     if (profile == NULL) {
         fatal("malloc()");
     }
@@ -882,6 +882,8 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     pox509_info->ldap_online = 1;
 
     /* retrieve data */
+    #include "pox509-util.h"
+    POX509_DEBUG;
     get_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
