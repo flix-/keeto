@@ -143,8 +143,13 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     }
 
     int rc = ldap_count_entries(ldap_handle, result);
-    if (rc == 0) {
-        goto ret;
+    switch (rc) {
+    case 0:
+        fatal("ldap_count_entries() == 0");
+        break;
+    case -1:
+        fatal("ldap_count_entries() - internal error");
+        break;
     }
 
     /* get attribute values */
@@ -314,14 +319,14 @@ get_group_member_dns(LDAP *ldap_handle, cfg_t *cfg, char *group_dn,
     ldap_msgfree(result);
 }
 
-static void
-get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
-    struct pox509_info *pox509_info, char ***access_profile_dns)
+static int
+get_server_entry(LDAP *ldap_handle, cfg_t *cfg, struct pox509_info *pox509_info,
+    LDAPMessage **result)
 {
     if (ldap_handle == NULL || cfg == NULL || pox509_info == NULL ||
-        access_profile_dns == NULL) {
+        result == NULL) {
 
-        fatal("ldap_handle, cfg, pox509_info or access_profile_dns == NULL");
+        fatal("ldap_handle, cfg, pox509_info or result == NULL");
     }
 
     char *server_dn = cfg_getstr(cfg, "ldap_server_base_dn");
@@ -339,22 +344,23 @@ get_access_profile_dns(LDAP *ldap_handle, cfg_t *cfg,
         NULL
     };
     struct timeval search_timeout = get_ldap_search_timeout(cfg);
-    LDAPMessage *result = NULL;
 
     int rc = ldap_search_ext_s(ldap_handle, server_dn, server_search_scope,
-        filter, attrs, 0, NULL, NULL, &search_timeout, 1, &result);
+        filter, attrs, 0, NULL, NULL, &search_timeout, 1, result);
     if (rc != LDAP_SUCCESS) {
         fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
-    /* set dn in dto */
-    pox509_info->dn = ldap_get_dn(ldap_handle, result);
-    if (pox509_info->dn == NULL) {
-        log_fail("ldap_get_dn() failed");
+
+    /* check if ssh server entry has been found */
+    rc = ldap_count_entries(ldap_handle, *result);
+    switch (rc) {
+    case 0:
+        return -1;
+    case -1:
+        fatal("ldap_count_entries() - internal error");
     }
-    /* get dn's as strings */
-    get_attr_values_as_string(ldap_handle, result, access_profile_attr,
-        access_profile_dns);
-    ldap_msgfree(result);
+
+    return 0;
 }
 
 static void
@@ -811,11 +817,24 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         fatal("ldap_handle, cfg or pox509_info == NULL");
     }
 
-    char **access_profile_dns = NULL;
-    get_access_profile_dns(ldap_handle, cfg, pox509_info, &access_profile_dns);
-    if (access_profile_dns == NULL) {
-        fatal("access_profile_dns == NULL");
+    LDAPMessage *result = NULL;
+    int rc = get_server_entry(ldap_handle, cfg, pox509_info, &result);
+    if (rc == -1) {
+        log_msg("no ssh server entry has been found");
+        goto cleanup;
     }
+
+    /* set dn in dto */
+    pox509_info->dn = ldap_get_dn(ldap_handle, result);
+    if (pox509_info->dn == NULL) {
+        fatal("ldap_get_dn()");
+    }
+    /* get dn's as strings */
+    char **access_profile_dns = NULL;
+    char *access_profile_attr = cfg_getstr(cfg,
+        "ldap_server_access_profile_attr");
+    get_attr_values_as_string(ldap_handle, result, access_profile_attr,
+        &access_profile_dns);
 
     struct timeval search_timeout = get_ldap_search_timeout(cfg);
     /* iterate access profile dns */
@@ -839,26 +858,26 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
 
         switch(profile_type) {
         case DIRECT_ACCESS:
-        {
             get_direct_access_profile(ldap_handle, result, dn, pox509_info);
             break;
-        }
         case ACCESS_ON_BEHALF:
-        {
             get_access_on_behalf_profile(ldap_handle, result, dn, pox509_info);
             break;
-        }
         case UNKNOWN:
-        {
             fatal("profile_type unknown: %d", profile_type);
             break;
-        }
         default:
             fatal("this should never happen...");
         }
         ldap_msgfree(result);
     }
     free_attr_values_as_string_array(access_profile_dns);
+
+    return;
+
+cleanup:
+    log_msg("cleanup");
+    ldap_msgfree(result);
 }
 
 void
@@ -882,8 +901,6 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     pox509_info->ldap_online = 1;
 
     /* retrieve data */
-    #include "pox509-util.h"
-    POX509_DEBUG;
     get_access_profiles(ldap_handle, cfg, pox509_info);
     process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
