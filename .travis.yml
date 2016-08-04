@@ -9,7 +9,8 @@ notifications:
 addons:
   apt:
     sources:
-      - chef-current-trusty
+      - sourceline: 'deb http://de.archive.ubuntu.com/ubuntu trusty main
+        restricted universe multiverse'
     packages:
       - autotools-dev
       - autoconf
