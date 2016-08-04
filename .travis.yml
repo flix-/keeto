@@ -7,16 +7,16 @@ notifications:
 
 addons:
   apt:
-  packages:
-    - autotools-dev
-    - autoconf
-    - automake
-    - check
-    - doxygen
-    - libconfuse-dev
-    - libpam0g-dev
-    - libssl-dev
-    - libtool
+    packages:
+      - autotools-dev
+      - autoconf
+      - automake
+      - check
+      - doxygen
+      - libconfuse-dev
+      - libpam0g-dev
+      - libssl-dev
+      - libtool
 
 #before_install:
 #    - sudo add-apt-repository "deb http://de.archive.ubuntu.com/ubuntu trusty
