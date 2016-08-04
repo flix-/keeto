@@ -9,7 +9,7 @@ notifications:
 addons:
   apt:
     sources:
-      - chef-stable-trusty
+      - chef-current-trusty
     packages:
       - autotools-dev
       - autoconf
