@@ -16,30 +16,21 @@
  */
 
 /**
- * Config file processing.
+ * Definition of error values.
  *
- * @file pox509-config.h
+ * @file pox509-result.h
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-15
+ * @date 2016-08-13
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
-#ifndef POX509_CONFIG_H
-#define POX509_CONFIG_H
+#ifndef POX509_RESULT_H
+#define POX509_RESULT_H
 
-#include <confuse.h>
+enum {
+    POX509_SUCCESS = 0,
+//    POX509_PARSE_CONFIG_ERR,
+};
 
-/**
- * Parse configuration file.
- *
- * @param[in] cfg_file Path to configuration file. Must not be @c NULL.
- */
-cfg_t *parse_config(const char *cfg_file);
-
-/**
- * Release allocated memory from configuration structure.
- *
- * @param[in] cfg Configuration structure. Must not be @c NULL.
- */
-void release_config(cfg_t *cfg);
+const char *result_to_string(int result);
 #endif

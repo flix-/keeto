@@ -18,20 +18,23 @@
 /**
  * Definition of error values.
  *
- * @file pox509-error.h
+ * @file pox509-result.c
  * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2016-04-24
+ * @date 2016-08-13
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
-#ifndef POX509_ERROR_H
-#define POX509_ERROR_H
+#include "pox509-result.h"
 
-enum pox509_error {
-    POX509_E_SUCCESS = 0,
-    POX509_E_UNKNOWN
+const char *
+result_to_string(int result)
+{
+    switch(result) {
+    case POX509_SUCCESS:
+        return "POX509_SUCCESS";
 
-    /* last element only used for bounds checking */
-    POX509_E_LAST
-};
-#endif
+    default:
+        return "POX509_UNKNOWN_ERR";
+    }
+}
+

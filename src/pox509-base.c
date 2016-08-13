@@ -28,6 +28,7 @@
 #include "pox509-config.h"
 #include "pox509-ldap.h"
 #include "pox509-log.h"
+#include "pox509-result.h"
 #include "pox509-util.h"
 #include "pox509-x509.h"
 
@@ -65,9 +66,9 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
     }
 
     struct pox509_info *pox509_info = data;
-    log_msg("freeing pox509_info");
+    log_info("freeing pox509_info");
     free_dto(pox509_info);
-    log_msg("pox509_info freed");
+    log_info("pox509_info freed");
 }
 
 PAM_EXTERN int
@@ -86,15 +87,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("cannot open config file (%s) for reading", cfg_file);
     }
 
-    /* initialize and parse config */
-    cfg_t *cfg = NULL;
-    init_and_parse_config(&cfg, cfg_file);
+    /* parse config */
+    cfg_t *cfg = parse_config(cfg_file);
+    if (cfg == NULL) {
+        fatal("parse_config()");
+    }
 
     /* set syslog facility */
     char *syslog_facility = cfg_getstr(cfg, "syslog_facility");
     int rc = set_syslog_facility(syslog_facility);
     if (rc == -EINVAL) {
-        log_fail("set_syslog_facility(): '%s'", syslog_facility);
+        log_error("set_syslog_facility(): '%s'", syslog_facility);
     }
 
     /* initialize data transfer object */

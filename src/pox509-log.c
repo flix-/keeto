@@ -46,7 +46,7 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
 }
 
 void
-log_msg(const char *fmt, ...)
+log_info(const char *fmt, ...)
 {
     if (fmt == NULL) {
         fatal("fmt == NULL");
@@ -54,25 +54,12 @@ log_msg(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    pox509_log("[#]", fmt, ap);
+    pox509_log("[I]", fmt, ap);
     va_end(ap);
 }
 
 void
-log_success(const char *fmt, ...)
-{
-    if (fmt == NULL) {
-        fatal("fmt == NULL");
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    pox509_log("[+]", fmt, ap);
-    va_end(ap);
-}
-
-void
-pox509_log_fail(const char *filename, const char *function, int line,
+pox509_log_error(const char *filename, const char *function, int line,
     const char *fmt, ...)
 {
     if (filename == NULL || function == NULL || fmt == NULL) {
@@ -80,7 +67,7 @@ pox509_log_fail(const char *filename, const char *function, int line,
     }
 
     char prefix[LOG_PREFIX_BUFFER_SIZE];
-    snprintf(prefix, sizeof prefix, "[-] [%s, %s(), %d]", filename, function,
+    snprintf(prefix, sizeof prefix, "[E] [%s, %s(), %d]", filename, function,
         line);
     va_list ap;
     va_start(ap, fmt);

@@ -199,7 +199,7 @@ get_attr_values_as_binary(LDAP *ldap_handle, LDAPMessage *result, char *attr,
 
     int rc = ldap_count_entries(ldap_handle, result);
     if (rc == 0) {
-        log_fail("ldap_count_entries() == 0");
+        log_error("ldap_count_entries() == 0");
         return;
     }
 
@@ -210,7 +210,7 @@ get_attr_values_as_binary(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     }
     *ret = ldap_get_values_len(ldap_handle, result, attr);
     if (*ret == NULL) {
-        log_fail("ldap_get_values_len() == NULL");
+        log_error("ldap_get_values_len() == NULL");
         return;
     }
 }
@@ -450,7 +450,7 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
         init_key(key);
         key->x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
         if (key->x509 == NULL) {
-            log_fail("d2i_X509(): cannot decode certificate");
+            log_error("d2i_X509(): cannot decode certificate");
             free_key(key);
             continue;
         }
@@ -494,7 +494,7 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
     get_attr_values_as_string(ldap_handle, result,
         POX509_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
     if (keystore_options_from == NULL) {
-        log_msg("keystore_options_from_attr == NULL");
+        log_info("keystore_options_from_attr == NULL");
     } else {
         options->from_option = strdup(keystore_options_from[0]);
         if (options->from_option == NULL) {
@@ -507,7 +507,7 @@ get_keystore_options(LDAP *ldap_handle, cfg_t *cfg, char *keystore_options_dn,
     get_attr_values_as_string(ldap_handle, result,
         POX509_KEYSTORE_OPTIONS_CMD_ATTR, &keystore_options_cmd);
     if (keystore_options_cmd == NULL) {
-        log_msg("keystore_options_cmd_attr == NULL");
+        log_info("keystore_options_cmd_attr == NULL");
     } else {
         options->command_option = strdup(keystore_options_cmd[0]);
         if (options->command_option == NULL) {
@@ -570,7 +570,7 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
     }
 
     if (TAILQ_EMPTY(&pox509_info->access_on_behalf_profiles)) {
-        log_msg("access on behalf profile list EMPTY");
+        log_info("access on behalf profile list EMPTY");
         return;
     }
 
@@ -630,7 +630,7 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     }
 
     if (TAILQ_EMPTY(&pox509_info->direct_access_profiles)) {
-        log_msg("direct access profile list EMPTY");
+        log_info("direct access profile list EMPTY");
         return;
     }
 
@@ -820,7 +820,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     LDAPMessage *result = NULL;
     int rc = get_server_entry(ldap_handle, cfg, pox509_info, &result);
     if (rc == -1) {
-        log_msg("no ssh server entry has been found");
+        log_info("no ssh server entry has been found");
         goto cleanup;
     }
 
@@ -850,7 +850,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
 
         /* skip if access profile is disabled */
         if (is_profile_disabled(ldap_handle, result)) {
-            log_msg("profile disabled (%s)", access_profile_dns[i]);
+            log_info("profile disabled (%s)", access_profile_dns[i]);
             continue;
         }
         enum pox509_access_profile_type profile_type =
@@ -876,7 +876,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     return;
 
 cleanup:
-    log_msg("cleanup");
+    log_info("cleanup");
     ldap_msgfree(result);
 }
 
@@ -894,10 +894,10 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     int rc = bind_to_ldap(ldap_handle, cfg);
     if (rc != LDAP_SUCCESS) {
         pox509_info->ldap_online = 0;
-        log_fail("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_error("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
         goto unbind_and_free_handle;
     }
-    log_success("bind_to_ldap()");
+    log_info("bind_to_ldap()");
     pox509_info->ldap_online = 1;
 
     /* retrieve data */
@@ -908,9 +908,9 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
 unbind_and_free_handle:
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);
     if (rc == LDAP_SUCCESS) {
-        log_success("ldap_unbind_ext_s()");
+        log_info("ldap_unbind_ext_s()");
     } else {
-        log_fail("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_error("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
 }
 

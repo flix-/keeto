@@ -28,13 +28,13 @@
 #define POX509_LOG_H
 
 /**
- * Wrapper for #pox509_log_fail.
+ * Wrapper for #pox509_log_error.
  *
  * @param[in] ... Format string, Format arguments.
- * @see #pox509_log_fail.
+ * @see #pox509_log_error.
  * @see man 3 printf.
  */
-#define log_fail(...) pox509_log_fail(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define log_error(...) pox509_log_error(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
 /**
  * Wrapper for #pox509_fatal.
@@ -56,19 +56,7 @@
  *
  * @see man 3 printf.
  */
-void log_msg(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
-/**
- * Log message to syslog.
- *
- * The message is prefixed with '[+]'.
- *
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @see man 3 printf.
- */
-void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /**
  * Log message to syslog.
@@ -83,13 +71,13 @@ void log_success(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  * @param[in] fmt Format string. Must not be @c NULL.
  * @param[in] ... Format arguments.
  *
- * @note Do NOT call this function directly - use #log_fail wrapper
+ * @note Do NOT call this function directly - use #log_error wrapper
  * macro instead.
  *
- * @see #log_fail.
+ * @see #log_error.
  * @see man 3 printf.
  */
-void pox509_log_fail(const char *filename, const char *function, int line,
+void pox509_log_error(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
 
 /**
