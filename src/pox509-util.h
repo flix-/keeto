@@ -108,9 +108,9 @@ struct pox509_info {
  */
 enum pox509_sections {
     /** Section holding config options regarding syslog. */
-    SYSLOG = 0,
+    POX509_SYSLOG = 0,
     /** Section holding config options regarding libldap. */
-    LIBLDAP
+    POX509_LIBLDAP
 };
 
 /**

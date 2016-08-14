@@ -26,8 +26,8 @@
 
 #include <ldap.h>
 
+#include "pox509-error.h"
 #include "pox509-log.h"
-#include "pox509-result.h"
 #include "pox509-util.h"
 
 #define ERROR_MSG_BUFFER_SIZE 4096
@@ -39,7 +39,8 @@ static void
 cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
 {
     if (cfg == NULL || fmt == NULL) {
-        fatal("cfg or fmt == NULL");
+        log_error("cfg or fmt == NULL");
+        return;
     }
 
     char error_msg[ERROR_MSG_BUFFER_SIZE];
@@ -57,15 +58,20 @@ static int
 cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     const char *syslog_facility = cfg_opt_getnstr(opt, 0);
-    int rc = str_to_enum(SYSLOG, syslog_facility);
-    if (rc == -EINVAL) {
-        log_error("cfg_validate_syslog_facility(): option: '%s', value: '%s' "
-            "(value is not a valid syslog facility)", cfg_opt_name(opt),
-            syslog_facility);
+    if (syslog_facility == NULL) {
+        log_debug("cfg_opt_getnstr() returned NULL");
+        return -1;
+    }
+
+    int rc = str_to_enum(POX509_SYSLOG, syslog_facility);
+    if (rc == POX509_NO_SUCH_VALUE) {
+        log_error("str_to_enum(): option: '%s', value: '%s' (%s)",
+            cfg_opt_name(opt), syslog_facility, pox509_strerror(rc));
         return -1;
     }
     return 0;
@@ -75,14 +81,20 @@ static int
 cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
+    if (ldap_uri == NULL) {
+        log_debug("cfg_opt_getnstr() returned NULL");
+        return -1;
+    }
+
     int rc = ldap_is_ldap_url(ldap_uri);
     if (rc == 0) {
-        log_error("cfg_validate_ldap_uri(): option: '%s', value: '%s' (value is "
-            "not an ldap uri)", cfg_opt_name(opt), ldap_uri);
+        log_error("ldap_is_ldap_url(): option: '%s', value: '%s' (value is not "
+            "an ldap uri)", cfg_opt_name(opt), ldap_uri);
         return -1;
     }
     return 0;
@@ -92,7 +104,8 @@ static int
 cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     long int starttls = cfg_opt_getnint(opt, 0);
@@ -108,21 +121,29 @@ static int
 cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     const char *dn_str = cfg_opt_getnstr(opt, 0);
-    size_t dn_str_length = strlen(dn_str);
-    if (dn_str_length == 0) {
-        log_error("cfg_validate_ldap_dn(): option: '%s', value: '%s' (length of "
-            "dn must be > 0)", cfg_opt_name(opt), dn_str);
+    if (dn_str == NULL) {
+        log_debug("cfg_opt_getnstr() returned NULL");
+        return -1;
     }
 
-    LDAPDN dn = NULL;
+    size_t dn_str_length = strlen(dn_str);
+    if (dn_str_length == 0) {
+        log_error("strlen(): option: '%s', value: '%s' (length of dn must be "
+            "> 0)", cfg_opt_name(opt), dn_str);
+        return -1;
+    }
+
+    LDAPDN dn;
     int rc = ldap_str2dn(dn_str, &dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
-        log_error("cfg_validate_ldap_dn(): option: '%s', value: '%s' ('%s' "
-            "(%d))", cfg_opt_name(opt), dn_str, ldap_err2string(rc), rc);
+        log_error("ldap_str2dn(): option: '%s', value: '%s' ('%s' (%d))",
+            cfg_opt_name(opt), dn_str, ldap_err2string(rc), rc);
+        return -1;
     }
     ldap_dnfree(dn);
 
@@ -133,13 +154,14 @@ static int
 cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     long int timeout = cfg_opt_getnint(opt, 0);
     if (timeout <= 0) {
-        log_error("cfg_validate_ldap_search_timeout(): option: '%s', value: "
-            "'%li' (value must be > 0)", cfg_opt_name(opt), timeout);
+        log_error("cfg_opt_getnint(): option: '%s', value: '%li' (value must "
+            "be > 0)", cfg_opt_name(opt), timeout);
         return -1;
     }
     return 0;
@@ -150,13 +172,15 @@ cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
     void *result)
 {
     if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
-        fatal("cfg, opt, value or result == NULL");
+        log_error("cfg, opt, value or result == NULL");
+        return -1;
     }
 
-    int ldap_option = str_to_enum(LIBLDAP, value);
-    if (ldap_option == -EINVAL) {
-        log_error("cfg_str_to_int_cb_libldap(): option: '%s', value: '%s'",
-            cfg_opt_name(opt), value);
+    int ldap_option = str_to_enum(POX509_LIBLDAP, value);
+    if (ldap_option == POX509_NO_SUCH_VALUE) {
+        log_error("str_to_enum(): option: '%s', value: '%s' (%s)",
+            cfg_opt_name(opt), value, pox509_strerror(ldap_option));
+        return -1;
     }
     long int *ptr_result = result;
     *ptr_result = ldap_option;
@@ -167,26 +191,33 @@ static int
 cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
+        log_error("cfg or opt == NULL");
+        return -1;
     }
 
     const char *cacerts_dir = cfg_opt_getnstr(opt, 0);
+    if (cacerts_dir == NULL) {
+        log_debug("cfg_opt_getnstr() returned NULL");
+        return -1;
+    }
     /* check if directory exists */
     DIR *cacerts_dir_stream = opendir(cacerts_dir);
     if (cacerts_dir_stream == NULL) {
-        log_error("cfg_validate_cacerts_dir(): option: '%s', value: '%s' (%s)",
+        log_error("opendir(): option: '%s', value: '%s' (%s)",
             cfg_opt_name(opt), cacerts_dir, strerror(errno));
+        return -1;
     }
     closedir(cacerts_dir_stream);
 
     return 0;
 }
 
-cfg_t *
-parse_config(const char *cfg_file)
+int
+parse_config(cfg_t **cfg, const char *cfg_file)
 {
-    if (cfg_file == NULL) {
-        fatal("cfg_file == NULL");
+    if (cfg == NULL || cfg_file == NULL) {
+        log_error("cfg or cfg_file == NULL");
+        return POX509_BAD_PARAMS;
     }
 
     /* setup config options */
@@ -221,28 +252,28 @@ parse_config(const char *cfg_file)
     };
 
     /* initialize config */
-    cfg_t *cfg = cfg_init(opts, CFGF_NONE);
-    if (cfg == NULL) {
-        log_error("cfg_init() == NULL");
-        return NULL;
+    *cfg = cfg_init(opts, CFGF_NONE);
+    if (*cfg == NULL) {
+        log_error("cfg_init() returned NULL");
+        return POX509_PARSE_CONFIG_ERR;
     }
 
     /* register callbacks */
-    cfg_set_error_function(cfg, &cfg_error_handler);
-    cfg_set_validate_func(cfg, "syslog_facility",
+    cfg_set_error_function(*cfg, &cfg_error_handler);
+    cfg_set_validate_func(*cfg, "syslog_facility",
         &cfg_validate_syslog_facility);
-    cfg_set_validate_func(cfg, "ldap_uri", &cfg_validate_ldap_uri);
-    cfg_set_validate_func(cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
-    cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(cfg, "ldap_search_timeout",
+    cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
+    cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
+    cfg_set_validate_func(*cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
+    cfg_set_validate_func(*cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
-    cfg_set_validate_func(cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
+    cfg_set_validate_func(*cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
+    cfg_set_validate_func(*cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
 
     /* parse config */
-    int rc = cfg_parse(cfg, cfg_file);
+    int rc = cfg_parse(*cfg, cfg_file);
     if (rc == CFG_SUCCESS) {
-        return cfg;
+        return POX509_OK;
     }
 
     /* error handling */
@@ -256,15 +287,16 @@ parse_config(const char *cfg_file)
     default:
         log_error("cfg_parse(): 'unknown error' (%d)", rc);
     }
-    cfg_free(cfg);
+    cfg_free(*cfg);
 
-    return NULL;
+    return POX509_PARSE_CONFIG_ERR;
 }
 
 void
 release_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
+        log_debug("double free?");
         return;
     }
 

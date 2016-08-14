@@ -18,19 +18,25 @@
 /**
  * Definition of error values.
  *
- * @file pox509-result.h
+ * @file pox509-error.h
  * @author Sebastian Roland <seroland86@gmail.com>
  * @date 2016-08-13
  * @see https://github.com/flix-/pam-openssh-x509
  */
 
-#ifndef POX509_RESULT_H
-#define POX509_RESULT_H
+#ifndef POX509_ERROR_H
+#define POX509_ERROR_H
+
+#include <limits.h>
 
 enum {
-    POX509_SUCCESS = 0,
-//    POX509_PARSE_CONFIG_ERR,
+    POX509_OK = 0,
+    POX509_NO_SUCH_VALUE = INT_MIN,
+    POX509_BAD_PARAMS,
+    POX509_PARSE_CONFIG_ERR,
+
+    POX509_UNKNOWN_ERR
 };
 
-const char *result_to_string(int result);
+const char *pox509_strerror(int errnum);
 #endif

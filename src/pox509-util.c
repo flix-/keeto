@@ -32,6 +32,7 @@
 #include <regex.h>
 #include <syslog.h>
 
+#include "pox509-error.h"
 #include "pox509-log.h"
 
 #define GROUP_DN_BUFFER_SIZE 1024
@@ -92,11 +93,11 @@ str_to_enum(enum pox509_sections sec, const char *key)
         fatal("key == NULL");
     }
 
-    if (sec != SYSLOG && sec != LIBLDAP) {
+    if (sec != POX509_SYSLOG && sec != POX509_LIBLDAP) {
         fatal("invalid section (%d)", sec);
     }
 
-    struct pox509_str_to_enum_entry *str_to_enum_entry = NULL;
+    struct pox509_str_to_enum_entry *str_to_enum_entry;
     for (str_to_enum_entry = str_to_enum_lt[sec];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
         if(strcmp(str_to_enum_entry->key, key) != 0) {
@@ -104,7 +105,7 @@ str_to_enum(enum pox509_sections sec, const char *key)
         }
         return str_to_enum_entry->value;
     }
-    return -EINVAL;
+    return POX509_NO_SUCH_VALUE;
 }
 
 struct timeval
