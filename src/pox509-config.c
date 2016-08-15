@@ -39,8 +39,7 @@ static void
 cfg_error_handler(cfg_t *cfg, const char *fmt, va_list ap)
 {
     if (cfg == NULL || fmt == NULL) {
-        log_error("cfg or fmt == NULL");
-        return;
+        fatal("cfg or fmt == NULL");
     }
 
     char error_msg[ERROR_MSG_BUFFER_SIZE];
@@ -58,8 +57,7 @@ static int
 cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     const char *syslog_facility = cfg_opt_getnstr(opt, 0);
@@ -81,8 +79,7 @@ static int
 cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
@@ -104,8 +101,7 @@ static int
 cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     long int starttls = cfg_opt_getnint(opt, 0);
@@ -121,8 +117,7 @@ static int
 cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     const char *dn_str = cfg_opt_getnstr(opt, 0);
@@ -154,8 +149,7 @@ static int
 cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     long int timeout = cfg_opt_getnint(opt, 0);
@@ -172,8 +166,7 @@ cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
     void *result)
 {
     if (cfg == NULL || opt == NULL || value == NULL || result == NULL) {
-        log_error("cfg, opt, value or result == NULL");
-        return -1;
+        fatal("cfg, opt, value or result == NULL");
     }
 
     int ldap_option = str_to_enum(POX509_LIBLDAP, value);
@@ -191,8 +184,7 @@ static int
 cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
-        log_error("cfg or opt == NULL");
-        return -1;
+        fatal("cfg or opt == NULL");
     }
 
     const char *cacerts_dir = cfg_opt_getnstr(opt, 0);
@@ -212,12 +204,11 @@ cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
     return 0;
 }
 
-int
-parse_config(cfg_t **cfg, const char *cfg_file)
+cfg_t *
+parse_config(const char *cfg_file)
 {
-    if (cfg == NULL || cfg_file == NULL) {
-        log_error("cfg or cfg_file == NULL");
-        return POX509_BAD_PARAMS;
+    if (cfg_file == NULL) {
+        fatal("cfg_file == NULL");
     }
 
     /* setup config options */
@@ -252,28 +243,28 @@ parse_config(cfg_t **cfg, const char *cfg_file)
     };
 
     /* initialize config */
-    *cfg = cfg_init(opts, CFGF_NONE);
-    if (*cfg == NULL) {
+    cfg_t *cfg = cfg_init(opts, CFGF_NONE);
+    if (cfg == NULL) {
         log_error("cfg_init() returned NULL");
-        return POX509_PARSE_CONFIG_ERR;
+        return NULL;
     }
 
     /* register callbacks */
-    cfg_set_error_function(*cfg, &cfg_error_handler);
-    cfg_set_validate_func(*cfg, "syslog_facility",
+    cfg_set_error_function(cfg, &cfg_error_handler);
+    cfg_set_validate_func(cfg, "syslog_facility",
         &cfg_validate_syslog_facility);
-    cfg_set_validate_func(*cfg, "ldap_uri", &cfg_validate_ldap_uri);
-    cfg_set_validate_func(*cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
-    cfg_set_validate_func(*cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(*cfg, "ldap_search_timeout",
+    cfg_set_validate_func(cfg, "ldap_uri", &cfg_validate_ldap_uri);
+    cfg_set_validate_func(cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
+    cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
+    cfg_set_validate_func(cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
-    cfg_set_validate_func(*cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(*cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
+    cfg_set_validate_func(cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
+    cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
 
     /* parse config */
-    int rc = cfg_parse(*cfg, cfg_file);
+    int rc = cfg_parse(cfg, cfg_file);
     if (rc == CFG_SUCCESS) {
-        return POX509_OK;
+        return cfg;
     }
 
     /* error handling */
@@ -287,9 +278,9 @@ parse_config(cfg_t **cfg, const char *cfg_file)
     default:
         log_error("cfg_parse(): 'unknown error' (%d)", rc);
     }
-    cfg_free(*cfg);
+    cfg_free(cfg);
 
-    return POX509_PARSE_CONFIG_ERR;
+    return NULL;
 }
 
 void

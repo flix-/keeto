@@ -64,5 +64,5 @@ enum pox509_access_profile_type {
  * Must not be @c NULL.
  * @param[out] x509 The parsed x509 certificate.
  */
-void get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info);
+int get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info);
 #endif

@@ -28,11 +28,12 @@
 #include <ldap.h>
 #include <openssl/x509.h>
 
+#include "pox509-error.h"
 #include "pox509-log.h"
 
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 
-static void
+static int
 set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
@@ -44,24 +45,27 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int rc = ldap_set_option(ldap_handle, LDAP_OPT_PROTOCOL_VERSION,
         &ldap_version);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: %d",
-            ldap_version);
+        log_debug("ldap_set_option(): key: LDAP_OPT_PROTOCOL_VERSION, value: "
+            "%d", ldap_version);
+        return POX509_LDAP_ERR;
     }
 
     /* force validation of certificates when using ldaps */
     int req_cert = LDAP_OPT_X_TLS_HARD;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: %d",
-            req_cert);
+        log_debug("ldap_set_option(): key: LDAP_OPT_X_TLS_REQUIRE_CERT, value: "
+            "%d", req_cert);
+        return POX509_LDAP_ERR;
     }
 
     /* set trusted ca path */
     char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cacerts_dir);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_CACERTDIR, value: %s",
+        log_debug("ldap_set_option(): key: LDAP_OPT_X_TLS_CACERTDIR, value: %s",
             cacerts_dir);
+        return POX509_LDAP_ERR;
     }
 
     /*
@@ -71,50 +75,15 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
     int new_ctx = 0x56;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);
     if (rc != LDAP_OPT_SUCCESS) {
-        fatal("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %d",
+        log_debug("ldap_set_option(): key: LDAP_OPT_X_TLS_NEWCTX, value: %d",
             new_ctx);
-    }
-}
-
-static void
-init_starttls(LDAP *ldap_handle)
-{
-    if (ldap_handle == NULL) {
-        fatal("ldap_handle == NULL");
+        return POX509_LDAP_ERR;
     }
 
-    int rc = ldap_start_tls_s(ldap_handle, NULL, NULL);
-    if (rc != LDAP_SUCCESS) {
-        char *msg = NULL;
-        rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
-        if (rc == LDAP_OPT_SUCCESS) {
-            fatal("ldap_start_tls_s(): '%s'", msg);
-        }
-        fatal("ldap_start_tls_s()");
-    }
+    return POX509_OK;
 }
 
 static int
-bind_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
-{
-    if (ldap_handle == NULL || cfg == NULL) {
-        fatal("ldap_handle or cfg == NULL");
-    }
-
-    char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
-    char *ldap_bind_pwd = cfg_getstr(cfg, "ldap_bind_pwd");
-    size_t ldap_bind_pwd_length = strlen(ldap_bind_pwd);
-    struct berval cred = {
-        .bv_len = ldap_bind_pwd_length,
-        .bv_val = ldap_bind_pwd
-    };
-    int rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE,
-        &cred, NULL, NULL, NULL);
-    memset(ldap_bind_pwd, 0, ldap_bind_pwd_length);
-    return rc;
-}
-
-static void
 init_ldap_handle(LDAP **ldap_handle, cfg_t *cfg)
 {
     if (ldap_handle == NULL || cfg == NULL) {
@@ -124,14 +93,74 @@ init_ldap_handle(LDAP **ldap_handle, cfg_t *cfg)
     char *ldap_uri = cfg_getstr(cfg, "ldap_uri");
     int rc = ldap_initialize(ldap_handle, ldap_uri);
     if (rc != LDAP_SUCCESS) {
-        fatal("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_debug("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
+        return POX509_LDAP_ERR;
     }
 
-    set_ldap_options(*ldap_handle, cfg);
+    rc = set_ldap_options(*ldap_handle, cfg);
+    if (rc != POX509_OK) {
+        return rc;
+    }
+
+    return POX509_OK;
+}
+
+static int
+init_starttls(LDAP *ldap_handle)
+{
+    if (ldap_handle == NULL) {
+        fatal("ldap_handle == NULL");
+    }
+
+    /* establishes connection to ldap */
+    int rc = ldap_start_tls_s(ldap_handle, NULL, NULL);
+    if (rc != LDAP_SUCCESS) {
+        char *msg;
+        rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
+        if (rc == LDAP_OPT_SUCCESS) {
+            log_debug("ldap_start_tls_s(): '%s'", msg);
+            ldap_memfree(msg);
+            return POX509_LDAP_CONNECTION_ERR;
+        }
+        log_debug("ldap_start_tls_s()");
+        return POX509_LDAP_CONNECTION_ERR;
+    }
+
+    return POX509_OK;
+}
+
+static int
+connect_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
+{
+    if (ldap_handle == NULL || cfg == NULL) {
+        fatal("ldap_handle or cfg == NULL");
+    }
+
+    int rc;
     int ldap_starttls = cfg_getint(cfg, "ldap_starttls");
     if (ldap_starttls) {
-        init_starttls(*ldap_handle);
+        rc = init_starttls(ldap_handle);
+        if (rc != POX509_OK) {
+            return rc;
+        }
     }
+
+    char *ldap_bind_dn = cfg_getstr(cfg, "ldap_bind_dn");
+    char *ldap_bind_pwd = cfg_getstr(cfg, "ldap_bind_pwd");
+    size_t ldap_bind_pwd_length = strlen(ldap_bind_pwd);
+    struct berval cred = {
+        .bv_len = ldap_bind_pwd_length,
+        .bv_val = ldap_bind_pwd
+    };
+    rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE, &cred,
+        NULL, NULL, NULL);
+    memset(ldap_bind_pwd, 0, ldap_bind_pwd_length);
+    if (rc != LDAP_SUCCESS) {
+        log_debug("ldap_sasl_bind_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        return POX509_LDAP_CONNECTION_ERR;
+    }
+
+    return POX509_OK;
 }
 
 static void
@@ -880,7 +909,7 @@ cleanup:
     ldap_msgfree(result);
 }
 
-void
+int
 get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
 {
     if (cfg == NULL || pox509_info == NULL) {
@@ -888,17 +917,22 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     }
 
     /* init ldap handle */
-    LDAP *ldap_handle = NULL;
-    init_ldap_handle(&ldap_handle, cfg);
-    /* bind to ldap server */
-    int rc = bind_to_ldap(ldap_handle, cfg);
-    if (rc != LDAP_SUCCESS) {
-        pox509_info->ldap_online = 0;
-        log_error("bind_to_ldap(): '%s' (%d)", ldap_err2string(rc), rc);
+    LDAP *ldap_handle;
+    int rc = init_ldap_handle(&ldap_handle, cfg);
+    if (rc != POX509_OK) {
+        return rc;
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+    /* connect to ldap server */
+    rc = connect_to_ldap(ldap_handle, cfg);
+    if (rc != POX509_OK) {
+        res = rc;
         goto unbind_and_free_handle;
     }
-    log_info("bind_to_ldap()");
+
     pox509_info->ldap_online = 1;
+    log_info("connection to ldap established");
 
     /* retrieve data */
     get_access_profiles(ldap_handle, cfg, pox509_info);
@@ -908,9 +942,11 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
 unbind_and_free_handle:
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);
     if (rc == LDAP_SUCCESS) {
-        log_info("ldap_unbind_ext_s()");
+        log_debug("ldap_unbind_ext_s()");
     } else {
-        log_error("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_debug("ldap_unbind_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
     }
+
+    return res;
 }
 

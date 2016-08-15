@@ -34,7 +34,7 @@
  *
  * @param[in] cfg_file Path to configuration file. Must not be @c NULL.
  */
-int parse_config(cfg_t **cfg, const char *cfg_file);
+cfg_t *parse_config(const char *cfg_file);
 
 /**
  * Release allocated memory from configuration structure.

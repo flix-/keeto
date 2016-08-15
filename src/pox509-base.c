@@ -62,8 +62,7 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
      * in OpenSSH.
      */
     if (pamh == NULL || data == NULL) {
-        log_error("pamh or data == NULL");
-        return;
+        fatal("pamh or data == NULL");
     }
 
     struct pox509_info *pox509_info = data;
@@ -76,8 +75,7 @@ PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
     if (pamh == NULL || argv == NULL) {
-        log_error("pamh or argv == NULL");
-        return PAM_SYSTEM_ERR;
+        fatal("pamh or argv == NULL");
     }
 
     /* check if argument is path to config file */
@@ -92,16 +90,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* parse config */
-    cfg_t *cfg;
-    int rc = parse_config(&cfg, cfg_file);
-    if (rc != POX509_OK) {
-        log_error("parse_config(): '%s'", pox509_strerror(rc));
+    cfg_t *cfg = parse_config(cfg_file);
+    if (cfg == NULL) {
+        log_error("parse_config() returned NULL");
         return PAM_SERVICE_ERR;
     }
 
     /* set syslog facility */
     char *syslog_facility = cfg_getstr(cfg, "syslog_facility");
-    rc = set_syslog_facility(syslog_facility);
+    int rc = set_syslog_facility(syslog_facility);
     if (rc != POX509_OK) {
         log_error("set_syslog_facility(): '%s' (%s)", syslog_facility,
             pox509_strerror(rc));
@@ -110,7 +107,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* initialize data transfer object */
     struct pox509_info *pox509_info = malloc(sizeof *pox509_info);
     if (pox509_info == NULL) {
-        log_error("malloc()");
+        log_error("malloc() returned NULL");
         return PAM_BUF_ERR;
     }
     init_dto(pox509_info);
@@ -125,7 +122,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* make syslog facility available in dto for downstream modules */
     pox509_info->syslog_facility = strdup(syslog_facility);
     if (pox509_info->syslog_facility == NULL) {
-        log_error("strdup()");
+        log_error("strdup() returned NULL");
         return PAM_BUF_ERR;
     }
 
@@ -143,9 +140,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * to minimize this attack vector the given uid will be tested
      * against a restrictive regular expression.
      */
-    if (!is_valid_uid(uid)) {
-        log_error("is_valid_uid(): uid: '%s'", uid);
-        return PAM_SYSTEM_ERR;
+    bool uid_valid = false;
+    rc = check_uid(uid, &uid_valid);
+    if (rc != POX509_OK) {
+        log_error("check_uid(): '%s'", pox509_strerror(rc));
+        return PAM_SERVICE_ERR;
+    }
+    if (!uid_valid) {
+        log_error("check_uid(): invalid uid: '%s'", uid);
+        return PAM_AUTH_ERR;
     }
 
     /*
@@ -155,14 +158,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      */
     pox509_info->uid = strndup(uid, MAX_UID_LENGTH);
     if (pox509_info->uid == NULL) {
-        log_error("strndup()");
+        log_error("strndup() returned NULL");
         return PAM_BUF_ERR;
     }
 
     /* expand keystore path and add to dto */
     char *expanded_path = malloc(KEYSTORE_PATH_BUFFER_SIZE);
     if (expanded_path == NULL) {
-        log_error("malloc()");
+        log_error("malloc() returned NULL");
         return PAM_BUF_ERR;
     }
     char *keystore_location = cfg_getstr(cfg, "keystore_location");
@@ -171,7 +174,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     pox509_info->keystore_location = expanded_path;
 
     /* query ldap server */
-    //get_keystore_data_from_ldap(cfg, pox509_info);
+    rc = get_keystore_data_from_ldap(cfg, pox509_info);
+    switch (rc) {
+    case POX509_LDAP_CONNECTION_ERR:
+        pox509_info->ldap_online = 0;
+        log_error("connection to ldap failed");
+        break;
+    case POX509_LDAP_ERR:
+    default:
+        log_error("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
+        return PAM_SERVICE_ERR;
+    }
 
     /* validate certificates and convert public key to OpenSSH
      * authorized_keys format
@@ -191,6 +204,10 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+    if (pamh == NULL || argv == NULL) {
+        fatal("pamh or argv == NULL");
+    }
+
     return PAM_SUCCESS;
 }
 

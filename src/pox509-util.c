@@ -217,26 +217,28 @@ is_readable_file(const char *file)
     return true;
 }
 
-bool
-is_valid_uid(const char *uid)
+int
+check_uid(const char *uid, bool *res)
 {
-    if (uid == NULL) {
-        fatal("uid == NULL");
+    if (uid == NULL || res == NULL) {
+        fatal("uid or res == NULL");
     }
 
     regex_t regex_uid;
     int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
     if (rc != 0) {
-        fatal("regcomp(): could not compile regex");
+        log_debug("regcomp(): could not compile regex (%d)", rc);
+        return POX509_REGEX_ERR;
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
 
     if (rc == 0) {
-        return true;
+        *res = true;
     } else {
-        return false;
+        *res = false;
     }
+    return POX509_OK;
 }
 
 void

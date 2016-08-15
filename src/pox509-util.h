@@ -148,7 +148,7 @@ bool is_readable_file(const char *file);
  *
  * @return Shall return true if UID matches regex or false otherwise.
  */
-bool is_valid_uid(const char *uid);
+int check_uid(const char *uid, bool *res);
 
 /**
  * Overwrite a token in a string with a substitution value.

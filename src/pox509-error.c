@@ -34,10 +34,14 @@ pox509_strerror(int errnum)
         return "POX509_OK";
     case POX509_NO_SUCH_VALUE:
         return "POX509_NO_SUCH_VALUE";
-    case POX509_BAD_PARAMS:
-        return "POX509_BAD_PARAMS";
     case POX509_PARSE_CONFIG_ERR:
         return "POX509_PARSE_CONFIG_ERR";
+    case POX509_REGEX_ERR:
+        return "POX509_REGEX_ERR";
+    case POX509_LDAP_ERR:
+        return "POX509_LDAP_ERR";
+    case POX509_LDAP_CONNECTION_ERR:
+        return "POX509_LDAP_CONNECTION_ERR";
 
     case POX509_UNKNOWN_ERR:
         return "POX509_UNKNOWN_ERR";
