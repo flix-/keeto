@@ -127,7 +127,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* retrieve uid */
-    const char *uid;
+    const char *uid = NULL;
     rc = pam_get_user(pamh, &uid, NULL);
     if (rc != PAM_SUCCESS) {
         log_error("pam_get_user(): '%s' (%d)", pam_strerror(pamh, rc), rc);
@@ -180,7 +180,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         pox509_info->ldap_online = 0;
         log_error("connection to ldap failed");
         break;
-    case POX509_LDAP_ERR:
     default:
         log_error("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
         return PAM_SERVICE_ERR;

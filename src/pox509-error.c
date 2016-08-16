@@ -42,6 +42,10 @@ pox509_strerror(int errnum)
         return "POX509_LDAP_ERR";
     case POX509_LDAP_CONNECTION_ERR:
         return "POX509_LDAP_CONNECTION_ERR";
+    case POX509_LDAP_ENTRY_NOT_FOUND:
+        return "POX509_LDAP_ENTRY_NOT_FOUND";
+    case POX509_LDAP_INVALID_RESULT:
+        return "POX509_LDAP_INVALID_RESULT";
 
     case POX509_UNKNOWN_ERR:
         return "POX509_UNKNOWN_ERR";

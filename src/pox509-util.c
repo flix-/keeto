@@ -427,7 +427,7 @@ free_dto(struct pox509_info *pox509_info)
 
     free(pox509_info->uid);
     free(pox509_info->keystore_location);
-    free(pox509_info->dn);
+    free(pox509_info->ssh_server_dn);
     /* free direct access profiles */
     struct pox509_direct_access_profile *direct_access_profile = NULL;
     while ((direct_access_profile =

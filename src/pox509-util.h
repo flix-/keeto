@@ -94,7 +94,7 @@ struct pox509_info {
     /* target keystore for uid trying to login */
     char *uid;
     char *keystore_location;
-    char *dn;
+    char *ssh_server_dn;
     /* access profiles */
     TAILQ_HEAD(, pox509_direct_access_profile) direct_access_profiles;
     TAILQ_HEAD(, pox509_access_on_behalf_profile) access_on_behalf_profiles;

@@ -133,7 +133,7 @@ cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
         return -1;
     }
 
-    LDAPDN dn;
+    LDAPDN dn = NULL;
     int rc = ldap_str2dn(dn_str, &dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
         log_error("ldap_str2dn(): option: '%s', value: '%s' ('%s' (%d))",
@@ -221,12 +221,12 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
 
-        CFG_STR("ldap_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
+        CFG_STR("ldap_ssh_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
             CFGF_NONE),
-        CFG_INT_CB("ldap_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
+        CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
-        CFG_STR("ldap_server_uid_attr", "cn", CFGF_NONE),
-        CFG_STR("ldap_server_access_profile_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_ssh_server_uid_attr", "cn", CFGF_NONE),
+        CFG_STR("ldap_ssh_server_access_profile_attr", "member", CFGF_NONE),
 
         CFG_STR("ldap_target_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_uid_attr", "uid", CFGF_NONE),
@@ -235,7 +235,7 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_provider_uid_attr", "uid", CFGF_NONE),
         CFG_STR("ldap_provider_cert_attr", "userCertificate;binary", CFGF_NONE),
 
-        CFG_STR("server_uid", "pox509-test-server", CFGF_NONE),
+        CFG_STR("ssh_server_uid", "pox509-test-server", CFGF_NONE),
         CFG_STR("keystore_location", "/usr/local/etc/ssh/authorized_keys/%u",
             CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
@@ -258,7 +258,8 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
-    cfg_set_validate_func(cfg, "ldap_server_base_dn", &cfg_validate_ldap_dn);
+    cfg_set_validate_func(cfg, "ldap_ssh_server_base_dn",
+        &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
 
     /* parse config */
