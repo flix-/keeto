@@ -93,7 +93,7 @@ struct pox509_access_on_behalf_profile {
 struct pox509_info {
     /* target keystore for uid trying to login */
     char *uid;
-    char *keystore_location;
+    char *ssh_keystore_location;
     char *ssh_server_dn;
     /* access profiles */
     TAILQ_HEAD(, pox509_direct_access_profile) direct_access_profiles;
@@ -197,8 +197,8 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
  * not be @c NULL.
  * @param[in] dst_length Length of the output buffer. Must be > 0.
  */
-void create_ldap_search_filter(const char *attr, const char *value,
-    char *dst, size_t dst_length);
+int create_ldap_search_filter(const char *attr, const char *value, char *dst,
+    size_t dst_length);
 void get_rdn_value_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
 void init_dto(struct pox509_info *pox509_info);

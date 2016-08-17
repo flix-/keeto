@@ -228,16 +228,17 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_ssh_server_uid_attr", "cn", CFGF_NONE),
         CFG_STR("ldap_ssh_server_access_profile_attr", "member", CFGF_NONE),
 
-        CFG_STR("ldap_target_group_member_attr", "member", CFGF_NONE),
-        CFG_STR("ldap_target_uid_attr", "uid", CFGF_NONE),
+        CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
 
-        CFG_STR("ldap_provider_group_member_attr", "member", CFGF_NONE),
-        CFG_STR("ldap_provider_uid_attr", "uid", CFGF_NONE),
-        CFG_STR("ldap_provider_cert_attr", "userCertificate;binary", CFGF_NONE),
+        CFG_STR("ldap_key_provider_group_member_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_key_provider_uid_attr", "uid", CFGF_NONE),
+        CFG_STR("ldap_key_provider_cert_attr", "userCertificate;binary",
+            CFGF_NONE),
 
         CFG_STR("ssh_server_uid", "pox509-test-server", CFGF_NONE),
-        CFG_STR("keystore_location", "/usr/local/etc/ssh/authorized_keys/%u",
-            CFGF_NONE),
+        CFG_STR("ssh_keystore_location",
+            "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
         CFG_END()
     };

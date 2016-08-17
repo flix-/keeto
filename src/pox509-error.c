@@ -32,6 +32,10 @@ pox509_strerror(int errnum)
     switch(errnum) {
     case POX509_OK:
         return "POX509_OK";
+    case POX509_SYSTEM_ERR:
+        return "POX509_SYSTEM_ERR";
+    case POX509_NO_MEMORY:
+        return "POX509_NO_MEMORY";
     case POX509_NO_SUCH_VALUE:
         return "POX509_NO_SUCH_VALUE";
     case POX509_PARSE_CONFIG_ERR:
@@ -42,10 +46,16 @@ pox509_strerror(int errnum)
         return "POX509_LDAP_ERR";
     case POX509_LDAP_CONNECTION_ERR:
         return "POX509_LDAP_CONNECTION_ERR";
-    case POX509_LDAP_ENTRY_NOT_FOUND:
-        return "POX509_LDAP_ENTRY_NOT_FOUND";
+    case POX509_LDAP_NO_SUCH_ENTRY:
+        return "POX509_LDAP_NO_SUCH_ENTRY";
+    case POX509_LDAP_NO_SUCH_ATTR:
+        return "POX509_LDAP_NO_SUCH_ATTR";
+    case POX509_LDAP_NO_SUCH_VALUE:
+        return "POX509_LDAP_NO_SUCH_VALUE";
     case POX509_LDAP_INVALID_RESULT:
         return "POX509_LDAP_INVALID_RESULT";
+    case POX509_LDAP_SCHEMA_ERR:
+        return "POX509_LDAP_SCHEMA_ERR";
 
     case POX509_UNKNOWN_ERR:
         return "POX509_UNKNOWN_ERR";

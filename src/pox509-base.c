@@ -33,7 +33,7 @@
 #include "pox509-x509.h"
 
 #define MAX_UID_LENGTH 32
-#define KEYSTORE_PATH_BUFFER_SIZE 1024
+#define SSH_KEYSTORE_PATH_BUFFER_SIZE 1024
 
 static void
 cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
@@ -92,7 +92,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* parse config */
     cfg_t *cfg = parse_config(cfg_file);
     if (cfg == NULL) {
-        log_error("parse_config() returned NULL");
+        log_error("parse_config() error");
         return PAM_SERVICE_ERR;
     }
 
@@ -107,7 +107,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* initialize data transfer object */
     struct pox509_info *pox509_info = malloc(sizeof *pox509_info);
     if (pox509_info == NULL) {
-        log_error("malloc() returned NULL");
+        log_error("malloc() error");
         return PAM_BUF_ERR;
     }
     init_dto(pox509_info);
@@ -122,7 +122,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* make syslog facility available in dto for downstream modules */
     pox509_info->syslog_facility = strdup(syslog_facility);
     if (pox509_info->syslog_facility == NULL) {
-        log_error("strdup() returned NULL");
+        log_error("strdup() error");
         return PAM_BUF_ERR;
     }
 
@@ -158,20 +158,20 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      */
     pox509_info->uid = strndup(uid, MAX_UID_LENGTH);
     if (pox509_info->uid == NULL) {
-        log_error("strndup() returned NULL");
+        log_error("strndup() error");
         return PAM_BUF_ERR;
     }
 
     /* expand keystore path and add to dto */
-    char *expanded_path = malloc(KEYSTORE_PATH_BUFFER_SIZE);
+    char *expanded_path = malloc(SSH_KEYSTORE_PATH_BUFFER_SIZE);
     if (expanded_path == NULL) {
-        log_error("malloc() returned NULL");
+        log_error("malloc() error");
         return PAM_BUF_ERR;
     }
-    char *keystore_location = cfg_getstr(cfg, "keystore_location");
-    substitute_token('u', pox509_info->uid, keystore_location, expanded_path,
-        KEYSTORE_PATH_BUFFER_SIZE);
-    pox509_info->keystore_location = expanded_path;
+    char *ssh_keystore_location = cfg_getstr(cfg, "ssh_keystore_location");
+    substitute_token('u', pox509_info->uid, ssh_keystore_location,
+        expanded_path, SSH_KEYSTORE_PATH_BUFFER_SIZE);
+    pox509_info->ssh_keystore_location = expanded_path;
 
     /* query ldap server */
     rc = get_keystore_data_from_ldap(cfg, pox509_info);

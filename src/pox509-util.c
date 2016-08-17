@@ -278,7 +278,7 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
     dst[j] = '\0';
 }
 
-void
+int
 create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length)
 {
@@ -290,7 +290,12 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
         fatal("dst_length must be > 0");
     }
 
-    snprintf(dst, dst_length, "%s=%s", attr, value);
+    int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
+    if (rc < 0) {
+        log_debug("snprintf() error");
+        return POX509_SYSTEM_ERR;
+    }
+    return POX509_OK;
 }
 
 void
@@ -426,7 +431,7 @@ free_dto(struct pox509_info *pox509_info)
     }
 
     free(pox509_info->uid);
-    free(pox509_info->keystore_location);
+    free(pox509_info->ssh_keystore_location);
     free(pox509_info->ssh_server_dn);
     /* free direct access profiles */
     struct pox509_direct_access_profile *direct_access_profile = NULL;
