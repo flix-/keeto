@@ -696,6 +696,33 @@ get_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
 }
 
 static int
+check_access_profile_relevance(LDAP *ldap_handle, LDAPMessage *access_profile,
+    bool *is_relevant)
+{
+    if (ldap_handle == NULL || access_profile == NULL || is_relevant == NULL) {
+        fatal("ldap_handle, access_profile or is_relevant == NULL");
+    }
+
+    *is_relevant = true;
+    /* check if acccess profile entry is enabled */
+    bool is_profile_enabled;
+    int rc = check_profile_enabled(ldap_handle, access_profile,
+        &is_profile_enabled);
+    if (rc != POX509_OK) {
+        return rc;
+    }
+
+    if (!is_profile_enabled) {
+        log_info("profile disabled");
+        *is_relevant = false;
+        return POX509_OK;
+    }
+
+    /* do further checks here in the future */
+    return POX509_OK;
+}
+
+static int
 get_ssh_server_entry(LDAP *ldap_handle, cfg_t *cfg, LDAPMessage **result)
 {
     if (ldap_handle == NULL || cfg == NULL || result == NULL) {
@@ -755,6 +782,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         fatal("ldap_handle, cfg or pox509_info == NULL");
     }
 
+    /* (1) get server entry */
     int res = POX509_UNKNOWN_ERR;
     LDAPMessage *result = NULL;
     int rc = get_ssh_server_entry(ldap_handle, cfg, &result);
@@ -777,7 +805,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     }
     log_info("ssh server entry found (%s)", pox509_info->ssh_server_dn);
 
-    /* get access profile dn's as strings */
+    /* (2) get access profile dn's as strings */
     char **access_profile_dns = NULL;
     char *access_profile_attr = cfg_getstr(cfg,
         "ldap_ssh_server_access_profile_attr");
@@ -795,7 +823,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         char *dn = access_profile_dns[i];
         log_info("%s", dn);
 
-        /* get access profile entry */
+        /* (3) get access profile entry */
         LDAPMessage *result = NULL;
         int rc = ldap_search_ext_s(ldap_handle, dn, LDAP_SCOPE_BASE, NULL, NULL,
             0, NULL, NULL, &search_timeout, 1, &result);
@@ -804,9 +832,10 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             goto cleanup_result_inner;
         }
 
-        /* check if acccess profile entry is enabled */
-        bool is_profile_enabled;
-        rc = check_profile_enabled(ldap_handle, result, &is_profile_enabled);
+        /* (4) check if acccess profile is relevant */
+        bool is_access_profile_relevant;
+        rc = check_access_profile_relevance(ldap_handle, result,
+            &is_access_profile_relevant);
         if (rc != POX509_OK) {
             switch (rc) {
             case POX509_NO_MEMORY:
@@ -816,18 +845,18 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
                 goto cleanup_attr_values_and_result;
             default:
                 /* continue */
-                log_debug("check_profile_disabled(): '%s'",
+                log_debug("is_access_profile_relevant(): '%s'",
                     pox509_strerror(rc));
                 goto cleanup_result_inner;
             }
         }
-        if (!is_profile_enabled) {
+        if (!is_access_profile_relevant) {
             /* continue */
-            log_info("profile disabled (skipping)");
+            log_info("skipping");
             goto cleanup_result_inner;
         }
 
-        /* get access profile type from enabled profiles */
+        /* (5) get access profile type from relevant profiles */
         enum pox509_access_profile_type access_profile_type;
         rc = get_access_profile_type(ldap_handle, result, &access_profile_type);
         if (rc != POX509_OK) {
@@ -845,6 +874,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             }
         }
 
+        /* (6) retrieve data for the access profile in question */
         switch(access_profile_type) {
         case DIRECT_ACCESS:
             get_direct_access_profile(ldap_handle, result, dn, pox509_info);
@@ -853,6 +883,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             get_access_on_behalf_profile(ldap_handle, result, dn, pox509_info);
             break;
         }
+
 cleanup_result_inner:
         /* cleanup access profile entry */
         ldap_msgfree(result);
