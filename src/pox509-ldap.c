@@ -52,7 +52,7 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     /* retrieve attribute value(s) */
     struct berval **values = ldap_get_values_len(ldap_handle, result, attr);
     if (values == NULL) {
-        log_debug("no such attribute: '%s'", attr);
+        log_error("no such attribute: '%s'", attr);
         return POX509_LDAP_NO_SUCH_ATTR;
     }
 
@@ -89,7 +89,7 @@ cleanup:
     return res;
 }
 
-static void
+static int
 get_attr_values_as_binary(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     struct berval ***ret)
 {
@@ -97,29 +97,26 @@ get_attr_values_as_binary(LDAP *ldap_handle, LDAPMessage *result, char *attr,
         fatal("ldap_handle, result, attr or ret == NULL");
     }
 
-    int rc = ldap_count_entries(ldap_handle, result);
-    if (rc == 0) {
-        log_error("ldap_count_entries() == 0");
-        return;
-    }
-
     /* get attribute values */
     result = ldap_first_entry(ldap_handle, result);
     if (result == NULL) {
-        fatal("ldap_first_entry() == NULL");
+        log_debug("ldap_first_entry() error");
+        return POX509_LDAP_ERR;
     }
     *ret = ldap_get_values_len(ldap_handle, result, attr);
     if (*ret == NULL) {
-        log_error("ldap_get_values_len() == NULL");
-        return;
+        log_error("no such attribute: '%s'", attr);
+        return POX509_LDAP_NO_SUCH_ATTR;
     }
+    return POX509_OK;
 }
 
 static void
 free_attr_values_as_string_array(char **values)
 {
     if (values == NULL) {
-        fatal("values == NULL");
+        log_debug("double free?");
+        return;
     }
 
     for (int i = 0; values[i] != NULL; i++) {
@@ -132,61 +129,84 @@ static void
 free_attr_values_as_binary_array(struct berval **values)
 {
     if (values == NULL) {
-        fatal("values == NULL");
+        log_debug("double free?");
+        return;
     }
 
     ldap_value_free_len(values);
 }
 
-static bool
-is_profile_disabled(LDAP *ldap_handle, LDAPMessage *result)
+static int
+check_profile_enabled(LDAP *ldap_handle, LDAPMessage *result,
+    bool *is_profile_enabled)
 {
-    if (ldap_handle == NULL || result == NULL) {
-        fatal("ldap_handle or result == NULL");
+    if (ldap_handle == NULL || result == NULL || is_profile_enabled == NULL) {
+        fatal("ldap_handle, result or is_profile_enabled == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
+    /* determine state of access profile from POX509_AP_IS_ENABLED attribute */
     char **access_profile_state = NULL;
-    get_attr_values_as_string(ldap_handle, result, POX509_AP_IS_ENABLED,
-        &access_profile_state);
-    if (access_profile_state == NULL) {
-        fatal("access_profile_state == NULL");
-    }
-    bool is_disabled = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) ==
-        0 ? false : true;
-    free_attr_values_as_string_array(access_profile_state);
-
-    return is_disabled;
-}
-
-static enum pox509_access_profile_type
-get_access_profile_type(LDAP *ldap_handle, LDAPMessage *result)
-{
-    if (ldap_handle == NULL || result == NULL) {
-        fatal("ldap_handle or result == NULL");
-    }
-
-    /* determine access profile type from objectclass */
-    char **access_profile_objectclass = NULL;
-    get_attr_values_as_string(ldap_handle, result, "objectClass",
-        &access_profile_objectclass);
-    if (access_profile_objectclass == NULL) {
-        fatal("access_profile_objectclass == NULL");
-    }
-
-    enum pox509_access_profile_type profile_type = UNKNOWN;
-    for (int i = 0; access_profile_objectclass[i] != NULL; i++) {
-        char *objectclass = access_profile_objectclass[i];
-        if (strcmp(objectclass, POX509_DAP_OBJCLASS) == 0) {
-            profile_type = DIRECT_ACCESS;
-            break;
-        } else if (strcmp(objectclass, POX509_AOBP_OBJCLASS) == 0) {
-            profile_type = ACCESS_ON_BEHALF;
-            break;
+    int rc = get_attr_values_as_string(ldap_handle, result,
+        POX509_AP_IS_ENABLED, &access_profile_state);
+    if (rc != POX509_OK) {
+        switch (rc) {
+        case POX509_LDAP_NO_SUCH_ATTR:
+            return POX509_LDAP_SCHEMA_ERR;
+        default:
+            res = rc;
+            goto cleanup;
         }
     }
-    free_attr_values_as_string_array(access_profile_objectclass);
+    res = POX509_OK;
+    *is_profile_enabled = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ?
+        true : false;
 
-    return profile_type;
+cleanup:
+    free_attr_values_as_string_array(access_profile_state);
+    return res;
+}
+
+static int
+get_access_profile_type(LDAP *ldap_handle, LDAPMessage *result,
+    enum pox509_access_profile_type *access_profile_type)
+{
+    if (ldap_handle == NULL || result == NULL || access_profile_type == NULL) {
+        fatal("ldap_handle, result or access_profile_type == NULL");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+    /* determine access profile type from objectClass attribute */
+    char **objectclasses = NULL;
+    int rc = get_attr_values_as_string(ldap_handle, result, "objectClass",
+        &objectclasses);
+    if (rc != POX509_OK) {
+        switch (rc) {
+        case POX509_LDAP_NO_SUCH_ATTR:
+            return POX509_LDAP_SCHEMA_ERR;
+        default:
+            res = rc;
+            goto cleanup;
+        }
+    }
+    res = POX509_OK;
+
+    /* search for access profile type */
+    for (int i = 0; objectclasses[i] != NULL; i++) {
+        char *objectclass = objectclasses[i];
+        if (strcmp(objectclass, POX509_DAP_OBJCLASS) == 0) {
+            *access_profile_type = DIRECT_ACCESS;
+            goto cleanup;
+        } else if (strcmp(objectclass, POX509_AOBP_OBJCLASS) == 0) {
+            *access_profile_type = ACCESS_ON_BEHALF;
+            goto cleanup;
+        }
+    }
+    res = POX509_LDAP_SCHEMA_ERR;
+
+cleanup:
+    free_attr_values_as_string_array(objectclasses);
+    return res;
 }
 
 static void
@@ -295,10 +315,10 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
     free_attr_values_as_string_array(key_provider_uid);
 
     struct berval **key_provider_cert = NULL;
-    get_attr_values_as_binary(ldap_handle, result, key_provider_cert_attr,
+    rc = get_attr_values_as_binary(ldap_handle, result, key_provider_cert_attr,
         &key_provider_cert);
-    if (key_provider_cert == NULL) {
-        fatal("key_provider_cert == NULL");
+    if (rc != POX509_OK) {
+        log_debug("key_provider_cert == NULL");
     }
     for (int i = 0; key_provider_cert[i] != NULL; i++) {
         char *value = key_provider_cert[i]->bv_val;
@@ -744,7 +764,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             return rc;
         default:
             res = rc;
-            goto cleanup;
+            goto cleanup_result;
         }
     }
 
@@ -753,7 +773,7 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     if (pox509_info->ssh_server_dn == NULL) {
         log_debug("ldap_get_dn() error");
         res = rc;
-        goto cleanup;
+        goto cleanup_result;
     }
     log_info("ssh server entry found (%s)", pox509_info->ssh_server_dn);
 
@@ -765,48 +785,84 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         &access_profile_dns);
     if (rc != POX509_OK) {
         res = rc;
-        goto cleanup;
+        goto cleanup_result;
     }
 
     struct timeval search_timeout = get_ldap_search_timeout(cfg);
+    log_info("getting access profiles");
     /* iterate access profile dns */
     for (int i = 0; access_profile_dns[i] != NULL; i++) {
         char *dn = access_profile_dns[i];
-        LDAPMessage *result = NULL;
+        log_info("%s", dn);
 
+        /* get access profile entry */
+        LDAPMessage *result = NULL;
         int rc = ldap_search_ext_s(ldap_handle, dn, LDAP_SCOPE_BASE, NULL, NULL,
             0, NULL, NULL, &search_timeout, 1, &result);
         if (rc != LDAP_SUCCESS) {
-            fatal("ldap_search_ext_s(): '%s' (%d)", ldap_err2string(rc), rc);
+            log_info("ldap search error: '%s' (%d)", ldap_err2string(rc), rc);
+            goto cleanup_result_inner;
         }
 
-        /* skip if access profile is disabled */
-        if (is_profile_disabled(ldap_handle, result)) {
-            log_info("profile disabled (%s)", access_profile_dns[i]);
-            ldap_msgfree(result);
-            continue;
+        /* check if acccess profile entry is enabled */
+        bool is_profile_enabled;
+        rc = check_profile_enabled(ldap_handle, result, &is_profile_enabled);
+        if (rc != POX509_OK) {
+            switch (rc) {
+            case POX509_NO_MEMORY:
+                /* cleanup access profile entry and break */
+                ldap_msgfree(result);
+                res = rc;
+                goto cleanup_attr_values_and_result;
+            default:
+                /* continue */
+                log_debug("check_profile_disabled(): '%s'",
+                    pox509_strerror(rc));
+                goto cleanup_result_inner;
+            }
         }
-        enum pox509_access_profile_type profile_type =
-            get_access_profile_type(ldap_handle, result);
+        if (!is_profile_enabled) {
+            /* continue */
+            log_info("profile disabled (skipping)");
+            goto cleanup_result_inner;
+        }
 
-        switch(profile_type) {
+        /* get access profile type from enabled profiles */
+        enum pox509_access_profile_type access_profile_type;
+        rc = get_access_profile_type(ldap_handle, result, &access_profile_type);
+        if (rc != POX509_OK) {
+            switch (rc) {
+            case POX509_NO_MEMORY:
+                /* cleanup access profile entry and break */
+                ldap_msgfree(result);
+                res = rc;
+                goto cleanup_attr_values_and_result;
+            default:
+                /* continue */
+                log_debug("get_access_profile_type(): '%s'",
+                    pox509_strerror(rc));
+                goto cleanup_result_inner;
+            }
+        }
+
+        switch(access_profile_type) {
         case DIRECT_ACCESS:
             get_direct_access_profile(ldap_handle, result, dn, pox509_info);
             break;
         case ACCESS_ON_BEHALF:
             get_access_on_behalf_profile(ldap_handle, result, dn, pox509_info);
             break;
-        case UNKNOWN:
-            fatal("profile_type unknown: %d", profile_type);
-            break;
-        default:
-            fatal("this should never happen...");
         }
+cleanup_result_inner:
+        /* cleanup access profile entry */
         ldap_msgfree(result);
     }
-    free_attr_values_as_string_array(access_profile_dns);
 
-cleanup:
+cleanup_attr_values_and_result:
+    /* cleanup access profile dn's */
+    free_attr_values_as_string_array(access_profile_dns);
+cleanup_result:
+    /* cleanup ssh server entry */
     ldap_msgfree(result);
     return res;
 }

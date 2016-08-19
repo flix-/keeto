@@ -140,13 +140,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * to minimize this attack vector the given uid will be tested
      * against a restrictive regular expression.
      */
-    bool uid_valid = false;
-    rc = check_uid(uid, &uid_valid);
+    bool is_uid_valid = false;
+    rc = check_uid(uid, &is_uid_valid);
     if (rc != POX509_OK) {
         log_error("check_uid(): '%s'", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-    if (!uid_valid) {
+    if (!is_uid_valid) {
         log_error("check_uid(): invalid uid: '%s'", uid);
         return PAM_AUTH_ERR;
     }

@@ -48,7 +48,7 @@
 enum pox509_access_profile_type {
     DIRECT_ACCESS = 0,
     ACCESS_ON_BEHALF,
-    UNKNOWN
+    UNKNOWN_ACCESS_PROFILE
 };
 
 

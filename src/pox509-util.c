@@ -218,10 +218,10 @@ is_readable_file(const char *file)
 }
 
 int
-check_uid(const char *uid, bool *res)
+check_uid(const char *uid, bool *is_uid_valid)
 {
-    if (uid == NULL || res == NULL) {
-        fatal("uid or res == NULL");
+    if (uid == NULL || is_uid_valid == NULL) {
+        fatal("uid or is_uid_valid == NULL");
     }
 
     regex_t regex_uid;
@@ -234,9 +234,9 @@ check_uid(const char *uid, bool *res)
     regfree(&regex_uid);
 
     if (rc == 0) {
-        *res = true;
+        *is_uid_valid = true;
     } else {
-        *res = false;
+        *is_uid_valid = false;
     }
     return POX509_OK;
 }
