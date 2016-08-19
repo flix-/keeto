@@ -195,10 +195,10 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *result,
     for (int i = 0; objectclasses[i] != NULL; i++) {
         char *objectclass = objectclasses[i];
         if (strcmp(objectclass, POX509_DAP_OBJCLASS) == 0) {
-            *access_profile_type = DIRECT_ACCESS;
+            *access_profile_type = DIRECT_ACCESS_PROFILE;
             goto cleanup;
         } else if (strcmp(objectclass, POX509_AOBP_OBJCLASS) == 0) {
-            *access_profile_type = ACCESS_ON_BEHALF;
+            *access_profile_type = ACCESS_ON_BEHALF_PROFILE;
             goto cleanup;
         }
     }
@@ -852,7 +852,6 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         }
         if (!is_access_profile_relevant) {
             /* continue */
-            log_info("skipping");
             goto cleanup_result_inner;
         }
 
@@ -876,10 +875,10 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
 
         /* (6) retrieve data for the access profile in question */
         switch(access_profile_type) {
-        case DIRECT_ACCESS:
+        case DIRECT_ACCESS_PROFILE:
             get_direct_access_profile(ldap_handle, result, dn, pox509_info);
             break;
-        case ACCESS_ON_BEHALF:
+        case ACCESS_ON_BEHALF_PROFILE:
             get_access_on_behalf_profile(ldap_handle, result, dn, pox509_info);
             break;
         }
@@ -888,6 +887,7 @@ cleanup_result_inner:
         /* cleanup access profile entry */
         ldap_msgfree(result);
     }
+    res = POX509_OK;
 
 cleanup_attr_values_and_result:
     /* cleanup access profile dn's */
@@ -1053,15 +1053,18 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     pox509_info->ldap_online = 1;
     log_info("connection to ldap established");
 
-    /* retrieve data */
+    /* retrieve access profiles */
     rc = get_access_profiles(ldap_handle, cfg, pox509_info);
     if (rc != POX509_OK) {
         res = rc;
         goto unbind_and_free_handle;
     }
 
+    /* process access profiles */
     //process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     //process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
+
+    res = POX509_OK;
 
 unbind_and_free_handle:
     rc = ldap_unbind_ext_s(ldap_handle, NULL, NULL);

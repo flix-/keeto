@@ -46,8 +46,8 @@
 #define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
 
 enum pox509_access_profile_type {
-    DIRECT_ACCESS = 0,
-    ACCESS_ON_BEHALF,
+    DIRECT_ACCESS_PROFILE = 0,
+    ACCESS_ON_BEHALF_PROFILE,
     UNKNOWN_ACCESS_PROFILE
 };
 

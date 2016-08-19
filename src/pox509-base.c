@@ -175,14 +175,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 
     /* query ldap server */
     rc = get_keystore_data_from_ldap(cfg, pox509_info);
-    switch (rc) {
-    case POX509_LDAP_CONNECTION_ERR:
-        pox509_info->ldap_online = 0;
-        log_error("connection to ldap failed");
-        break;
-    default:
-        log_error("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
-        return PAM_SERVICE_ERR;
+    if (rc != POX509_OK) {
+        switch (rc) {
+        case POX509_LDAP_CONNECTION_ERR:
+            pox509_info->ldap_online = 0;
+            log_error("connection to ldap failed");
+            break;
+        default:
+            log_error("get_keystore_data_from_ldap(): '%s'",
+                pox509_strerror(rc));
+            return PAM_SERVICE_ERR;
+        }
     }
 
     /* validate certificates and convert public key to OpenSSH
