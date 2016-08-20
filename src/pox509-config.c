@@ -265,12 +265,9 @@ parse_config(const char *cfg_file)
 
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);
-    if (rc == CFG_SUCCESS) {
-        return cfg;
-    }
-
-    /* error handling */
     switch(rc) {
+    case CFG_SUCCESS:
+        return cfg;
     case CFG_FILE_ERROR:
         log_error("cfg_parse(): '%s' (%s)", cfg_file, strerror(errno));
         break;
@@ -289,7 +286,6 @@ void
 release_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
-        log_debug("double free?");
         return;
     }
 

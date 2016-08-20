@@ -41,8 +41,8 @@ objectclass	( 1.0.86.86.86.86.2.2.1
 	DESC 'access profile'
 	SUP top
 	ABSTRACT
-	MUST ( cn $ pox509KeyProvider $ pox509KeystoreOptions $ pox509IsEnabled )
-    MAY description )
+	MUST ( cn $ pox509KeyProvider $ pox509IsEnabled )
+    MAY ( description $ pox509KeystoreOptions ) )
 
 objectclass	( 1.0.86.86.86.86.2.2.2
     NAME 'pox509DirectAccessProfile'

@@ -199,7 +199,7 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
  */
 int create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length);
-void get_rdn_value_from_dn(const char *, char **buffer);
+int get_rdn_value_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
 void init_dto(struct pox509_info *pox509_info);
 void init_direct_access_profile(struct pox509_direct_access_profile *profile);

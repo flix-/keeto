@@ -52,7 +52,6 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *result, char *attr,
     /* retrieve attribute value(s) */
     struct berval **values = ldap_get_values_len(ldap_handle, result, attr);
     if (values == NULL) {
-        log_error("no such attribute: '%s'", attr);
         return POX509_LDAP_NO_SUCH_ATTR;
     }
 
@@ -115,7 +114,6 @@ static void
 free_attr_values_as_string_array(char **values)
 {
     if (values == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -129,7 +127,6 @@ static void
 free_attr_values_as_binary_array(struct berval **values)
 {
     if (values == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -149,14 +146,15 @@ check_profile_enabled(LDAP *ldap_handle, LDAPMessage *result,
     char **access_profile_state = NULL;
     int rc = get_attr_values_as_string(ldap_handle, result,
         POX509_AP_IS_ENABLED, &access_profile_state);
-    if (rc != POX509_OK) {
-        switch (rc) {
-        case POX509_LDAP_NO_SUCH_ATTR:
-            return POX509_LDAP_SCHEMA_ERR;
-        default:
-            res = rc;
-            goto cleanup;
-        }
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_LDAP_NO_SUCH_ATTR:
+        res = POX509_LDAP_SCHEMA_ERR;
+        goto cleanup;
+    default:
+        res = rc;
+        goto cleanup;
     }
     res = POX509_OK;
     *is_profile_enabled = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ?
@@ -180,14 +178,15 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *result,
     char **objectclasses = NULL;
     int rc = get_attr_values_as_string(ldap_handle, result, "objectClass",
         &objectclasses);
-    if (rc != POX509_OK) {
-        switch (rc) {
-        case POX509_LDAP_NO_SUCH_ATTR:
-            return POX509_LDAP_SCHEMA_ERR;
-        default:
-            res = rc;
-            goto cleanup;
-        }
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_LDAP_NO_SUCH_ATTR:
+        res = POX509_LDAP_SCHEMA_ERR;
+        goto cleanup;
+    default:
+        res = rc;
+        goto cleanup;
     }
     res = POX509_OK;
 
@@ -444,7 +443,6 @@ is_relevant_aobp(LDAP *ldap_handle, cfg_t *cfg, struct pox509_info *pox509_info,
         target_keystore_uid = NULL;
     }
     free_attr_values_as_string_array(target_keystore_dns);
-
     return target_keystore_has_uid;
 }
 
@@ -579,7 +577,7 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
 }
 
 static void
-get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
+add_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
     struct pox509_info *pox509_info)
 {
     if (ldap_handle == NULL || result == NULL || dn == NULL ||
@@ -645,63 +643,100 @@ get_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
         profiles);
 }
 
-static void
-get_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
-    struct pox509_info *pox509_info)
+static int
+add_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result,
+    char *access_profile_dn, struct pox509_info *pox509_info)
 {
-    if (ldap_handle == NULL || result == NULL || dn == NULL ||
+    if (ldap_handle == NULL || result == NULL || access_profile_dn == NULL ||
         pox509_info == NULL) {
 
-        fatal("ldap_handle, result, dn or pox509_info == NULL");
+        fatal("ldap_handle, result, access_profile_dn or pox509_info == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     /* create new direct access profile */
     struct pox509_direct_access_profile *profile = malloc(sizeof *profile);
     if (profile == NULL) {
-        fatal("malloc()");
+        log_debug("malloc() error");
+        return POX509_NO_MEMORY;
     }
     init_direct_access_profile(profile);
 
-    profile->dn = strdup(dn);
+    profile->dn = strdup(access_profile_dn);
     if (profile->dn == NULL) {
-        fatal("strdup()");
+        log_debug("strdup() error");
+        res = POX509_NO_MEMORY;
+        goto cleanup_profile;
     }
-    get_rdn_value_from_dn(dn, &profile->name);
+    int rc = get_rdn_value_from_dn(access_profile_dn, &profile->name);
+    switch (rc) {
+    case POX509_OK:
+        break;
+    default:
+        res = rc;
+        goto cleanup_profile;
+    }
 
-    /* set key provider group dn */
+    /* add key provider group dn */
     char **key_provider_group_dn = NULL;
-    get_attr_values_as_string(ldap_handle, result, POX509_AP_KEY_PROVIDER_ATTR,
-        &key_provider_group_dn);
-    if (key_provider_group_dn == NULL) {
-        fatal("key_provider_group_dn == NULL");
+    rc = get_attr_values_as_string(ldap_handle, result,
+        POX509_AP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_LDAP_NO_SUCH_ATTR:
+        res = POX509_LDAP_SCHEMA_ERR;
+        goto cleanup_key_provider_group_dn_and_profile;
+    default:
+        res = rc;
+        goto cleanup_key_provider_group_dn_and_profile;
     }
     profile->key_provider_group_dn = strdup(key_provider_group_dn[0]);
     if (profile->key_provider_group_dn == NULL) {
-        fatal("strdup()");
+        log_debug("strdup() error");
+        res = POX509_NO_MEMORY;
+        goto cleanup_key_provider_group_dn_and_profile;
     }
-    free_attr_values_as_string_array(key_provider_group_dn);
 
-    /* set keystore options dn */
+    /* add keystore options dn if present (optional attribute) */
     char **keystore_options_dn = NULL;
-    get_attr_values_as_string(ldap_handle, result,
+    rc = get_attr_values_as_string(ldap_handle, result,
         POX509_AP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
-    if (keystore_options_dn == NULL) {
-        fatal("keystore_options_dn == NULL");
+    switch (rc) {
+    case POX509_OK:
+        profile->keystore_options_dn = strdup(keystore_options_dn[0]);
+        if (profile->keystore_options_dn == NULL) {
+            log_debug("strdup() error");
+            res = POX509_NO_MEMORY;
+            goto cleanup_keystore_options_dn_and_provider_group_dn_and_profile;
+        }
+        break;
+    case POX509_LDAP_NO_SUCH_ATTR:
+        break;
+    default:
+        res = rc;
+        goto cleanup_keystore_options_dn_and_provider_group_dn_and_profile;
     }
-    profile->keystore_options_dn = strdup(keystore_options_dn[0]);
-    if (profile->keystore_options_dn == NULL) {
-        fatal("strdup()");
-    }
-    free_attr_values_as_string_array(keystore_options_dn);
 
+    res = POX509_OK;
     /* add to direct access profile list */
     TAILQ_INSERT_TAIL(&pox509_info->direct_access_profiles, profile,
         profiles);
+
+cleanup_keystore_options_dn_and_provider_group_dn_and_profile:
+    free_attr_values_as_string_array(keystore_options_dn);
+cleanup_key_provider_group_dn_and_profile:
+    free_attr_values_as_string_array(key_provider_group_dn);
+cleanup_profile:
+    if (res != POX509_OK) {
+        free_direct_access_profile(profile);
+    }
+    return res;
 }
 
 static int
-check_access_profile_relevance(LDAP *ldap_handle, LDAPMessage *access_profile,
-    bool *is_relevant)
+check_access_profile_relevance_general(LDAP *ldap_handle,
+    LDAPMessage *access_profile, bool *is_relevant)
 {
     if (ldap_handle == NULL || access_profile == NULL || is_relevant == NULL) {
         fatal("ldap_handle, access_profile or is_relevant == NULL");
@@ -791,14 +826,14 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     int res = POX509_UNKNOWN_ERR;
     LDAPMessage *ssh_server_entry = NULL;
     int rc = get_ssh_server_entry(ldap_handle, cfg, &ssh_server_entry);
-    if (rc != POX509_OK) {
-        switch(rc) {
-        case POX509_SYSTEM_ERR:
-            return rc;
-        default:
-            res = rc;
-            goto cleanup_ssh_server_entry;
-        }
+    switch(rc) {
+    case POX509_OK:
+        break;
+    case POX509_SYSTEM_ERR:
+        return rc;
+    default:
+        res = rc;
+        goto cleanup_ssh_server_entry;
     }
 
     /* set ssh server dn in dto */
@@ -825,36 +860,37 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
     log_info("getting access profiles");
     /* iterate access profile dns */
     for (int i = 0; access_profile_dns[i] != NULL; i++) {
-        char *dn = access_profile_dns[i];
-        log_info("%s", dn);
+        char *access_profile_dn = access_profile_dns[i];
+        log_info("%s", access_profile_dn);
 
         /* (3) get access profile entry */
         LDAPMessage *access_profile_entry = NULL;
-        int rc = ldap_search_ext_s(ldap_handle, dn, LDAP_SCOPE_BASE, NULL, NULL,
-            0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
+        int rc = ldap_search_ext_s(ldap_handle, access_profile_dn,
+            LDAP_SCOPE_BASE, NULL, NULL, 0, NULL, NULL, &search_timeout, 1,
+            &access_profile_entry);
         if (rc != LDAP_SUCCESS) {
-            log_debug("ldap_search_ext_s(): base: '%s' - '%s' (%d)", dn,
-            ldap_err2string(rc), rc);
+            log_debug("ldap_search_ext_s(): base: '%s' - '%s' (%d)",
+            access_profile_dn, ldap_err2string(rc), rc);
             goto cleanup_access_profile_entry;
         }
 
         /* (4) check if acccess profile is relevant */
         bool is_access_profile_relevant;
-        rc = check_access_profile_relevance(ldap_handle, access_profile_entry,
-            &is_access_profile_relevant);
-        if (rc != POX509_OK) {
-            switch (rc) {
-            case POX509_NO_MEMORY:
-                /* cleanup access profile entry and break */
-                ldap_msgfree(access_profile_entry);
-                res = rc;
-                goto cleanup_ap_dns_and_ssh_server_entry;
-            default:
-                /* continue */
-                log_debug("is_access_profile_relevant(): '%s'",
-                    pox509_strerror(rc));
-                goto cleanup_access_profile_entry;
-            }
+        rc = check_access_profile_relevance_general(ldap_handle,
+            access_profile_entry, &is_access_profile_relevant);
+        switch (rc) {
+        case POX509_OK:
+            break;
+        case POX509_NO_MEMORY:
+            /* cleanup access profile entry and break */
+            ldap_msgfree(access_profile_entry);
+            res = rc;
+            goto cleanup_ap_dns_and_ssh_server_entry;
+        default:
+            /* continue */
+            log_debug("check_access_profile_relevance_general(): '%s'",
+                pox509_strerror(rc));
+            goto cleanup_access_profile_entry;
         }
         if (!is_access_profile_relevant) {
             /* continue */
@@ -865,33 +901,61 @@ get_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
         enum pox509_access_profile_type access_profile_type;
         rc = get_access_profile_type(ldap_handle, access_profile_entry,
             &access_profile_type);
-        if (rc != POX509_OK) {
+        switch (rc) {
+        case POX509_OK:
+            break;
+        case POX509_NO_MEMORY:
+            /* cleanup access profile entry and break */
+            ldap_msgfree(access_profile_entry);
+            res = rc;
+            goto cleanup_ap_dns_and_ssh_server_entry;
+        default:
+            /* continue */
+            log_debug("get_access_profile_type(): '%s'",
+                pox509_strerror(rc));
+            goto cleanup_access_profile_entry;
+        }
+
+        /* (6) retrieve access profile data and add to dto */
+        switch(access_profile_type) {
+        case DIRECT_ACCESS_PROFILE:
+            rc = add_direct_access_profile(ldap_handle, access_profile_entry,
+                access_profile_dn, pox509_info);
             switch (rc) {
+            case POX509_OK:
+                break;
             case POX509_NO_MEMORY:
-                /* cleanup access profile entry and break */
                 ldap_msgfree(access_profile_entry);
                 res = rc;
                 goto cleanup_ap_dns_and_ssh_server_entry;
             default:
                 /* continue */
-                log_debug("get_access_profile_type(): '%s'",
+                log_debug("add_direct_access_profile(): '%s'",
                     pox509_strerror(rc));
                 goto cleanup_access_profile_entry;
             }
-        }
-
-        /* (6) retrieve data for the access profile in question */
-        switch(access_profile_type) {
-        case DIRECT_ACCESS_PROFILE:
-            get_direct_access_profile(ldap_handle, access_profile_entry, dn,
-                pox509_info);
             break;
+
         case ACCESS_ON_BEHALF_PROFILE:
-            get_access_on_behalf_profile(ldap_handle, access_profile_entry, dn,
-                pox509_info);
+            /*
+            rc = add_access_on_behalf_profile(ldap_handle, access_profile_entry,
+                access_profile_dn, pox509_info);
+            switch (rc) {
+            case POX509_OK:
+                break;
+            case POX509_NO_MEMORY:
+                ldap_msgfree(access_profile_entry);
+                res = rc;
+                goto cleanup_ap_dns_and_ssh_server_entry;
+            default:
+                // continue
+                log_debug("add_access_on_behalf_profile(): '%s'",
+                    pox509_strerror(rc));
+                goto cleanup_access_profile_entry;
+            }
+            */
             break;
         }
-
 cleanup_access_profile_entry:
         ldap_msgfree(access_profile_entry);
     } /* for */
@@ -925,7 +989,6 @@ init_starttls(LDAP *ldap_handle)
         log_debug("ldap_start_tls_s()");
         return POX509_LDAP_CONNECTION_ERR;
     }
-
     return POX509_OK;
 }
 
@@ -959,7 +1022,6 @@ connect_to_ldap(LDAP *ldap_handle, cfg_t *cfg)
         log_debug("ldap_sasl_bind_s(): '%s' (%d)", ldap_err2string(rc), rc);
         return POX509_LDAP_CONNECTION_ERR;
     }
-
     return POX509_OK;
 }
 
@@ -1009,7 +1071,6 @@ set_ldap_options(LDAP *ldap_handle, cfg_t *cfg)
             new_ctx);
         return POX509_LDAP_ERR;
     }
-
     return POX509_OK;
 }
 
@@ -1031,7 +1092,6 @@ init_ldap_handle(LDAP **ldap_handle, cfg_t *cfg)
     if (rc != POX509_OK) {
         return rc;
     }
-
     return POX509_OK;
 }
 
@@ -1068,7 +1128,7 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
     }
 
     /* process access profiles */
-    //process_direct_access_profiles(ldap_handle, cfg, pox509_info);
+    process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     //process_access_on_behalf_profiles(ldap_handle, cfg, pox509_info);
 
     res = POX509_OK;

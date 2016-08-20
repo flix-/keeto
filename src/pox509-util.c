@@ -298,7 +298,7 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
     return POX509_OK;
 }
 
-void
+int
 get_rdn_value_from_dn(const char *dn, char **buffer)
 {
     if (dn == NULL || buffer == NULL) {
@@ -310,29 +310,32 @@ get_rdn_value_from_dn(const char *dn, char **buffer)
         fatal("dn must be > 0");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     LDAPDN ldap_dn = NULL;
     int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
-        fatal("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
-    }
-
-    if (ldap_dn == NULL) {
-        fatal("ldap_dn == NULL");
+        log_debug("ldap_str2dn(): '%s' (%d)", ldap_err2string(rc), rc);
+        return POX509_LDAP_ERR;
     }
 
     LDAPRDN ldap_rdn = ldap_dn[0];
     rc = ldap_rdn2str(ldap_rdn, buffer, LDAP_DN_FORMAT_UFN);
     if (rc != LDAP_SUCCESS) {
-        fatal("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
+        log_debug("ldap_rdn2str(): '%s' (%d)", ldap_err2string(rc), rc);
+        res = POX509_LDAP_ERR;
+        goto cleanup;
     }
+    res = POX509_OK;
+
+cleanup:
     ldap_dnfree(ldap_dn);
+    return res;
 }
 
 void
 free_key(struct pox509_key *key)
 {
     if (key == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -346,7 +349,6 @@ void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -365,7 +367,6 @@ void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -381,7 +382,6 @@ void
 free_direct_access_profile(struct pox509_direct_access_profile *profile)
 {
     if (profile == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -403,7 +403,6 @@ void
 free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 {
     if (profile == NULL) {
-        log_debug("double free?");
         return;
     }
 
@@ -426,7 +425,6 @@ void
 free_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
-        log_debug("double free?");
         return;
     }
 
