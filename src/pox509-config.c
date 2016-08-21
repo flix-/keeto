@@ -277,8 +277,8 @@ parse_config(const char *cfg_file)
     default:
         log_error("cfg_parse(): 'unknown error' (%d)", rc);
     }
-    cfg_free(cfg);
 
+    cfg_free(cfg);
     return NULL;
 }
 
@@ -286,6 +286,7 @@ void
 release_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
+        log_debug("double free?");
         return;
     }
 

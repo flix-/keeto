@@ -336,6 +336,7 @@ void
 free_key(struct pox509_key *key)
 {
     if (key == NULL) {
+        log_debug("double free?");
         return;
     }
 
@@ -349,6 +350,7 @@ void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
+        log_debug("double free?");
         return;
     }
 
@@ -367,6 +369,7 @@ void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
+        log_debug("double free?");
         return;
     }
 
@@ -382,6 +385,7 @@ void
 free_direct_access_profile(struct pox509_direct_access_profile *profile)
 {
     if (profile == NULL) {
+        log_debug("double free?");
         return;
     }
 
@@ -403,6 +407,7 @@ void
 free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 {
     if (profile == NULL) {
+        log_debug("double free?");
         return;
     }
 
@@ -425,6 +430,7 @@ void
 free_dto(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
+        log_debug("double free?");
         return;
     }
 
