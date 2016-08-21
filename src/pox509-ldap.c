@@ -235,7 +235,7 @@ get_group_member_dns(LDAP *ldap_handle, cfg_t *cfg, char *group_member_dn,
 
     /* get dn's of group members*/
     res = get_attr_values_as_string(ldap_handle, group_member_dns,
-        group_member_attr, result);
+        group_member_attr, ret);
 
 cleanup:
     ldap_msgfree(group_member_dns);
@@ -749,10 +749,7 @@ add_direct_access_profile_skeleton(LDAP *ldap_handle, LDAPMessage *result,
         goto cleanup_a;
     }
     int rc = get_rdn_value_from_dn(access_profile_dn, &profile->name);
-    switch (rc) {
-    case POX509_OK:
-        break;
-    default:
+    if (rc != POX509_OK) {
         res = rc;
         goto cleanup_a;
     }
@@ -806,7 +803,9 @@ add_direct_access_profile_skeleton(LDAP *ldap_handle, LDAPMessage *result,
     res = POX509_OK;
 
 cleanup_c:
-    free_attr_values_as_string_array(keystore_options_dn);
+    if (keystore_options_dn != NULL) {
+        free_attr_values_as_string_array(keystore_options_dn);
+    }
 cleanup_b:
     free_attr_values_as_string_array(key_provider_group_dn);
 cleanup_a:
@@ -890,7 +889,7 @@ get_ssh_server_entry(LDAP *ldap_handle, cfg_t *cfg, LDAPMessage **ret)
     case 0:
         log_error("ssh server entry not existent");
         res = POX509_LDAP_NO_SUCH_ENTRY;
-        break;
+        goto cleanup;
     case 1:
         *ret = ssh_server_entry;
         ssh_server_entry = NULL;
@@ -899,6 +898,7 @@ get_ssh_server_entry(LDAP *ldap_handle, cfg_t *cfg, LDAPMessage **ret)
     default:
         log_debug("ldap_count_entries() error");
         res = POX509_LDAP_ERR;
+        goto cleanup;
     }
 
 cleanup:
@@ -1214,6 +1214,7 @@ get_keystore_data_from_ldap(cfg_t *cfg, struct pox509_info *pox509_info)
         goto unbind_and_free_handle;
     }
 
+    POX509_DEBUG
     /* process access profiles */
     rc = process_direct_access_profiles(ldap_handle, cfg, pox509_info);
     if (rc != POX509_OK) {
