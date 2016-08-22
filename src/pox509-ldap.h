@@ -45,12 +45,6 @@
 #define POX509_KEYSTORE_OPTIONS_FROM_ATTR "pox509KeystoreOptionFrom"
 #define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
 
-enum pox509_access_profile_type {
-    DIRECT_ACCESS_PROFILE = 0,
-    ACCESS_ON_BEHALF_PROFILE,
-};
-
-
 /**FIXME
  * Obtain access permission and x509 certificate of user from LDAP.
  *

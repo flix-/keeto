@@ -67,7 +67,7 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
 
     struct pox509_info *pox509_info = data;
     log_info("freeing pox509_info");
-    free_dto(pox509_info);
+    free_pox509_info(pox509_info);
     log_info("pox509_info freed");
 }
 
@@ -105,12 +105,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* initialize data transfer object */
-    struct pox509_info *pox509_info = malloc(sizeof *pox509_info);
+    struct pox509_info *pox509_info = new_pox509_info();
     if (pox509_info == NULL) {
         log_error("malloc() error");
         return PAM_BUF_ERR;
     }
-    init_dto(pox509_info);
 
     /* make data transfer object available to module stack */
     rc = pam_set_data(pamh, "pox509_info", pox509_info, &cleanup_pox509_info);

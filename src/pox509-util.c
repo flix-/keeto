@@ -123,71 +123,100 @@ get_ldap_search_timeout(cfg_t *cfg)
     return search_timeout;
 }
 
-void
-init_dto(struct pox509_info *pox509_info)
+struct pox509_info *
+new_pox509_info()
 {
-    if (pox509_info == NULL) {
-        fatal("pox509_info == NULL");
+    struct pox509_info *info = malloc(sizeof *info);
+    if (info == NULL) {
+        return NULL;
     }
 
-    memset(pox509_info, 0, sizeof *pox509_info);
-    TAILQ_INIT(&pox509_info->direct_access_profiles);
-    TAILQ_INIT(&pox509_info->access_on_behalf_profiles);
-    pox509_info->ldap_online = 0x56;
+    memset(info, 0, sizeof *info);
+    TAILQ_INIT(&info->direct_access_profiles);
+    TAILQ_INIT(&info->access_on_behalf_profiles);
+    info->ldap_online = POX509_UNDEF;
+    return info;
 }
 
-void
-init_direct_access_profile(struct pox509_direct_access_profile *profile)
+struct pox509_access_profile *
+new_access_profile(enum pox509_access_profile_type type)
 {
-    if (profile == NULL) {
-        fatal("profile == NULL");
+    if (type != DIRECT_ACCESS_PROFILE && type != ACCESS_ON_BEHALF_PROFILE) {
+        fatal("type != { DIRECT_ACCESS_PROFILE, ACCESS_ON_BEHALF_PROFILE }");
     }
 
-    memset(profile, 0, sizeof *profile);
-    TAILQ_INIT(&profile->key_providers);
-}
-
-void
-init_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
-{
-    if (profile == NULL) {
-        fatal("profile == NULL");
+    struct pox509_access_profile *access_profile =
+        malloc(sizeof *access_profile);
+    if (access_profile == NULL) {
+        return NULL;
     }
 
-    memset(profile, 0, sizeof *profile);
-    TAILQ_INIT(&profile->key_providers);
+    memset(access_profile, 0, sizeof *access_profile);
+    access_profile->type = type;
+
+    switch (type) {
+    case DIRECT_ACCESS_PROFILE:
+        access_profile->dap = malloc(sizeof *access_profile->dap);
+        if (access_profile->dap == NULL) {
+            goto error;
+        }
+        memset(access_profile->dap, 0, sizeof *access_profile->dap);
+        TAILQ_INIT(&access_profile->dap->key_providers);
+        break;
+    case ACCESS_ON_BEHALF_PROFILE:
+        access_profile->aobp = malloc(sizeof *access_profile->aobp);
+        if (access_profile->aobp == NULL) {
+            goto error;
+        }
+        memset(access_profile->aobp, 0, sizeof *access_profile->aobp);
+        TAILQ_INIT(&access_profile->aobp->key_providers);
+        break;
+    }
+    return access_profile;
+
+error:
+    free(access_profile);
+    return NULL;
 }
 
-void
-init_key_provider(struct pox509_key_provider *key_provider)
+struct pox509_key_provider *
+new_key_provider()
 {
+    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
     if (key_provider == NULL) {
-        fatal("key_provider == NULL");
+        return NULL;
     }
 
     memset(key_provider, 0, sizeof *key_provider);
     key_provider->has_valid_key = false;
     TAILQ_INIT(&key_provider->keys);
+    return key_provider;
 }
 
-void
-init_keystore_options(struct pox509_keystore_options *options) {
-    if (options == NULL) {
-        fatal("options == NULL");
-    }
-
-    memset(options, 0, sizeof *options);
-}
-
-void
-init_key(struct pox509_key *key)
+struct pox509_key *
+new_key()
 {
+    struct pox509_key *key = malloc(sizeof *key);
     if (key == NULL) {
-        fatal("key == NULL");
+        return NULL;
     }
 
     memset(key, 0, sizeof *key);
     key->is_valid = false;
+    return key;
+}
+
+struct pox509_keystore_options *
+new_keystore_options() {
+
+    struct pox509_keystore_options *keystore_options =
+        malloc(sizeof *keystore_options);
+    if (keystore_options == NULL) {
+        return NULL;
+    }
+
+    memset(keystore_options, 0, sizeof *keystore_options);
+    return keystore_options;
 }
 
 bool
@@ -427,7 +456,7 @@ free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
 }
 
 void
-free_dto(struct pox509_info *pox509_info)
+free_pox509_info(struct pox509_info *pox509_info)
 {
     if (pox509_info == NULL) {
         log_debug("double free?");

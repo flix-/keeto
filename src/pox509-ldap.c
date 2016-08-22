@@ -30,6 +30,7 @@
 
 #include "pox509-error.h"
 #include "pox509-log.h"
+#include "pox509-util.h"
 
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 
@@ -285,12 +286,11 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
     }
 
     int res = POX509_UNKNOWN_ERR;
-    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
+    struct pox509_key_provider *key_provider = new_key_provider();
     if (key_provider == NULL) {
         log_debug("malloc() error");
         return POX509_NO_MEMORY;
     }
-    init_key_provider(key_provider);
 
     /* set dn of key provider */
     key_provider->dn = strdup(key_provider_dn);
@@ -351,13 +351,12 @@ get_key_provider(LDAP *ldap_handle, cfg_t *cfg, char *key_provider_dn,
         char *value = key_provider_cert[i]->bv_val;
         ber_len_t len = key_provider_cert[i]->bv_len;
 
-        struct pox509_key *key = malloc(sizeof *key);
+        struct pox509_key *key = new_key();
         if (key == NULL) {
             log_debug("malloc() error");
             res = POX509_NO_MEMORY;
             goto cleanup_d;
         }
-        init_key(key);
         key->x509 = d2i_X509(NULL, (const unsigned char **) &value, len);
         if (key->x509 == NULL) {
             log_error("d2i_X509(): cannot decode certificate");
@@ -524,12 +523,10 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
         }
 
         for (int i = 0; key_provider_dns[i] != NULL; i++) {
-            struct pox509_key_provider *key_provider =
-                malloc(sizeof(struct pox509_key_provider));
+            struct pox509_key_provider *key_provider = new_key_provider();
             if (key_provider == NULL) {
                 fatal("malloc()");
             }
-            init_key_provider(key_provider);
             get_key_provider(ldap_handle, cfg, key_provider_dns[i],
                 &key_provider);
             TAILQ_INSERT_TAIL(&profile->key_providers, key_provider,
@@ -538,12 +535,10 @@ process_access_on_behalf_profiles(LDAP *ldap_handle, cfg_t *cfg,
         free_attr_values_as_string_array(key_provider_dns);
 
         /* get keystore options */
-        profile->keystore_options =
-            malloc(sizeof(struct pox509_keystore_options));
+        profile->keystore_options = new_keystore_options();
         if (profile->keystore_options == NULL) {
             fatal("malloc()");
         }
-        init_keystore_options(profile->keystore_options);
         get_keystore_options(ldap_handle, cfg, profile->keystore_options_dn,
             profile->keystore_options);
     }
@@ -646,12 +641,10 @@ process_direct_access_profiles(LDAP *ldap_handle, cfg_t *cfg,
             continue;
         }
 
-        profile->keystore_options =
-            malloc(sizeof(struct pox509_keystore_options));
+        profile->keystore_options = new_keystore_options();
         if (profile->keystore_options == NULL) {
             fatal("malloc()");
         }
-        init_keystore_options(profile->keystore_options);
         get_keystore_options(ldap_handle, cfg, profile->keystore_options_dn,
             profile->keystore_options);
     } /* for */
@@ -674,7 +667,6 @@ add_access_on_behalf_profile(LDAP *ldap_handle, LDAPMessage *result, char *dn,
     if (profile == NULL) {
         fatal("malloc()");
     }
-    init_access_on_behalf_profile(profile);
 
     profile->dn = strdup(dn);
     if (profile->dn == NULL) {
@@ -743,7 +735,6 @@ add_direct_access_profile(LDAP *ldap_handle, LDAPMessage *result,
         log_debug("malloc() error");
         return POX509_NO_MEMORY;
     }
-    init_direct_access_profile(profile);
 
     profile->dn = strdup(access_profile_dn);
     if (profile->dn == NULL) {
