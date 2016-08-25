@@ -36,7 +36,7 @@
 #define SSH_KEYSTORE_PATH_BUFFER_SIZE 1024
 
 static void
-cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
+cleanup_info(pam_handle_t *pamh, void *data, int error_status)
 {
     /*
      * this function should normally be called through pam_end() for
@@ -65,10 +65,10 @@ cleanup_pox509_info(pam_handle_t *pamh, void *data, int error_status)
         fatal("pamh or data == NULL");
     }
 
-    struct pox509_info *pox509_info = data;
-    log_info("freeing pox509_info");
-    free_pox509_info(pox509_info);
-    log_info("pox509_info freed");
+    struct pox509_info *info = data;
+    log_info("freeing info");
+    free_info(info);
+    log_info("info freed");
 }
 
 PAM_EXTERN int
@@ -105,22 +105,22 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* initialize data transfer object */
-    struct pox509_info *pox509_info = new_pox509_info();
-    if (pox509_info == NULL) {
+    struct pox509_info *info = new_info();
+    if (info == NULL) {
         log_error("malloc() error");
         return PAM_BUF_ERR;
     }
 
     /* make data transfer object available to module stack */
-    rc = pam_set_data(pamh, "pox509_info", pox509_info, &cleanup_pox509_info);
+    rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
     if (rc != PAM_SUCCESS) {
         log_error("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
         return PAM_SYSTEM_ERR;
     }
 
     /* make syslog facility available in dto for downstream modules */
-    pox509_info->syslog_facility = strdup(syslog_facility);
-    if (pox509_info->syslog_facility == NULL) {
+    info->syslog_facility = strdup(syslog_facility);
+    if (info->syslog_facility == NULL) {
         log_error("strdup() error");
         return PAM_BUF_ERR;
     }
@@ -155,8 +155,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * in pam space because if we free our data structure we would free
      * it from global pam space as well. other modules could rely on it.
      */
-    pox509_info->uid = strndup(uid, MAX_UID_LENGTH);
-    if (pox509_info->uid == NULL) {
+    info->uid = strndup(uid, MAX_UID_LENGTH);
+    if (info->uid == NULL) {
         log_error("strndup() error");
         return PAM_BUF_ERR;
     }
@@ -168,17 +168,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     }
     char *ssh_keystore_location = cfg_getstr(cfg, "ssh_keystore_location");
-    substitute_token('u', pox509_info->uid, ssh_keystore_location,
-        expanded_path, SSH_KEYSTORE_PATH_BUFFER_SIZE);
-    pox509_info->ssh_keystore_location = expanded_path;
+    substitute_token('u', info->uid, ssh_keystore_location, expanded_path,
+        SSH_KEYSTORE_PATH_BUFFER_SIZE);
+    info->ssh_keystore_location = expanded_path;
 
     /* query ldap server */
-    rc = get_keystore_data_from_ldap(cfg, pox509_info);
+    rc = get_keystore_data_from_ldap(cfg, info);
     switch (rc) {
     case POX509_OK:
         break;
     case POX509_LDAP_CONNECTION_ERR:
-        pox509_info->ldap_online = 0;
+        info->ldap_online = 0;
         log_error("connection to ldap failed");
         break;
     default:
@@ -191,8 +191,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * authorized_keys format
      */
     //char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
-    //validate_x509(x509, cacerts_dir, pox509_info);
-    //x509_to_authorized_keys(x509, pox509_info);
+    //validate_x509(x509, cacerts_dir, info);
+    //x509_to_authorized_keys(x509, info);
 
     /* create oneliner for authorized_keys option */
 

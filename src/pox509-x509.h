@@ -42,7 +42,7 @@
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
 void validate_x509(X509 *x509, const char *cacerts_dir,
-    struct pox509_info *pox509_info);
+    struct pox509_info *info);
 
 /**
  * Convert a x509 certificate to an OpenSSH authorized_keys file entry.
@@ -50,7 +50,7 @@ void validate_x509(X509 *x509, const char *cacerts_dir,
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void x509_to_authorized_keys(X509 *x509, struct pox509_info *pox509_info);
+void x509_to_authorized_keys(X509 *x509, struct pox509_info *info);
 
 /**
  * Get serial from x509 certificate.
@@ -58,7 +58,7 @@ void x509_to_authorized_keys(X509 *x509, struct pox509_info *pox509_info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_serial_from_x509(X509 *x509, struct pox509_info *pox509_info);
+void get_serial_from_x509(X509 *x509, struct pox509_info *info);
 
 /**
  * Get issuer from x509 certificate.
@@ -66,7 +66,7 @@ void get_serial_from_x509(X509 *x509, struct pox509_info *pox509_info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_issuer_from_x509(X509 *x509, struct pox509_info *pox509_info);
+void get_issuer_from_x509(X509 *x509, struct pox509_info *info);
 
 /**
  * Get subject from x509 certificate.
@@ -74,5 +74,5 @@ void get_issuer_from_x509(X509 *x509, struct pox509_info *pox509_info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_subject_from_x509(X509 *x509, struct pox509_info *pox509_info);
+void get_subject_from_x509(X509 *x509, struct pox509_info *info);
 #endif

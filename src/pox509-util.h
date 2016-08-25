@@ -57,7 +57,7 @@ enum pox509_access_profile_type {
 /**
  * Sections for config lookup table.
  */
-enum pox509_sections {
+enum pox509_section {
     /** Section holding config options regarding syslog. */
     POX509_SYSLOG = 0,
     /** Section holding config options regarding libldap. */
@@ -66,7 +66,7 @@ enum pox509_sections {
 
 struct pox509_keystore_options {
     char *dn;
-    char *name;
+    char *uid;
     char *from_option;
     char *command_option;
     char *oneliner;
@@ -74,7 +74,6 @@ struct pox509_keystore_options {
 
 struct pox509_key {
     X509 *x509;
-    bool is_valid;
     char *ssh_keytype;
     char *ssh_key;
     TAILQ_ENTRY(pox509_key) keys;
@@ -84,49 +83,26 @@ struct pox509_key_provider {
     char *dn;
     char *uid;
     TAILQ_HEAD(, pox509_key) keys;
-    bool has_valid_key;
     TAILQ_ENTRY(pox509_key_provider) key_providers;
-};
-
-struct pox509_access_on_behalf_profile {
-    char *dn;
-    char *name;
-    char *target_keystore_group_dn;
-    char *key_provider_group_dn;
-    char *keystore_options_dn;
-    TAILQ_HEAD(, pox509_key_provider) key_providers;
-    struct pox509_keystore_options *keystore_options; 
-    TAILQ_ENTRY(pox509_access_on_behalf_profile) profiles;
-};
-
-struct pox509_direct_access_profile {
-    char *dn;
-    char *name;
-    char *key_provider_group_dn;
-    char *keystore_options_dn;
-    TAILQ_HEAD(, pox509_key_provider) key_providers;
-    struct pox509_keystore_options *keystore_options;
-    TAILQ_ENTRY(pox509_direct_access_profile) profiles;
 };
 
 struct pox509_access_profile {
     enum pox509_access_profile_type type;
-    union {
-        struct pox509_direct_access_profile *dap;
-        struct pox509_access_on_behalf_profile *aobp;
-    };
+    TAILQ_HEAD(, pox509_key_provider) key_providers;
+    struct pox509_keystore_options *keystore_options;
+    TAILQ_ENTRY(pox509_access_profile) access_profiles;
+};
+
+struct pox509_ssh_server {
+    char *dn;
+    char *uid;
 };
 
 struct pox509_info {
     char *uid;
     char *ssh_keystore_location;
-    char *ssh_server_dn;
-    /*
-    TAILQ_HEAD(, pox509_access_profile) direct_access_profiles;
-    TAILQ_HEAD(, pox509_access_profile) access_on_behalf_profiles;
-    */
-    TAILQ_HEAD(, pox509_direct_access_profile) direct_access_profiles;
-    TAILQ_HEAD(, pox509_access_on_behalf_profile) access_on_behalf_profiles;
+    struct pox509_ssh_server *ssh_server;
+    TAILQ_HEAD(, pox509_access_profile) access_profiles;
     char ldap_online;
     char *syslog_facility;
 };
@@ -147,7 +123,7 @@ struct pox509_info {
  * @return Upon successful completion, the appropriate enum constant
  * shall be returned. Otherwise -EINVAL shall be returned.
  */
-int str_to_enum(enum pox509_sections sec, const char *key);
+int str_to_enum(enum pox509_section section, const char *key);
 
 /**
  * Check if file is a regular and readable file.
@@ -220,23 +196,18 @@ int create_ldap_search_filter(const char *attr, const char *value, char *dst,
 int get_rdn_value_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
 
-/* start to be implemented */
-void free_access_profile(struct pox509_access_profile *access_profile);
-/* end to be implemented */
-
-/* constructor functions */
-struct pox509_info *new_pox509_info();
-struct pox509_access_profile *new_access_profile(enum pox509_access_profile_type
-    type);
+/* constructors */
+struct pox509_info *new_info();
+struct pox509_ssh_server *new_ssh_server();
+struct pox509_access_profile *new_access_profile();
 struct pox509_key_provider *new_key_provider();
 struct pox509_key *new_key();
 struct pox509_keystore_options *new_keystore_options();
-/* free functions */
+/* destructors */
+void free_info(struct pox509_info *info);
+void free_ssh_server(struct pox509_ssh_server *ssh_server);
+void free_access_profile(struct pox509_access_profile *access_profile);
+void free_key_provider(struct pox509_key_provider *key_provider);
 void free_key(struct pox509_key *key);
 void free_keystore_options(struct pox509_keystore_options *options);
-void free_key_provider(struct pox509_key_provider *key_provider);
-void free_access_on_behalf_profile(struct pox509_access_on_behalf_profile
-    *profile);
-void free_direct_access_profile(struct pox509_direct_access_profile *profile);
-void free_pox509_info(struct pox509_info *pox509_info);
 #endif

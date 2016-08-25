@@ -87,18 +87,18 @@ static struct pox509_str_to_enum_entry *str_to_enum_lt[] = {
 };
 
 int
-str_to_enum(enum pox509_sections sec, const char *key)
+str_to_enum(enum pox509_section section, const char *key)
 {
     if (key == NULL) {
         fatal("key == NULL");
     }
 
-    if (sec != POX509_SYSLOG && sec != POX509_LIBLDAP) {
-        fatal("invalid section (%d)", sec);
+    if (section != POX509_SYSLOG && section != POX509_LIBLDAP) {
+        fatal("invalid section (%d)", section);
     }
 
     struct pox509_str_to_enum_entry *str_to_enum_entry;
-    for (str_to_enum_entry = str_to_enum_lt[sec];
+    for (str_to_enum_entry = str_to_enum_lt[section];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
         if(strcmp(str_to_enum_entry->key, key) != 0) {
             continue;
@@ -121,102 +121,6 @@ get_ldap_search_timeout(cfg_t *cfg)
         .tv_usec = 0
     };
     return search_timeout;
-}
-
-struct pox509_info *
-new_pox509_info()
-{
-    struct pox509_info *info = malloc(sizeof *info);
-    if (info == NULL) {
-        return NULL;
-    }
-
-    memset(info, 0, sizeof *info);
-    TAILQ_INIT(&info->direct_access_profiles);
-    TAILQ_INIT(&info->access_on_behalf_profiles);
-    info->ldap_online = POX509_UNDEF;
-    return info;
-}
-
-struct pox509_access_profile *
-new_access_profile(enum pox509_access_profile_type type)
-{
-    if (type != DIRECT_ACCESS_PROFILE && type != ACCESS_ON_BEHALF_PROFILE) {
-        fatal("type != { DIRECT_ACCESS_PROFILE, ACCESS_ON_BEHALF_PROFILE }");
-    }
-
-    struct pox509_access_profile *access_profile =
-        malloc(sizeof *access_profile);
-    if (access_profile == NULL) {
-        return NULL;
-    }
-
-    memset(access_profile, 0, sizeof *access_profile);
-    access_profile->type = type;
-
-    switch (type) {
-    case DIRECT_ACCESS_PROFILE:
-        access_profile->dap = malloc(sizeof *access_profile->dap);
-        if (access_profile->dap == NULL) {
-            goto error;
-        }
-        memset(access_profile->dap, 0, sizeof *access_profile->dap);
-        TAILQ_INIT(&access_profile->dap->key_providers);
-        break;
-    case ACCESS_ON_BEHALF_PROFILE:
-        access_profile->aobp = malloc(sizeof *access_profile->aobp);
-        if (access_profile->aobp == NULL) {
-            goto error;
-        }
-        memset(access_profile->aobp, 0, sizeof *access_profile->aobp);
-        TAILQ_INIT(&access_profile->aobp->key_providers);
-        break;
-    }
-    return access_profile;
-
-error:
-    free(access_profile);
-    return NULL;
-}
-
-struct pox509_key_provider *
-new_key_provider()
-{
-    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
-    if (key_provider == NULL) {
-        return NULL;
-    }
-
-    memset(key_provider, 0, sizeof *key_provider);
-    key_provider->has_valid_key = false;
-    TAILQ_INIT(&key_provider->keys);
-    return key_provider;
-}
-
-struct pox509_key *
-new_key()
-{
-    struct pox509_key *key = malloc(sizeof *key);
-    if (key == NULL) {
-        return NULL;
-    }
-
-    memset(key, 0, sizeof *key);
-    key->is_valid = false;
-    return key;
-}
-
-struct pox509_keystore_options *
-new_keystore_options() {
-
-    struct pox509_keystore_options *keystore_options =
-        malloc(sizeof *keystore_options);
-    if (keystore_options == NULL) {
-        return NULL;
-    }
-
-    memset(keystore_options, 0, sizeof *keystore_options);
-    return keystore_options;
 }
 
 bool
@@ -361,6 +265,156 @@ cleanup:
     return res;
 }
 
+/* constructors */
+struct pox509_info *
+new_info()
+{
+    struct pox509_info *info = malloc(sizeof *info);
+    if (info == NULL) {
+        return NULL;
+    }
+
+    memset(info, 0, sizeof *info);
+    TAILQ_INIT(&info->access_profiles);
+    info->ldap_online = POX509_UNDEF;
+    return info;
+}
+
+struct pox509_ssh_server *
+new_ssh_server()
+{
+    struct pox509_ssh_server *ssh_server = malloc(sizeof *ssh_server);
+    if (ssh_server == NULL) {
+        return NULL;
+    }
+
+    memset(ssh_server, 0, sizeof *ssh_server);
+    return ssh_server;
+}
+
+struct pox509_access_profile *
+new_access_profile()
+{
+    struct pox509_access_profile *access_profile =
+        malloc(sizeof *access_profile);
+    if (access_profile == NULL) {
+        return NULL;
+    }
+
+    memset(access_profile, 0, sizeof *access_profile);
+    access_profile->type = POX509_UNDEF;
+    TAILQ_INIT(&access_profile->key_providers);
+    return access_profile;
+}
+
+struct pox509_key_provider *
+new_key_provider()
+{
+    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
+    if (key_provider == NULL) {
+        return NULL;
+    }
+
+    memset(key_provider, 0, sizeof *key_provider);
+    TAILQ_INIT(&key_provider->keys);
+    return key_provider;
+}
+
+struct pox509_key *
+new_key()
+{
+    struct pox509_key *key = malloc(sizeof *key);
+    if (key == NULL) {
+        return NULL;
+    }
+
+    memset(key, 0, sizeof *key);
+    return key;
+}
+
+struct pox509_keystore_options *
+new_keystore_options() {
+
+    struct pox509_keystore_options *keystore_options =
+        malloc(sizeof *keystore_options);
+    if (keystore_options == NULL) {
+        return NULL;
+    }
+
+    memset(keystore_options, 0, sizeof *keystore_options);
+    return keystore_options;
+}
+
+/* destructors */
+void
+free_info(struct pox509_info *info)
+{
+    if (info == NULL) {
+        log_debug("double free?");
+        return;
+    }
+
+    free(info->uid);
+    free(info->ssh_keystore_location);
+    free_ssh_server(info->ssh_server);
+    struct pox509_access_profile *access_profile = NULL;
+    while ((access_profile = TAILQ_FIRST(&info->access_profiles))) {
+        TAILQ_REMOVE(&info->access_profiles, access_profile, access_profiles);
+        free_access_profile(access_profile);
+    }
+    free(info->syslog_facility);
+    free(info);
+}
+
+void
+free_ssh_server(struct pox509_ssh_server *ssh_server)
+{
+    if (ssh_server == NULL) {
+        log_debug("double free?");
+        return;
+    }
+
+    free(ssh_server->dn);
+    free(ssh_server->uid);
+    free(ssh_server);
+}
+
+void
+free_access_profile(struct pox509_access_profile *access_profile)
+{
+    if (access_profile == NULL) {
+        log_debug("double free?");
+        return;
+    }
+
+    struct pox509_key_provider *key_provider = NULL;
+    while ((key_provider = TAILQ_FIRST(&access_profile->key_providers))) {
+        TAILQ_REMOVE(&access_profile->key_providers, key_provider,
+            key_providers);
+        free_key_provider(key_provider);
+    }
+    free_keystore_options(access_profile->keystore_options);
+    free(access_profile);
+}
+
+void
+free_key_provider(struct pox509_key_provider *key_provider)
+{
+    if (key_provider == NULL) {
+        log_debug("double free?");
+        return;
+    }
+
+    free(key_provider->dn);
+    free(key_provider->uid);
+    struct pox509_key *key = NULL;
+    while ((key = TAILQ_FIRST(&key_provider->keys))) {
+        TAILQ_REMOVE(&key_provider->keys, key, keys);
+        free_key(key);
+    }
+    free(key_provider);
+}
+
 void
 free_key(struct pox509_key *key)
 {
@@ -376,25 +430,6 @@ free_key(struct pox509_key *key)
 }
 
 void
-free_key_provider(struct pox509_key_provider *key_provider)
-{
-    if (key_provider == NULL) {
-        log_debug("double free?");
-        return;
-    }
-
-    free(key_provider->dn);
-    free(key_provider->uid);
-    /* free certificates */
-    struct pox509_key *key = NULL;
-    while ((key = TAILQ_FIRST(&key_provider->keys))) {
-        TAILQ_REMOVE(&key_provider->keys, key, keys);
-        free_key(key);
-    }
-    free(key_provider);
-}
-
-void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
@@ -403,88 +438,10 @@ free_keystore_options(struct pox509_keystore_options *options)
     }
 
     free(options->dn);
-    free(options->name);
+    free(options->uid);
     free(options->from_option);
     free(options->command_option);
     free(options->oneliner);
     free(options);
-}
-
-void
-free_direct_access_profile(struct pox509_direct_access_profile *profile)
-{
-    if (profile == NULL) {
-        log_debug("double free?");
-        return;
-    }
-
-    free(profile->dn);
-    free(profile->name);
-    free(profile->key_provider_group_dn);
-    free(profile->keystore_options_dn);
-    /* free key providers */
-    struct pox509_key_provider *key_provider = NULL;
-    while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
-        TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
-        free_key_provider(key_provider);
-    }
-    free_keystore_options(profile->keystore_options);
-    free(profile);
-}
-
-void
-free_access_on_behalf_profile(struct pox509_access_on_behalf_profile *profile)
-{
-    if (profile == NULL) {
-        log_debug("double free?");
-        return;
-    }
-
-    free(profile->dn);
-    free(profile->name);
-    free(profile->target_keystore_group_dn);
-    free(profile->key_provider_group_dn);
-    free(profile->keystore_options_dn);
-    /* free key providers */
-    struct pox509_key_provider *key_provider = NULL;
-    while ((key_provider = TAILQ_FIRST(&profile->key_providers))) {
-        TAILQ_REMOVE(&profile->key_providers, key_provider, key_providers);
-        free_key_provider(key_provider);
-    }
-    free_keystore_options(profile->keystore_options);
-    free(profile);
-}
-
-void
-free_pox509_info(struct pox509_info *pox509_info)
-{
-    if (pox509_info == NULL) {
-        log_debug("double free?");
-        return;
-    }
-
-    free(pox509_info->uid);
-    free(pox509_info->ssh_keystore_location);
-    free(pox509_info->ssh_server_dn);
-    /* free direct access profiles */
-    struct pox509_direct_access_profile *direct_access_profile = NULL;
-    while ((direct_access_profile =
-        TAILQ_FIRST(&pox509_info->direct_access_profiles))) {
-
-        TAILQ_REMOVE(&pox509_info->direct_access_profiles,
-            direct_access_profile, profiles);
-        free_direct_access_profile(direct_access_profile);
-    }
-    /* free access on behalf profiles */
-    struct pox509_access_on_behalf_profile *access_on_behalf_profile = NULL;
-    while ((access_on_behalf_profile =
-        TAILQ_FIRST(&pox509_info->access_on_behalf_profiles))) {
-
-        TAILQ_REMOVE(&pox509_info->access_on_behalf_profiles,
-            access_on_behalf_profile, profiles);
-        free_access_on_behalf_profile(access_on_behalf_profile);
-    }
-    free(pox509_info->syslog_facility);
-    free(pox509_info);
 }
 
