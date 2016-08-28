@@ -76,21 +76,23 @@ struct pox509_key {
     X509 *x509;
     char *ssh_keytype;
     char *ssh_key;
-    TAILQ_ENTRY(pox509_key) keys;
+    SIMPLEQ_ENTRY(pox509_key) next;
 };
 
 struct pox509_key_provider {
     char *dn;
     char *uid;
-    TAILQ_HEAD(, pox509_key) keys;
-    TAILQ_ENTRY(pox509_key_provider) key_providers;
+    SIMPLEQ_HEAD(pox509_keys, pox509_key) *keys;
+    SIMPLEQ_ENTRY(pox509_key_provider) next;
 };
 
 struct pox509_access_profile {
     enum pox509_access_profile_type type;
-    TAILQ_HEAD(, pox509_key_provider) key_providers;
+    char *dn;
+    char *uid;
+    SIMPLEQ_HEAD(pox509_key_providers, pox509_key_provider) *key_providers;
     struct pox509_keystore_options *keystore_options;
-    TAILQ_ENTRY(pox509_access_profile) access_profiles;
+    SIMPLEQ_ENTRY(pox509_access_profile) next;
 };
 
 struct pox509_ssh_server {
@@ -102,9 +104,10 @@ struct pox509_info {
     char *uid;
     char *ssh_keystore_location;
     struct pox509_ssh_server *ssh_server;
-    TAILQ_HEAD(, pox509_access_profile) access_profiles;
+    SIMPLEQ_HEAD(pox509_access_profiles, pox509_access_profile)
+        *access_profiles;
     char ldap_online;
-    char *syslog_facility;
+    cfg_t *cfg;
 };
 
 /**
@@ -199,15 +202,21 @@ struct timeval get_ldap_search_timeout(cfg_t *cfg);
 /* constructors */
 struct pox509_info *new_info();
 struct pox509_ssh_server *new_ssh_server();
+struct pox509_access_profiles *new_access_profiles();
 struct pox509_access_profile *new_access_profile();
+struct pox509_key_providers *new_key_providers();
 struct pox509_key_provider *new_key_provider();
+struct pox509_keys *new_keys();
 struct pox509_key *new_key();
 struct pox509_keystore_options *new_keystore_options();
 /* destructors */
 void free_info(struct pox509_info *info);
 void free_ssh_server(struct pox509_ssh_server *ssh_server);
+void free_access_profiles(struct pox509_access_profiles *access_profiles);
 void free_access_profile(struct pox509_access_profile *access_profile);
+void free_key_providers(struct pox509_key_providers *key_providers);
 void free_key_provider(struct pox509_key_provider *key_provider);
+void free_keys(struct pox509_keys *keys);
 void free_key(struct pox509_key *key);
 void free_keystore_options(struct pox509_keystore_options *options);
 #endif

@@ -41,5 +41,5 @@ cfg_t *parse_config(const char *cfg_file);
  *
  * @param[in] cfg Configuration structure. Must not be @c NULL.
  */
-void release_config(cfg_t *cfg);
+void free_config(cfg_t *cfg);
 #endif

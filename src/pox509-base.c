@@ -89,22 +89,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
 
-    /* parse config */
-    cfg_t *cfg = parse_config(cfg_file);
-    if (cfg == NULL) {
-        log_error("parse_config() error");
-        return PAM_SERVICE_ERR;
-    }
-
-    /* set syslog facility */
-    char *syslog_facility = cfg_getstr(cfg, "syslog_facility");
-    int rc = set_syslog_facility(syslog_facility);
-    if (rc != POX509_OK) {
-        log_error("set_syslog_facility(): '%s' (%s)", syslog_facility,
-            pox509_strerror(rc));
-    }
-
-    /* initialize data transfer object */
+    /* initialize info object */
     struct pox509_info *info = new_info();
     if (info == NULL) {
         log_error("malloc() error");
@@ -112,17 +97,25 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* make data transfer object available to module stack */
-    rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
+    int rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
     if (rc != PAM_SUCCESS) {
         log_error("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
         return PAM_SYSTEM_ERR;
     }
 
-    /* make syslog facility available in dto for downstream modules */
-    info->syslog_facility = strdup(syslog_facility);
-    if (info->syslog_facility == NULL) {
-        log_error("strdup() error");
-        return PAM_BUF_ERR;
+    /* parse config */
+    info->cfg = parse_config(cfg_file);
+    if (info->cfg == NULL) {
+        log_error("parse_config() error");
+        return PAM_SERVICE_ERR;
+    }
+
+    /* set syslog facility */
+    char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
+    rc = set_syslog_facility(syslog_facility);
+    if (rc != POX509_OK) {
+        log_error("set_syslog_facility(): '%s' (%s)", syslog_facility,
+            pox509_strerror(rc));
     }
 
     /* retrieve uid */
@@ -167,13 +160,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("malloc() error");
         return PAM_BUF_ERR;
     }
-    char *ssh_keystore_location = cfg_getstr(cfg, "ssh_keystore_location");
+    char *ssh_keystore_location =
+        cfg_getstr(info->cfg, "ssh_keystore_location");
     substitute_token('u', info->uid, ssh_keystore_location, expanded_path,
         SSH_KEYSTORE_PATH_BUFFER_SIZE);
     info->ssh_keystore_location = expanded_path;
 
     /* query ldap server */
-    rc = get_keystore_data_from_ldap(cfg, info);
+    rc = get_keystore_data_from_ldap(info);
     switch (rc) {
     case POX509_OK:
         break;
@@ -190,14 +184,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* validate certificates and convert public key to OpenSSH
      * authorized_keys format
      */
-    //char *cacerts_dir = cfg_getstr(cfg, "cacerts_dir");
+    //char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
     //validate_x509(x509, cacerts_dir, info);
     //x509_to_authorized_keys(x509, info);
 
     /* create oneliner for authorized_keys option */
-
-    /* free config */
-    release_config(cfg);
 
     return PAM_SUCCESS;
 }

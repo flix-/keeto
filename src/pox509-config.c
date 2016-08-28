@@ -283,7 +283,7 @@ parse_config(const char *cfg_file)
 }
 
 void
-release_config(cfg_t *cfg)
+free_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
         log_debug("double free?");
