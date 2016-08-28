@@ -58,8 +58,14 @@ pox509_strerror(int errnum)
         return "POX509_NOT_RELEVANT";
     case POX509_NO_CERTS:
         return "POX509_NO_CERTS";
+    case POX509_NO_KEY_PROVIDER:
+        return "POX509_NO_KEY_PROVIDER";
     case POX509_X509_ERR:
         return "POX509_X509_ERR";
+    case POX509_NO_ACCESS_PROFILES:
+        return "POX509_NO_ACCESS_PROFILES";
+    case POX509_NO_SUCH_ACCESS_PROFILE_TYPE:
+        return "POX509_NO_SUCH_ACCESS_PROFILE_TYPE";
 
     case POX509_UNKNOWN_ERR:
         return "POX509_UNKNOWN_ERR";

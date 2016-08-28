@@ -490,11 +490,19 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
             res = rc;
             goto cleanup_b;
         default:
-            continue;
+            goto cleanup_inner;
         }
 cleanup_inner:
         ldap_msgfree(key_provider_entry);
     }
+
+    /* check if not empty */
+    if (SIMPLEQ_EMPTY(key_providers)) {
+        log_info("no key providers found");
+        res = POX509_NO_KEY_PROVIDER;
+        goto cleanup_b;
+    }
+
     access_profile->key_providers = key_providers;
     key_providers = NULL;
     res = POX509_OK;
@@ -685,6 +693,8 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
 
     /* add keystore options */
 
+    res = POX509_OK;
+
 cleanup_b:
     ldap_msgfree(group_member_entry);
 cleanup_a:
@@ -712,7 +722,6 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         return rc;
     }
     if (!is_access_profile_relevant) {
-        log_info("skipping access profile");
         return POX509_NOT_RELEVANT;
     }
 
@@ -812,11 +821,18 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
             goto cleanup_b;
         default:
             log_debug("add_access_profile(): '%s'", pox509_strerror(rc));
-            continue;
+            goto cleanup_inner;
         }
 cleanup_inner:
         ldap_msgfree(access_profile_entry);
     }
+
+    if (SIMPLEQ_EMPTY(access_profiles)) {
+        log_info("no access profiles found");
+        res = POX509_NO_ACCESS_PROFILES;
+        goto cleanup_b;
+    }
+
     info->access_profiles = access_profiles;
     access_profiles = NULL;
     res = POX509_OK;
