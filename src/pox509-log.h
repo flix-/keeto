@@ -42,18 +42,6 @@ void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 /**
  * Log message to syslog.
  *
- * The message is prefixed with '[W]'.
- *
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @see man 3 printf.
- */
-void log_warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
-/**
- * Log message to syslog.
- *
  * The message is prefixed with '[E]'.
  *
  * @param[in] fmt Format string. Must not be @c NULL.
@@ -62,18 +50,6 @@ void log_warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  * @see man 3 printf.
  */
 void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
-/**
- * Log message to syslog.
- *
- * The message is prefixed with '[!]'.
- *
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @see man 3 printf.
- */
-void log_critical(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /**
  * Wrapper for #pox509_log_debug.

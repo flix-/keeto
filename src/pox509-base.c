@@ -171,7 +171,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case POX509_OK:
         break;
     case POX509_NO_MEMORY:
-        log_critical("'%s'", pox509_strerror(rc));
+        log_error("'%s'", pox509_strerror(rc));
         return PAM_BUF_ERR;
     case POX509_LDAP_CONNECTION_ERR:
         info->ldap_online = 0;
