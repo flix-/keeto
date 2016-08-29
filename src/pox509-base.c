@@ -193,7 +193,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     //x509_to_authorized_keys(x509, info);
 
     /* create oneliner for authorized_keys option */
-
     return PAM_SUCCESS;
 }
 
@@ -203,7 +202,6 @@ pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
     if (pamh == NULL || argv == NULL) {
         fatal("pamh or argv == NULL");
     }
-
     return PAM_SUCCESS;
 }
 

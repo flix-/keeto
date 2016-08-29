@@ -36,7 +36,7 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
     -llber ${libcrypto_LIBS}"])
 
 # set compiler flags
-AC_SUBST([CFLAGS], ["-Wall -std=gnu11 -pedantic-errors -ggdb"])
+AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors -ggdb"])
 
 # Checks for header files.
 

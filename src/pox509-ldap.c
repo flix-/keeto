@@ -63,6 +63,7 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *entry, char *attr,
         fatal("ldap_handle, entry, attr or ret == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     /* get attribute values */
     entry = ldap_first_entry(ldap_handle, entry);
     if (entry == NULL) {
@@ -77,7 +78,6 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *entry, char *attr,
         return POX509_LDAP_NO_SUCH_ATTR;
     }
 
-    int res = POX509_UNKNOWN_ERR;
     /* count values so we know how wide our array has to be */
     int count = ldap_count_values_len(values);
     if (count == 0) {
@@ -156,7 +156,7 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
         return rc;
     }
 
-    int res = POX509_NO_SUCH_ACCESS_PROFILE_TYPE;
+    int res = POX509_UNKNOWN_ACCESS_PROFILE_TYPE;
     /* search for access profile type */
     for (int i = 0; objectclasses[i] != NULL; i++) {
         char *objectclass = objectclasses[i];
@@ -171,7 +171,6 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
         }
     }
     free_attr_values_as_string_array(objectclasses);
-
     return res;
 }
 
@@ -209,86 +208,102 @@ cleanup:
     return res;
 }
 
-static void
-get_target_keystore_uid(LDAP *ldap_handle, struct pox509_info *info,
-    char *target_keystore_dn, char ***target_keystore_uid)
+static int
+check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
+    LDAPMessage *access_profile_entry, bool *ret)
 {
-    if (ldap_handle == NULL || info == NULL || target_keystore_dn == NULL ||
-        target_keystore_uid == NULL) {
-
-        fatal("ldap_handle, info, target_keystore_dn or target_keystore_uid == "
-            "NULL");
+    if (ldap_handle == NULL || info == NULL || access_profile_entry == NULL ||
+        ret == NULL) {
+        fatal("ldap_handle, info, access_profile_entry or ret == NULL");
     }
 
-    char *target_keystore_uid_attr =
-        cfg_getstr(info->cfg, "ldap_target_keystore_uid_attr");
-    char *attrs[] = {
-        target_keystore_uid_attr,
-        NULL
-    };
+    int res = POX509_UNKNOWN_ERR;
+    /* get target keystore group dn */
+    char **target_keystore_group_dn = NULL;
+    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
+        POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
+    if (rc != POX509_OK) {
+        return rc;
+    }
+    /* get group member entry */
+    char *target_keystore_group_member_attr = cfg_getstr(info->cfg,
+        "ldap_target_keystore_group_member_attr");
+    LDAPMessage *group_member_entry = NULL;
+    rc = get_group_member_entry(ldap_handle, info, target_keystore_group_dn[0],
+        target_keystore_group_member_attr, &group_member_entry);
+    if (rc != POX509_OK) {
+        res = rc;
+        goto cleanup_a;
+    }
+    log_info("processing target keystore group '%s'",
+        target_keystore_group_dn[0]);
+    /* get target keystore dns */
+    char **target_keystore_dns = NULL;
+    rc = get_attr_values_as_string(ldap_handle, group_member_entry,
+        target_keystore_group_member_attr, &target_keystore_dns);
+    if (rc != POX509_OK) {
+        res = rc;
+        goto cleanup_b;
+    }
+
+    /* check target keystores */
     struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
-    LDAPMessage *result = NULL;
+    char *target_keystore_uid_attr = cfg_getstr(info->cfg,
+        "ldap_target_keystore_uid_attr");
+    char *attrs[] = { target_keystore_uid_attr, NULL };
+    bool is_relevant = false;
+    for (int i = 0; target_keystore_dns[i] != NULL && !is_relevant; i++) {
+        char *target_keystore_dn = target_keystore_dns[i];
+        log_info("checking target keystore '%s'", target_keystore_dn);
 
-    int rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
-        NULL, attrs, 0, NULL, NULL, &search_timeout, 1, &result);
-    if (rc != LDAP_SUCCESS) {
-        fatal("ldap_search_ext_s(): base: '%s' - '%s' (%d)", target_keystore_dn,
-        ldap_err2string(rc), rc);
+        LDAPMessage *target_keystore_entry = NULL;
+        rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
+            NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
+            &target_keystore_entry);
+        if (rc != LDAP_SUCCESS) {
+            log_debug("ldap_search_ext_s(): base: '%s' - '%s' (%d)",
+            target_keystore_dn, ldap_err2string(rc), rc);
+            goto cleanup_inner;
+        }
+        /* get uid from target keystore */
+        char **target_keystore_uid = NULL;
+        int rc = get_attr_values_as_string(ldap_handle, target_keystore_entry,
+            target_keystore_uid_attr, &target_keystore_uid);
+        switch (rc) {
+        case POX509_OK:
+            break;
+        case POX509_NO_MEMORY:
+            res = rc;
+            free_attr_values_as_string_array(target_keystore_uid);
+            ldap_msgfree(target_keystore_entry);
+            goto cleanup_c;
+        default:
+            log_info("skipping target keystore (%s)", pox509_strerror(rc));
+            goto cleanup_inner;
+        }
+        /* check uid */
+        if (strcmp(info->uid, target_keystore_uid[0]) == 0) {
+            is_relevant = true;
+        }
+        free_attr_values_as_string_array(target_keystore_uid);
+cleanup_inner:
+        ldap_msgfree(target_keystore_entry);
     }
+    *ret = is_relevant;
+    res = POX509_OK;
 
-    get_attr_values_as_string(ldap_handle, result, target_keystore_uid_attr,
-        target_keystore_uid);
-    ldap_msgfree(result);
+cleanup_c:
+    free_attr_values_as_string_array(target_keystore_dns);
+cleanup_b:
+    ldap_msgfree(group_member_entry);
+cleanup_a:
+    free_attr_values_as_string_array(target_keystore_group_dn);
+    return res;
 }
 
-//static bool
-//is_relevant_aobp(LDAP *ldap_handle, cfg_t *cfg, struct pox509_info *info,
-//    struct pox509_access_on_behalf_profile *profile)
-//{
-//    if (ldap_handle == NULL || cfg == NULL || info == NULL ||
-//        profile == NULL) {
-//
-//        fatal("ldap_handle, cfg, info or profile == NULL");
-//    }
-//
-//    if (info->uid == NULL) {
-//        fatal("info->uid == NULL");
-//    }
-//
-//    /* check target keystores */
-//    char *target_keystore_group_member_attr = cfg_getstr(cfg,
-//        "ldap_target_keystore_group_member_attr");
-//    char **target_keystore_dns = NULL;
-//    get_group_member_dns(ldap_handle, cfg, profile->target_keystore_group_dn,
-//        target_keystore_group_member_attr, &target_keystore_dns);
-//    if (target_keystore_dns == NULL) {
-//        fatal("target_keystore_dns == NULL");
-//    }
-//
-//    char **target_keystore_uid = NULL;
-//    bool target_keystore_has_uid = false;
-//    for (int i = 0; target_keystore_dns[i] != NULL && !target_keystore_has_uid;
-//        i++) {
-//
-//        get_target_keystore_uid(ldap_handle, cfg, target_keystore_dns[i],
-//            &target_keystore_uid);
-//        if (target_keystore_uid == NULL) {
-//            fatal("target_keystore_uid == NULL");
-//        }
-//
-//        if(strcmp(info->uid, target_keystore_uid[0]) == 0) {
-//            target_keystore_has_uid = true;
-//        }
-//        free_attr_values_as_string_array(target_keystore_uid);
-//        target_keystore_uid = NULL;
-//    }
-//    free_attr_values_as_string_array(target_keystore_dns);
-//    return target_keystore_has_uid;
-//}
-
 static int
-check_profile_enabled(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
-    bool *ret)
+check_access_profile_enabled(LDAP *ldap_handle,
+    LDAPMessage *access_profile_entry, bool *ret)
 {
     if (ldap_handle == NULL || access_profile_entry == NULL || ret == NULL) {
         fatal("ldap_handle, access_profile_entry or ret == NULL");
@@ -303,12 +318,11 @@ check_profile_enabled(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
     }
     *ret = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ? true : false;
     free_attr_values_as_string_array(access_profile_state);
-
     return POX509_OK;
 }
 
 static int
-check_access_profile_relevance_general(LDAP *ldap_handle,
+check_access_profile_relevance_generic(LDAP *ldap_handle,
     LDAPMessage *access_profile_entry, bool *ret)
 {
     if (ldap_handle == NULL || access_profile_entry == NULL || ret == NULL) {
@@ -316,8 +330,8 @@ check_access_profile_relevance_general(LDAP *ldap_handle,
     }
 
     /* check if acccess profile entry is enabled */
-    bool is_profile_enabled;
-    int rc = check_profile_enabled(ldap_handle, access_profile_entry,
+    bool is_profile_enabled = false;
+    int rc = check_access_profile_enabled(ldap_handle, access_profile_entry,
         &is_profile_enabled);
     if (rc != POX509_OK) {
         return rc;
@@ -608,7 +622,6 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
         rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
             NULL, attrs, 0, NULL, NULL, &search_timeout, 1, &key_provider_entry);
         if (rc != LDAP_SUCCESS) {
-            res = rc;
             log_debug("ldap_search_ext_s(): base: '%s' - '%s' (%d)",
             key_provider_dn, ldap_err2string(rc), rc);
             goto cleanup_inner;
@@ -621,6 +634,7 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
             break;
         case POX509_NO_MEMORY:
             res = rc;
+            ldap_msgfree(key_provider_entry);
             goto cleanup_b;
         default:
             log_info("skipping key provider (%s)", pox509_strerror(rc));
@@ -662,15 +676,6 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     }
 
     int res = POX509_UNKNOWN_ERR;
-    /*
-     * an access on behalf profile is only relevant if there
-     * is a target keystore with a uid matching the uid of
-     * the user currently logging in.
-     */
-    if (access_profile->type == ACCESS_ON_BEHALF_PROFILE) {
-
-    }
-
     /* add key providers */
     char **key_provider_group_dn = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
@@ -721,14 +726,39 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
 
     int res = POX509_UNKNOWN_ERR;
     /* check if acccess profile is relevant */
-    bool is_access_profile_relevant;
-    int rc = check_access_profile_relevance_general(ldap_handle,
+    bool is_access_profile_relevant = false;
+    int rc = check_access_profile_relevance_generic(ldap_handle,
         access_profile_entry, &is_access_profile_relevant);
     if (rc != POX509_OK) {
         return rc;
     }
     if (!is_access_profile_relevant) {
         return POX509_NOT_RELEVANT;
+    }
+
+    /* get access profile type */
+    enum pox509_access_profile_type access_profile_type;
+    rc = get_access_profile_type(ldap_handle, access_profile_entry,
+        &access_profile_type);
+    if (rc != POX509_OK) {
+        log_debug("get_access_profile_type(): '%s'", pox509_strerror(rc));
+        return rc;
+    }
+    /*
+     * an access on behalf profile is only relevant if there
+     * is a target keystore with a uid matching the uid of
+     * the user currently logging in.
+     */
+    if (access_profile_type == ACCESS_ON_BEHALF_PROFILE) {
+        bool is_aobp_relevant = false;
+        rc = check_access_profile_relevance_aobp(ldap_handle, info,
+            access_profile_entry, &is_aobp_relevant);
+        if (rc != POX509_OK) {
+            return rc;
+        }
+        if (!is_aobp_relevant) {
+            return POX509_NOT_RELEVANT;
+        }
     }
 
     /* create and populate access profile */
@@ -738,15 +768,6 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
             pox509_strerror(POX509_NO_MEMORY));
         return POX509_NO_MEMORY;
     }
-    enum pox509_access_profile_type access_profile_type;
-    rc = get_access_profile_type(ldap_handle, access_profile_entry,
-        &access_profile_type);
-    if (rc != POX509_OK) {
-        log_debug("get_access_profile_type(): '%s'", pox509_strerror(rc));
-        res = rc;
-        goto cleanup;
-    }
-
     access_profile->type = access_profile_type;
     access_profile->dn = ldap_get_dn(ldap_handle, access_profile_entry);
     if (access_profile->dn == NULL) {
@@ -813,9 +834,9 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
 
         LDAPMessage *access_profile_entry = NULL;
         rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
-            NULL, NULL, 0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
+            NULL, NULL, 0, NULL, NULL, &search_timeout, 1,
+                &access_profile_entry);
         if (rc != LDAP_SUCCESS) {
-            res = rc;
             log_debug("ldap_search_ext_s(): base: '%s' - '%s' (%d)",
             access_profile_dn, ldap_err2string(rc), rc);
             goto cleanup_inner;
@@ -828,6 +849,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
             break;
         case POX509_NO_MEMORY:
             res = rc;
+            ldap_msgfree(access_profile_entry);
             goto cleanup_b;
         default:
             log_info("skipping access profile: (%s)", pox509_strerror(rc));
@@ -1055,6 +1077,7 @@ init_ldap_handle(LDAP **ret, struct pox509_info *info)
         fatal("ret or info == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     LDAP *ldap_handle = NULL;
     char *ldap_uri = cfg_getstr(info->cfg, "ldap_uri");
     int rc = ldap_initialize(&ldap_handle, ldap_uri);
@@ -1062,8 +1085,6 @@ init_ldap_handle(LDAP **ret, struct pox509_info *info)
         log_debug("ldap_initialize(): '%s' (%d)", ldap_err2string(rc), rc);
         return POX509_LDAP_ERR;
     }
-
-    int res = POX509_UNKNOWN_ERR;
     rc = set_ldap_options(ldap_handle, info);
     if (rc != POX509_OK) {
         res = rc;
@@ -1091,6 +1112,7 @@ get_keystore_data_from_ldap(struct pox509_info *info)
         fatal("info == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     /* init ldap handle */
     LDAP *ldap_handle;
     int rc = init_ldap_handle(&ldap_handle, info);
@@ -1098,7 +1120,6 @@ get_keystore_data_from_ldap(struct pox509_info *info)
         return rc;
     }
 
-    int res = POX509_UNKNOWN_ERR;
     /* connect to ldap server */
     rc = connect_to_ldap(ldap_handle, info);
     if (rc != POX509_OK) {

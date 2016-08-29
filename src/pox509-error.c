@@ -64,8 +64,8 @@ pox509_strerror(int errnum)
         return "x509 error";
     case POX509_NO_ACCESS_PROFILE:
         return "no access profile";
-    case POX509_NO_SUCH_ACCESS_PROFILE_TYPE:
-        return "no such access profile type";
+    case POX509_UNKNOWN_ACCESS_PROFILE_TYPE:
+        return "unknown access profile type";
 
     case POX509_UNKNOWN_ERR:
         return "unknown error";

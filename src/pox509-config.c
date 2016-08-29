@@ -286,7 +286,6 @@ free_config(cfg_t *cfg)
     if (cfg == NULL) {
         return;
     }
-
     /* free cfg structure */
     cfg_free(cfg);
 }
