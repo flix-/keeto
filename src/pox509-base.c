@@ -68,7 +68,6 @@ cleanup_info(pam_handle_t *pamh, void *data, int error_status)
     struct pox509_info *info = data;
     log_info("freeing info");
     free_info(info);
-    log_info("info freed");
 }
 
 PAM_EXTERN int
@@ -92,21 +91,21 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* initialize info object */
     struct pox509_info *info = new_info();
     if (info == NULL) {
-        log_error("malloc() error");
+        log_debug("new_info(): '%s'", pox509_strerror(POX509_NO_MEMORY));
         return PAM_BUF_ERR;
     }
 
     /* make data transfer object available to module stack */
     int rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
     if (rc != PAM_SUCCESS) {
-        log_error("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
+        log_debug("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
         return PAM_SYSTEM_ERR;
     }
 
     /* parse config */
     info->cfg = parse_config(cfg_file);
     if (info->cfg == NULL) {
-        log_error("parse_config() error");
+        log_error("error parsing config file '%s'", cfg_file);
         return PAM_SERVICE_ERR;
     }
 
@@ -114,7 +113,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     rc = set_syslog_facility(syslog_facility);
     if (rc != POX509_OK) {
-        log_error("set_syslog_facility(): '%s' (%s)", syslog_facility,
+        log_error("error setting syslog facility '%s' (%s)", syslog_facility,
             pox509_strerror(rc));
     }
 
@@ -122,7 +121,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     const char *uid = NULL;
     rc = pam_get_user(pamh, &uid, NULL);
     if (rc != PAM_SUCCESS) {
-        log_error("pam_get_user(): '%s' (%d)", pam_strerror(pamh, rc), rc);
+        log_debug("pam_get_user(): '%s' (%d)", pam_strerror(pamh, rc), rc);
         return PAM_USER_UNKNOWN;
     }
     /*
@@ -135,11 +134,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     bool is_uid_valid = false;
     rc = check_uid(uid, &is_uid_valid);
     if (rc != POX509_OK) {
-        log_error("check_uid(): '%s'", pox509_strerror(rc));
+        log_error("error checking uid '%s'", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
     if (!is_uid_valid) {
-        log_error("check_uid(): invalid uid: '%s'", uid);
+        log_error("invalid uid '%s'", uid);
         return PAM_AUTH_ERR;
     }
 
@@ -150,14 +149,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      */
     info->uid = strndup(uid, MAX_UID_LENGTH);
     if (info->uid == NULL) {
-        log_error("strndup() error");
+        log_debug("strndup() error");
         return PAM_BUF_ERR;
     }
 
     /* expand keystore path and add to dto */
     char *expanded_path = malloc(SSH_KEYSTORE_PATH_BUFFER_SIZE);
     if (expanded_path == NULL) {
-        log_error("malloc() error");
+        log_debug("malloc() error");
         return PAM_BUF_ERR;
     }
     char *ssh_keystore_location =

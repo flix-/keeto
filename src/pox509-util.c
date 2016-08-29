@@ -134,18 +134,18 @@ is_readable_file(const char *file)
     struct stat stat_buffer;
     int rc = stat(file, &stat_buffer);
     if (rc != 0) {
-        log_error("stat(): '%s' (%d)", strerror(errno), errno);
+        log_debug("stat(): '%s' (%d)", strerror(errno), errno);
         return false;
     }
     /* check if we have a file */
     if (!S_ISREG(stat_buffer.st_mode)) {
-        log_error("S_ISREG");
+        log_debug("S_ISREG");
         return false;
     }
     /* check if file is readable */
     rc = access(file, R_OK);
     if (rc != 0) {
-        log_error("access(): '%s' (%d)", strerror(errno), errno);
+        log_debug("access(): '%s' (%d)", strerror(errno), errno);
         return false;
     }
     return true;

@@ -34,7 +34,7 @@
 
 #define LDAP_BOOL_TRUE "TRUE"
 
-#define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
+#define POX509_DAP_OBJCLASS "pox509DirectAccessProfilei"
 #define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
 
 #define POX509_AP_KEY_PROVIDER_ATTR "pox509KeyProvider"
