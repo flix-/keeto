@@ -166,18 +166,23 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         SSH_KEYSTORE_PATH_BUFFER_SIZE);
     info->ssh_keystore_location = expanded_path;
 
-    /* query ldap server */
+    /* get access profiles from ldap */
     rc = get_keystore_data_from_ldap(info);
     switch (rc) {
     case POX509_OK:
         break;
+    case POX509_NO_MEMORY:
+        log_critical("'%s'", pox509_strerror(rc));
+        return PAM_BUF_ERR;
     case POX509_LDAP_CONNECTION_ERR:
         info->ldap_online = 0;
         log_error("connection to ldap failed");
         break;
+    case POX509_NO_ACCESS_PROFILE:
+        log_error("no access profile found");
+        return PAM_AUTH_ERR;
     default:
-        log_error("get_keystore_data_from_ldap(): '%s'",
-            pox509_strerror(rc));
+        log_debug("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 

@@ -28,34 +28,6 @@
 #define POX509_LOG_H
 
 /**
- * Wrapper for #pox509_log_debug.
- *
- * @param[in] ... Format string, Format arguments.
- * @see #pox509_log_debug.
- * @see man 3 printf.
- */
-#define log_debug(...) pox509_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__)
-
-/**
- * Wrapper for #pox509_log_error.
- *
- * @param[in] ... Format string, Format arguments.
- * @see #pox509_log_error.
- * @see man 3 printf.
- */
-#define log_error(...) pox509_log_error(__FILE__, __func__, __LINE__, __VA_ARGS__)
-
-/**
- * Wrapper for #pox509_fatal.
- *
- * @param[in] ... Format string, Format arguments.
- *
- * @see #pox509_fatal.
- * @see man 3 printf.
- */
-#define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
-
-/**
  * Log message to syslog.
  *
  * The message is prefixed with '[I]'.
@@ -66,6 +38,61 @@
  * @see man 3 printf.
  */
 void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[W]'.
+ *
+ * @param[in] fmt Format string. Must not be @c NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void log_warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[E]'.
+ *
+ * @param[in] fmt Format string. Must not be @c NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Log message to syslog.
+ *
+ * The message is prefixed with '[!]'.
+ *
+ * @param[in] fmt Format string. Must not be @c NULL.
+ * @param[in] ... Format arguments.
+ *
+ * @see man 3 printf.
+ */
+void log_critical(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+/**
+ * Wrapper for #pox509_log_debug.
+ *
+ * @param[in] ... Format string, Format arguments.
+ * @see #pox509_log_debug.
+ * @see man 3 printf.
+ */
+#define log_debug(...) pox509_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__)
+
+/**
+ * Wrapper for #pox509_fatal.
+ *
+ * @param[in] ... Format string, Format arguments.
+ *
+ * @see #pox509_fatal.
+ * @see man 3 printf.
+ */
+#define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
 /**
  * Log message to syslog.
@@ -87,28 +114,6 @@ void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  * @see man 3 printf.
  */
 void pox509_log_debug(const char *filename, const char *function, int line,
-    const char *fmt, ...) __attribute__((format(printf, 4, 5)));
-
-/**
- * Log message to syslog.
- *
- * The message is prefixed with '[E] [filename, function(), line]'.
- *
- * @param[in] filename Name of the source file the call took place. Must
- * not be @c NULL.
- * @param[in] function Name of the function the call took place. Must
- * not be @c NULL.
- * @param[in] line Number of the line the call took place.
- * @param[in] fmt Format string. Must not be @c NULL.
- * @param[in] ... Format arguments.
- *
- * @note Do NOT call this function directly - use #log_error wrapper
- * macro instead.
- *
- * @see #log_error.
- * @see man 3 printf.
- */
-void pox509_log_error(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
 
 /**

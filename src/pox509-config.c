@@ -286,7 +286,6 @@ void
 free_config(cfg_t *cfg)
 {
     if (cfg == NULL) {
-        log_debug("double free?");
         return;
     }
 

@@ -31,44 +31,44 @@ pox509_strerror(int errnum)
 {
     switch(errnum) {
     case POX509_OK:
-        return "POX509_OK";
+        return "ok";
     case POX509_SYSTEM_ERR:
-        return "POX509_SYSTEM_ERR";
+        return "system error";
     case POX509_NO_MEMORY:
-        return "POX509_NO_MEMORY";
+        return "no memory";
     case POX509_NO_SUCH_VALUE:
-        return "POX509_NO_SUCH_VALUE";
+        return "no such value";
     case POX509_PARSE_CONFIG_ERR:
-        return "POX509_PARSE_CONFIG_ERR";
+        return "parse config error";
     case POX509_REGEX_ERR:
-        return "POX509_REGEX_ERR";
+        return "regex error";
     case POX509_LDAP_ERR:
-        return "POX509_LDAP_ERR";
+        return "ldap error";
     case POX509_LDAP_CONNECTION_ERR:
-        return "POX509_LDAP_CONNECTION_ERR";
+        return "ldap connection error";
     case POX509_LDAP_NO_SUCH_ENTRY:
-        return "POX509_LDAP_NO_SUCH_ENTRY";
+        return "no such ldap entry";
     case POX509_LDAP_NO_SUCH_ATTR:
-        return "POX509_LDAP_NO_SUCH_ATTR";
+        return "no such ldap attribute";
     case POX509_LDAP_NO_SUCH_VALUE:
-        return "POX509_LDAP_NO_SUCH_VALUE";
+        return "no such ldap value";
     case POX509_LDAP_INVALID_RESULT:
-        return "POX509_LDAP_INVALID_RESULT";
+        return "invalid ldap result";
     case POX509_NOT_RELEVANT:
-        return "POX509_NOT_RELEVANT";
-    case POX509_NO_CERTS:
-        return "POX509_NO_CERTS";
+        return "not relevant";
+    case POX509_NO_CERT:
+        return "no certificate";
     case POX509_NO_KEY_PROVIDER:
-        return "POX509_NO_KEY_PROVIDER";
+        return "no key provider";
     case POX509_X509_ERR:
-        return "POX509_X509_ERR";
-    case POX509_NO_ACCESS_PROFILES:
-        return "POX509_NO_ACCESS_PROFILES";
+        return "x509 error";
+    case POX509_NO_ACCESS_PROFILE:
+        return "no access profile";
     case POX509_NO_SUCH_ACCESS_PROFILE_TYPE:
-        return "POX509_NO_SUCH_ACCESS_PROFILE_TYPE";
+        return "no such access profile type";
 
     case POX509_UNKNOWN_ERR:
-        return "POX509_UNKNOWN_ERR";
+        return "unknown error";
     default:
         return "undefined error";
     }

@@ -76,23 +76,23 @@ struct pox509_key {
     X509 *x509;
     char *ssh_keytype;
     char *ssh_key;
-    SIMPLEQ_ENTRY(pox509_key) next;
+    TAILQ_ENTRY(pox509_key) next;
 };
 
 struct pox509_key_provider {
     char *dn;
     char *uid;
-    SIMPLEQ_HEAD(pox509_keys, pox509_key) *keys;
-    SIMPLEQ_ENTRY(pox509_key_provider) next;
+    TAILQ_HEAD(pox509_keys, pox509_key) *keys;
+    TAILQ_ENTRY(pox509_key_provider) next;
 };
 
 struct pox509_access_profile {
     enum pox509_access_profile_type type;
     char *dn;
     char *uid;
-    SIMPLEQ_HEAD(pox509_key_providers, pox509_key_provider) *key_providers;
+    TAILQ_HEAD(pox509_key_providers, pox509_key_provider) *key_providers;
     struct pox509_keystore_options *keystore_options;
-    SIMPLEQ_ENTRY(pox509_access_profile) next;
+    TAILQ_ENTRY(pox509_access_profile) next;
 };
 
 struct pox509_ssh_server {
@@ -104,7 +104,7 @@ struct pox509_info {
     char *uid;
     char *ssh_keystore_location;
     struct pox509_ssh_server *ssh_server;
-    SIMPLEQ_HEAD(pox509_access_profiles, pox509_access_profile)
+    TAILQ_HEAD(pox509_access_profiles, pox509_access_profile)
         *access_profiles;
     char ldap_online;
     cfg_t *cfg;

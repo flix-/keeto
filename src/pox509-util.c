@@ -298,7 +298,7 @@ new_access_profiles()
     if (access_profiles == NULL) {
         return NULL;
     }
-    SIMPLEQ_INIT(access_profiles);
+    TAILQ_INIT(access_profiles);
     return access_profiles;
 }
 
@@ -322,7 +322,7 @@ new_key_providers()
     if (key_providers == NULL) {
         return NULL;
     }
-    SIMPLEQ_INIT(key_providers);
+    TAILQ_INIT(key_providers);
     return key_providers;
 }
 
@@ -344,7 +344,7 @@ new_keys()
     if (keys == NULL) {
         return NULL;
     }
-    SIMPLEQ_INIT(keys);
+    TAILQ_INIT(keys);
     return keys;
 }
 
@@ -376,7 +376,6 @@ void
 free_info(struct pox509_info *info)
 {
     if (info == NULL) {
-        log_debug("double free?");
         return;
     }
     free(info->uid);
@@ -391,7 +390,6 @@ void
 free_ssh_server(struct pox509_ssh_server *ssh_server)
 {
     if (ssh_server == NULL) {
-        log_debug("double free?");
         return;
     }
     free(ssh_server->dn);
@@ -403,12 +401,11 @@ void
 free_access_profiles(struct pox509_access_profiles *access_profiles)
 {
     if (access_profiles == NULL) {
-        log_debug("double free?");
         return;
     }
     struct pox509_access_profile *access_profile = NULL;
-    while ((access_profile = SIMPLEQ_FIRST(access_profiles))) {
-        SIMPLEQ_REMOVE_HEAD(access_profiles, next);
+    while ((access_profile = TAILQ_FIRST(access_profiles))) {
+        TAILQ_REMOVE(access_profiles, access_profile, next);
         free_access_profile(access_profile);
     }
     free(access_profiles);
@@ -418,7 +415,6 @@ void
 free_access_profile(struct pox509_access_profile *access_profile)
 {
     if (access_profile == NULL) {
-        log_debug("double free?");
         return;
     }
     free(access_profile->dn);
@@ -432,12 +428,11 @@ void
 free_key_providers(struct pox509_key_providers *key_providers)
 {
     if (key_providers == NULL) {
-        log_debug("double free?");
         return;
     }
     struct pox509_key_provider *key_provider = NULL;
-    while ((key_provider = SIMPLEQ_FIRST(key_providers))) {
-        SIMPLEQ_REMOVE_HEAD(key_providers, next);
+    while ((key_provider = TAILQ_FIRST(key_providers))) {
+        TAILQ_REMOVE(key_providers, key_provider, next);
         free_key_provider(key_provider);
     }
     free(key_providers);
@@ -447,7 +442,6 @@ void
 free_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
-        log_debug("double free?");
         return;
     }
     free(key_provider->dn);
@@ -460,12 +454,11 @@ void
 free_keys(struct pox509_keys *keys)
 {
     if (keys == NULL) {
-        log_debug("double free?");
         return;
     }
     struct pox509_key *key = NULL;
-    while ((key = SIMPLEQ_FIRST(keys))) {
-        SIMPLEQ_REMOVE_HEAD(keys, next);
+    while ((key = TAILQ_FIRST(keys))) {
+        TAILQ_REMOVE(keys, key, next);
         free_key(key);
     }
     free(keys);
@@ -475,7 +468,6 @@ void
 free_key(struct pox509_key *key)
 {
     if (key == NULL) {
-        log_debug("double free?");
         return;
     }
     X509_free(key->x509);
@@ -488,7 +480,6 @@ void
 free_keystore_options(struct pox509_keystore_options *options)
 {
     if (options == NULL) {
-        log_debug("double free?");
         return;
     }
     free(options->dn);

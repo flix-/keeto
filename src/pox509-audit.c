@@ -90,7 +90,7 @@ print_keys(struct pox509_keys *keys)
     }
 
     struct pox509_key *key = NULL;
-    SIMPLEQ_FOREACH(key, keys, next) {
+    TAILQ_FOREACH(key, keys, next) {
         print_key(key);
     }
 }
@@ -115,7 +115,7 @@ print_key_providers(struct pox509_key_providers *key_providers)
     }
 
     struct pox509_key_provider *key_provider = NULL;
-    SIMPLEQ_FOREACH(key_provider, key_providers, next) {
+    TAILQ_FOREACH(key_provider, key_providers, next) {
         print_key_provider(key_provider);
     }
 }
@@ -142,7 +142,7 @@ print_access_profiles(struct pox509_access_profiles *access_profiles)
     }
 
     struct pox509_access_profile *access_profile = NULL;
-    SIMPLEQ_FOREACH(access_profile, access_profiles, next) {
+    TAILQ_FOREACH(access_profile, access_profiles, next) {
         print_access_profile(access_profile);
         log_info(" ");
     }
@@ -152,7 +152,7 @@ static void
 print_ssh_server(struct pox509_ssh_server *ssh_server)
 {
     if (ssh_server == NULL) {
-        fatal("info == NULL");
+        fatal("ssh_server == NULL");
     }
 
     log_string("ssh_server->dn", ssh_server->dn);
