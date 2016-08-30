@@ -95,7 +95,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     }
 
-    /* make data transfer object available to module stack */
+    /* make info object available to module stack */
     int rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
     if (rc != PAM_SUCCESS) {
         log_debug("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
@@ -199,8 +199,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
-    if (pamh == NULL || argv == NULL) {
-        fatal("pamh or argv == NULL");
+    if (pamh == NULL) {
+        fatal("pamh == NULL");
     }
     return PAM_SUCCESS;
 }

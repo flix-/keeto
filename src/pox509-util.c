@@ -486,7 +486,6 @@ free_keystore_options(struct pox509_keystore_options *options)
     free(options->uid);
     free(options->from_option);
     free(options->command_option);
-    free(options->oneliner);
     free(options);
 }
 

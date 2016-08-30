@@ -69,7 +69,6 @@ struct pox509_keystore_options {
     char *uid;
     char *from_option;
     char *command_option;
-    char *oneliner;
 };
 
 struct pox509_key {

@@ -66,6 +66,8 @@ pox509_strerror(int errnum)
         return "no access profile";
     case POX509_UNKNOWN_ACCESS_PROFILE_TYPE:
         return "unknown access profile type";
+    case POX509_NO_KEYSTORE_OPTION:
+        return "no keystore option found";
 
     case POX509_UNKNOWN_ERR:
         return "unknown error";

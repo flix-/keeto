@@ -225,7 +225,6 @@ validate_x509(X509 *x509, const char *cacerts_dir,
     } else {
         pox509_info->has_valid_cert = 1;
     }
-
     /* cleanup structures */
     X509_STORE_CTX_free(ctx);
     X509_STORE_free(store);
@@ -247,7 +246,6 @@ x509_to_authorized_keys(X509 *x509, struct pox509_info *pox509_info)
     if (pkey == NULL) {
         fatal("X509_get_pubkey(): unable to load public key");
     }
-
     pkey_to_authorized_keys(pkey, pox509_info);
     EVP_PKEY_free(pkey);
 }
@@ -264,18 +262,15 @@ get_serial_from_x509(X509 *x509, struct pox509_info *pox509_info)
         log_error("X509_get_serialNumber()");
         return;
     }
-
     BIGNUM *serial_bn = ASN1_INTEGER_to_BN(serial_asn1, NULL);
     if (serial_bn == NULL) {
         log_error("ASN1_INTEGER_to_BN()");
         return;
     }
-
     pox509_info->serial = BN_bn2hex(serial_bn);
     if (pox509_info->serial == NULL) {
         log_error("BN_bn2hex()");
     }
-
     BN_free(serial_bn);
 }
 
@@ -291,7 +286,6 @@ get_issuer_from_x509(X509 *x509, struct pox509_info *pox509_info)
         log_error("X509_get_issuer_name()");
         return;
     }
-
     pox509_info->issuer = X509_NAME_oneline(issuer, NULL, 0);
 }
 
@@ -307,7 +301,6 @@ get_subject_from_x509(X509 *x509, struct pox509_info *pox509_info)
         log_error("X509_get_subject_name()");
         return;
     }
-
     pox509_info->subject = X509_NAME_oneline(subject, NULL, 0);
 }
 

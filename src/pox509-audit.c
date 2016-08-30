@@ -58,7 +58,8 @@ static void
 print_keystore_options(struct pox509_keystore_options *keystore_options)
 {
     if (keystore_options == NULL) {
-        fatal("keystore_options == NULL");
+        log_info("keystore_options empty");
+        return;
     }
 
     log_string("keystore_options->dn", keystore_options->dn);
@@ -66,14 +67,14 @@ print_keystore_options(struct pox509_keystore_options *keystore_options)
     log_string("keystore_options->from_option", keystore_options->from_option);
     log_string("keystore_options->command_option",
         keystore_options->command_option);
-    log_string("keystore_options->oneliner", keystore_options->oneliner);
 }
 
 static void
 print_key(struct pox509_key *key)
 {
     if (key == NULL) {
-        fatal("key == NULL");
+        log_info("key empty");
+        return;
     }
 
     X509_NAME *subject = X509_get_subject_name(key->x509);
@@ -86,7 +87,8 @@ static void
 print_keys(struct pox509_keys *keys)
 {
     if (keys == NULL) {
-        fatal("keys == NULL");
+        log_info("keys empty");
+        return;
     }
 
     struct pox509_key *key = NULL;
@@ -99,7 +101,8 @@ static void
 print_key_provider(struct pox509_key_provider *key_provider)
 {
     if (key_provider == NULL) {
-        fatal("key_provider == NULL");
+        log_info("key_provider empty");
+        return;
     }
 
     log_string("key_provider->dn", key_provider->dn);
@@ -111,7 +114,8 @@ static void
 print_key_providers(struct pox509_key_providers *key_providers)
 {
     if (key_providers == NULL) {
-        fatal("key_providers == NULL");
+        log_info("key_providers empty");
+        return;
     }
 
     struct pox509_key_provider *key_provider = NULL;
@@ -124,21 +128,23 @@ static void
 print_access_profile(struct pox509_access_profile *access_profile)
 {
     if (access_profile == NULL) {
-        fatal("access_profile == NULL");
+        log_info("access_profile empty");
+        return;
     }
 
     log_int("access_profile->type", access_profile->type);
     log_string("access_profile->dn", access_profile->dn);
     log_string("access_profile->uid", access_profile->uid);
     print_key_providers(access_profile->key_providers);
-    //print_keystore_options(access_profile->keystore_options);
+    print_keystore_options(access_profile->keystore_options);
 }
 
 static void
 print_access_profiles(struct pox509_access_profiles *access_profiles)
 {
     if (access_profiles == NULL) {
-        fatal("access_profiles == NULL");
+        log_info("access_profiles empty");
+        return;
     }
 
     struct pox509_access_profile *access_profile = NULL;
@@ -152,7 +158,8 @@ static void
 print_ssh_server(struct pox509_ssh_server *ssh_server)
 {
     if (ssh_server == NULL) {
-        fatal("ssh_server == NULL");
+        log_info("ssh_server empty");
+        return;
     }
 
     log_string("ssh_server->dn", ssh_server->dn);
@@ -163,7 +170,8 @@ static void
 print_info(struct pox509_info *info)
 {
     if (info == NULL) {
-        fatal("info == NULL");
+        log_info("info empty");
+        return;
     }
 
     log_info(" ");
@@ -195,10 +203,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     rc = set_syslog_facility(syslog_facility);
     if (rc != POX509_OK) {
-        log_error("set_syslog_facility(): '%s' (%s)", syslog_facility,
+        log_error("error setting syslog facility '%s' (%s)", syslog_facility,
             pox509_strerror(rc));
     }
-
     print_info(info);
 
     return PAM_SUCCESS;
@@ -207,6 +214,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+    if (pamh == NULL) {
+        fatal("pamh == NULL");
+    }
     return PAM_SUCCESS;
 }
 
