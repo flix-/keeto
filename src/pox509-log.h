@@ -58,8 +58,10 @@ void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
  * @see #pox509_log_debug.
  * @see man 3 printf.
  */
-#define log_debug(...) pox509_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__)
-
+#define log_debug(...) \
+do { \
+if (DEBUG) pox509_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+} while (0)
 /**
  * Wrapper for #pox509_fatal.
  *

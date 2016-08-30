@@ -77,6 +77,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh or argv == NULL");
     }
 
+    log_debug("%s", blub);
     /* check if argument is path to config file */
     if (argc != 1) {
         log_error("arg count != 1");
