@@ -35,7 +35,7 @@
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 
 static void
-free_attr_values_as_string_array(char **values)
+free_attr_values_as_string(char **values)
 {
     if (values == NULL) {
         return;
@@ -47,7 +47,7 @@ free_attr_values_as_string_array(char **values)
 }
 
 static void
-free_attr_values_as_binary_array(struct berval **values)
+free_attr_values_as_binary(struct berval **values)
 {
     if (values == NULL) {
         return;
@@ -111,7 +111,7 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *entry, char *attr,
 
 cleanup_b:
     if (values_string != NULL) {
-        free_attr_values_as_string_array(values_string);
+        free_attr_values_as_string(values_string);
     }
 cleanup_a:
     ldap_value_free_len(values);
@@ -172,7 +172,7 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
             break;
         }
     }
-    free_attr_values_as_string_array(objectclasses);
+    free_attr_values_as_string(objectclasses);
     return res;
 }
 
@@ -281,7 +281,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
             break;
         case POX509_NO_MEMORY:
             res = rc;
-            free_attr_values_as_string_array(target_keystore_uid);
+            free_attr_values_as_string(target_keystore_uid);
             ldap_msgfree(target_keystore_entry);
             goto cleanup_c;
         default:
@@ -294,7 +294,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         if (strcmp(info->uid, target_keystore_uid[0]) == 0) {
             is_relevant = true;
         }
-        free_attr_values_as_string_array(target_keystore_uid);
+        free_attr_values_as_string(target_keystore_uid);
 cleanup_inner:
         ldap_msgfree(target_keystore_entry);
     }
@@ -302,11 +302,11 @@ cleanup_inner:
     res = POX509_OK;
 
 cleanup_c:
-    free_attr_values_as_string_array(target_keystore_dns);
+    free_attr_values_as_string(target_keystore_dns);
 cleanup_b:
     ldap_msgfree(group_member_entry);
 cleanup_a:
-    free_attr_values_as_string_array(target_keystore_group_dn);
+    free_attr_values_as_string(target_keystore_group_dn);
     return res;
 }
 
@@ -328,7 +328,7 @@ check_access_profile_enabled(LDAP *ldap_handle,
         return rc;
     }
     *ret = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ? true : false;
-    free_attr_values_as_string_array(access_profile_state);
+    free_attr_values_as_string(access_profile_state);
     return POX509_OK;
 }
 
@@ -448,9 +448,9 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     res = POX509_OK;
 
 cleanup_c:
-    free_attr_values_as_string_array(keystore_options_command);
+    free_attr_values_as_string(keystore_options_command);
 cleanup_b:
-    free_attr_values_as_string_array(keystore_options_from);
+    free_attr_values_as_string(keystore_options_from);
 cleanup_a:
     if (keystore_options != NULL) {
         free_keystore_options(keystore_options);
@@ -548,7 +548,7 @@ cleanup_b:
         free_keys(keys);
     }
 cleanup_a:
-    free_attr_values_as_binary_array(key_provider_certs);
+    free_attr_values_as_binary(key_provider_certs);
     return res;
 }
 
@@ -618,7 +618,6 @@ add_key_provider(LDAP *ldap_handle, struct pox509_info *info,
         res = rc;
         goto cleanup_b;
     }
-
     TAILQ_INSERT_TAIL(key_providers, key_provider, next);
     key_provider = NULL;
     res = POX509_OK;
@@ -628,7 +627,7 @@ cleanup_b:
         free_key_provider(key_provider);
     };
 cleanup_a:
-    free_attr_values_as_string_array(key_provider_uid);
+    free_attr_values_as_string(key_provider_uid);
     return res;
 }
 
@@ -700,7 +699,6 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
 cleanup_inner:
         ldap_msgfree(key_provider_entry);
     }
-
     /* check if not empty */
     if (TAILQ_EMPTY(key_providers)) {
         res = POX509_NO_KEY_PROVIDER;
@@ -716,7 +714,7 @@ cleanup_b:
         free_key_providers(key_providers);
     }
 cleanup_a:
-    free_attr_values_as_string_array(key_provider_dns);
+    free_attr_values_as_string(key_provider_dns);
     return res;
 }
 
@@ -814,11 +812,11 @@ cleanup_inner:
     res = POX509_OK;
 
 cleanup_c:
-    free_attr_values_as_string_array(keystore_options_dn);
+    free_attr_values_as_string(keystore_options_dn);
 cleanup_b:
     ldap_msgfree(group_member_entry);
 cleanup_a:
-    free_attr_values_as_string_array(key_provider_group_dn);
+    free_attr_values_as_string(key_provider_group_dn);
     return res;
 }
 
@@ -988,7 +986,7 @@ cleanup_b:
         free_access_profiles(access_profiles);
     }
 cleanup_a:
-    free_attr_values_as_string_array(access_profile_dns);
+    free_attr_values_as_string(access_profile_dns);
     return res;
 }
 
