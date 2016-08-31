@@ -214,9 +214,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
-    if (pamh == NULL) {
-        fatal("pamh == NULL");
-    }
     return PAM_SUCCESS;
 }
 

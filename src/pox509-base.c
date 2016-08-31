@@ -77,7 +77,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh or argv == NULL");
     }
 
-    log_debug("%s", blub);
     /* check if argument is path to config file */
     if (argc != 1) {
         log_error("arg count != 1");
@@ -179,7 +178,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("connection to ldap failed");
         break;
     case POX509_NO_ACCESS_PROFILE:
-        log_error("no access profile found");
+        log_info("no access profile found");
         return PAM_AUTH_ERR;
     default:
         log_debug("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
@@ -200,9 +199,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
-    if (pamh == NULL) {
-        fatal("pamh == NULL");
-    }
     return PAM_SUCCESS;
 }
 
