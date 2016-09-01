@@ -25,14 +25,7 @@
 #include "pox509-error.h"
 #include "pox509-log.h"
 #include "pox509-util.h"
-
-#include <openssl/bio.h>
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <openssl/x509_vfy.h>
+#include "pox509-x509.h"
 
 static void
 log_string(char *attr, char *value)
@@ -54,6 +47,16 @@ log_int(char *attr, int value)
     }
     log_info("%s: %d", attr, value);
 }
+
+static void
+log_hex(char *attr, int value)
+{
+    if (attr == NULL) {
+        fatal("attr == NULL");
+    }
+    log_info("%s: 0x%02x", attr, value);
+}
+
 static void
 print_keystore_options(struct pox509_keystore_options *keystore_options)
 {
@@ -70,6 +73,39 @@ print_keystore_options(struct pox509_keystore_options *keystore_options)
 }
 
 static void
+print_x509(X509 *x509)
+{
+    if (x509 == NULL) {
+        log_info("x509 empty");
+        return;
+    }
+
+    char *issuer = get_issuer_from_x509(x509);
+    if (issuer == NULL) {
+        log_error("failed to obtain issuer from x509");
+    } else {
+        log_string("x509->issuer", issuer);
+        free(issuer);
+    }
+
+    char *serial = get_serial_from_x509(x509);
+    if (serial == NULL) {
+        log_error("failed to obtain serial from x509");
+    } else {
+        log_string("x509->serial", serial);
+        free(serial);
+    }
+
+    char *subject = get_subject_from_x509(x509);
+    if (subject == NULL) {
+        log_error("failed to obtain subject from x509");
+    } else {
+        log_string("x509->subject", subject);
+        free(subject);
+    }
+}
+
+static void
 print_key(struct pox509_key *key)
 {
     if (key == NULL) {
@@ -77,10 +113,9 @@ print_key(struct pox509_key *key)
         return;
     }
 
-    X509_NAME *subject = X509_get_subject_name(key->x509);
-    log_string("key->x509", X509_NAME_oneline(subject, NULL, 0));
     log_string("key->ssh_keytype", key->ssh_keytype);
     log_string("key->ssh_key", key->ssh_key);
+    print_x509(key->x509);
 }
 
 static void
@@ -132,7 +167,7 @@ print_access_profile(struct pox509_access_profile *access_profile)
         return;
     }
 
-    log_int("access_profile->type", access_profile->type);
+    log_hex("access_profile->type", access_profile->type);
     log_string("access_profile->dn", access_profile->dn);
     log_string("access_profile->uid", access_profile->uid);
     print_key_providers(access_profile->key_providers);

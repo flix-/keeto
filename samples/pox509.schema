@@ -19,7 +19,7 @@ attributetype ( 1.0.86.86.86.86.2.1.3
 
 attributetype ( 1.0.86.86.86.86.2.1.4
 	NAME 'pox509KeystoreOptions'
-	DESC 'keystore profile that holds keystore options'
+	DESC 'keystore options'
     SUP distinguishedName
     SINGLE-VALUE )
 
@@ -58,8 +58,8 @@ objectclass	( 1.0.86.86.86.86.2.2.3
     MUST pox509TargetKeystore )
 
 objectclass	( 1.0.86.86.86.86.2.2.4
-    NAME 'pox509KeystoreProfile'
-	DESC 'keystore profile'
+    NAME 'pox509KeystoreOptions'
+	DESC 'keystore options'
     SUP top
     STRUCTURAL
     MUST cn

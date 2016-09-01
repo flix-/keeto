@@ -4,7 +4,7 @@ objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
 cn: direct-access-noopts1
 pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=command-from,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509IsEnabled: TRUE
 description: direct-access-noopts1 profile
 
@@ -14,7 +14,7 @@ objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
 cn: direct-access-noopts1
 pox509KeyProvider: cn=foobartuxtuxlegacy,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509IsEnabled: TRUE
 description: direct-access-noopts2 profile
 

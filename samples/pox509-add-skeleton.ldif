@@ -35,10 +35,10 @@ objectClass: top
 objectClass: organizationalUnit
 ou: people
 
-dn: ou=keystore-profiles,ou=ssh,dc=ssh,dc=hq
+dn: ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: organizationalUnit
-ou: keystore-profiles
+ou: keystore-options
 
 dn: ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top

@@ -25,7 +25,9 @@ pox509_audit_la_SOURCES = pox509-audit.c \
                           pox509-log.h \
                           pox509-log.c \
                           pox509-util.h \
-                          pox509-util.c
+                          pox509-util.c \
+                          pox509-x509.h \
+                          pox509-x509.c
 pox509_audit_la_LDFLAGS = -avoid-version -module -export-dynamic -shared
 pox509_audit_la_LIBADD = ${LIBADD_AUDIT}
 

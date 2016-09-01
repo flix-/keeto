@@ -58,7 +58,7 @@ void x509_to_authorized_keys(X509 *x509, struct pox509_info *info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_serial_from_x509(X509 *x509, struct pox509_info *info);
+char *get_serial_from_x509(X509 *x509);
 
 /**
  * Get issuer from x509 certificate.
@@ -66,7 +66,7 @@ void get_serial_from_x509(X509 *x509, struct pox509_info *info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_issuer_from_x509(X509 *x509, struct pox509_info *info);
+char *get_issuer_from_x509(X509 *x509);
 
 /**
  * Get subject from x509 certificate.
@@ -74,5 +74,5 @@ void get_issuer_from_x509(X509 *x509, struct pox509_info *info);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void get_subject_from_x509(X509 *x509, struct pox509_info *info);
+char *get_subject_from_x509(X509 *x509);
 #endif
