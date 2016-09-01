@@ -134,18 +134,19 @@ is_readable_file(const char *file)
     struct stat stat_buffer;
     int rc = stat(file, &stat_buffer);
     if (rc != 0) {
-        log_debug("stat(): '%s' (%d)", strerror(errno), errno);
+        log_error("failed to get file status: file '%s' (%s)", file,
+            strerror(errno));
         return false;
     }
     /* check if we have a file */
     if (!S_ISREG(stat_buffer.st_mode)) {
-        log_debug("S_ISREG");
+        log_error("'%s' is not a regular file", file);
         return false;
     }
     /* check if file is readable */
     rc = access(file, R_OK);
     if (rc != 0) {
-        log_debug("access(): '%s' (%d)", strerror(errno), errno);
+        log_error("'%s' is not readable", file);
         return false;
     }
     return true;
@@ -161,7 +162,7 @@ check_uid(const char *uid, bool *is_uid_valid)
     regex_t regex_uid;
     int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
     if (rc != 0) {
-        log_debug("regcomp(): could not compile regex (%d)", rc);
+        log_error("failed to compile regex (%d)", rc);
         return POX509_REGEX_ERR;
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
@@ -226,7 +227,7 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
 
     int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
     if (rc < 0) {
-        log_debug("snprintf() error");
+        log_error("failed to write to buffer");
         return POX509_SYSTEM_ERR;
     }
     return POX509_OK;
@@ -248,14 +249,15 @@ get_rdn_value_from_dn(const char *dn, char **buffer)
     LDAPDN ldap_dn = NULL;
     int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
-        log_debug("ldap_str2dn(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_error("failed to parse dn '%s' (%s)", dn, ldap_err2string(rc));
         return POX509_LDAP_ERR;
     }
 
     LDAPRDN ldap_rdn = ldap_dn[0];
     rc = ldap_rdn2str(ldap_rdn, buffer, LDAP_DN_FORMAT_UFN);
     if (rc != LDAP_SUCCESS) {
-        log_debug("ldap_rdn2str(): '%s' (%d)", ldap_err2string(rc), rc);
+        log_error("failed to obtain rdn from dn '%s' (%s)", dn,
+            ldap_err2string(rc));
         res = POX509_LDAP_ERR;
         goto cleanup;
     }

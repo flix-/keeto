@@ -33,7 +33,7 @@
 #include "pox509-x509.h"
 
 #define MAX_UID_LENGTH 32
-#define SSH_KEYSTORE_PATH_BUFFER_SIZE 1024
+#define SSH_KEYSTORE_LOCATION_BUFFER_SIZE 1024
 
 static void
 cleanup_info(pam_handle_t *pamh, void *data, int error_status)
@@ -84,28 +84,28 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
     const char *cfg_file = argv[0];
     if(!is_readable_file(cfg_file)) {
-        log_error("cannot open config file (%s) for reading", cfg_file);
+        log_error("failed to open config file '%s' for reading", cfg_file);
         return PAM_SERVICE_ERR;
     }
 
     /* initialize info object */
     struct pox509_info *info = new_info();
     if (info == NULL) {
-        log_debug("new_info(): '%s'", pox509_strerror(POX509_NO_MEMORY));
+        log_error("failed to allocate memory for info");
         return PAM_BUF_ERR;
     }
 
     /* make info object available to module stack */
     int rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
     if (rc != PAM_SUCCESS) {
-        log_debug("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
+        log_error("failed to set pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
     }
 
     /* parse config */
     info->cfg = parse_config(cfg_file);
     if (info->cfg == NULL) {
-        log_error("error parsing config file '%s'", cfg_file);
+        log_error("failed to parse config file '%s'", cfg_file);
         return PAM_SERVICE_ERR;
     }
 
@@ -113,7 +113,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     rc = set_syslog_facility(syslog_facility);
     if (rc != POX509_OK) {
-        log_error("error setting syslog facility '%s' (%s)", syslog_facility,
+        log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
             pox509_strerror(rc));
     }
 
@@ -121,7 +121,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     const char *uid = NULL;
     rc = pam_get_user(pamh, &uid, NULL);
     if (rc != PAM_SUCCESS) {
-        log_debug("pam_get_user(): '%s' (%d)", pam_strerror(pamh, rc), rc);
+        log_error("failed to obtain uid from pam (%s)", pam_strerror(pamh, rc));
         return PAM_USER_UNKNOWN;
     }
     /*
@@ -134,7 +134,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     bool is_uid_valid = false;
     rc = check_uid(uid, &is_uid_valid);
     if (rc != POX509_OK) {
-        log_error("error checking uid '%s'", pox509_strerror(rc));
+        log_error("failed to check uid (%s)", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
     if (!is_uid_valid) {
@@ -149,21 +149,20 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      */
     info->uid = strndup(uid, MAX_UID_LENGTH);
     if (info->uid == NULL) {
-        log_debug("strndup() error");
+        log_error("failed to duplicate uid");
         return PAM_BUF_ERR;
     }
 
     /* expand keystore path and add to dto */
-    char *expanded_path = malloc(SSH_KEYSTORE_PATH_BUFFER_SIZE);
-    if (expanded_path == NULL) {
-        log_debug("malloc() error");
+    info->ssh_keystore_location = malloc(SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
+    if (info->ssh_keystore_location == NULL) {
+        log_error("failed to allocate memory for ssh keystore location buffer");
         return PAM_BUF_ERR;
     }
     char *ssh_keystore_location =
         cfg_getstr(info->cfg, "ssh_keystore_location");
-    substitute_token('u', info->uid, ssh_keystore_location, expanded_path,
-        SSH_KEYSTORE_PATH_BUFFER_SIZE);
-    info->ssh_keystore_location = expanded_path;
+    substitute_token('u', info->uid, ssh_keystore_location,
+        info->ssh_keystore_location, SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
 
     /* get access profiles from ldap */
     rc = get_keystore_data_from_ldap(info);
@@ -171,17 +170,18 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case POX509_OK:
         break;
     case POX509_NO_MEMORY:
-        log_error("'%s'", pox509_strerror(rc));
+        log_error("system is out of memory");
         return PAM_BUF_ERR;
     case POX509_LDAP_CONNECTION_ERR:
+        log_error("failed to connect to ldap");
         info->ldap_online = 0;
-        log_error("connection to ldap failed");
-        break;
+        return POX509_OK;
     case POX509_NO_ACCESS_PROFILE:
         log_info("no access profile found");
         return PAM_AUTH_ERR;
     default:
-        log_debug("get_keystore_data_from_ldap(): '%s'", pox509_strerror(rc));
+        log_error("failed to obtain keystore data from ldap (%s)",
+            pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 

@@ -195,7 +195,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     struct pox509_info *info = NULL;
     int rc = pam_get_data(pamh, "pox509_info", (const void **) &info);
     if (rc != PAM_SUCCESS) {
-        log_debug("pam_set_data(): '%s' (%d)", pam_strerror(pamh, rc), rc);
+        log_error("failed to get pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
     }
 
@@ -203,7 +203,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     rc = set_syslog_facility(syslog_facility);
     if (rc != POX509_OK) {
-        log_error("error setting syslog facility '%s' (%s)", syslog_facility,
+        log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
             pox509_strerror(rc));
     }
     print_info(info);

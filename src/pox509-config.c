@@ -62,14 +62,14 @@ cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *syslog_facility = cfg_opt_getnstr(opt, 0);
     if (syslog_facility == NULL) {
-        log_debug("cfg_opt_getnstr() returned NULL");
+        log_error("failed to obtain syslog facility option");
         return -1;
     }
 
     int rc = str_to_enum(POX509_SYSLOG, syslog_facility);
     if (rc == POX509_NO_SUCH_VALUE) {
-        log_error("option: '%s', value: '%s' (invalid syslog facility)",
-            cfg_opt_name(opt), syslog_facility);
+        log_error("failed to validate syslog facility: option '%s', value '%s' "
+            "(invalid syslog facility)", cfg_opt_name(opt), syslog_facility);
         return -1;
     }
     return 0;
@@ -84,14 +84,14 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
     if (ldap_uri == NULL) {
-        log_debug("cfg_opt_getnstr() returned NULL");
+        log_error("failed to obtain ldap uri option");
         return -1;
     }
 
     int rc = ldap_is_ldap_url(ldap_uri);
     if (rc == 0) {
-        log_error("option: '%s', value: '%s' (invalid ldap uri)",
-            cfg_opt_name(opt), ldap_uri);
+        log_error("failed to validate ldap uri: option '%s', value '%s' "
+            "(invalid ldap uri)", cfg_opt_name(opt), ldap_uri);
         return -1;
     }
     return 0;
@@ -106,8 +106,8 @@ cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
 
     long int starttls = cfg_opt_getnint(opt, 0);
     if (starttls != 0 && starttls != 1) {
-        log_error("option: '%s', value: '%li' (value must be either 0 or 1)",
-            cfg_opt_name(opt), starttls);
+        log_error("failed to validate starttls: option '%s', value '%li' "
+            "(value must be either 0 or 1)", cfg_opt_name(opt), starttls);
         return -1;
     }
     return 0;
@@ -122,22 +122,22 @@ cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *dn_str = cfg_opt_getnstr(opt, 0);
     if (dn_str == NULL) {
-        log_debug("cfg_opt_getnstr() returned NULL");
+        log_error("failed to obtain ldap dn option");
         return -1;
     }
 
     size_t dn_str_length = strlen(dn_str);
     if (dn_str_length == 0) {
-        log_error("option: '%s', value: '%s' (length of dn must be > 0)",
-            cfg_opt_name(opt), dn_str);
+        log_error("failed to validate ldap dn: option '%s', value '%s' "
+            "(length of dn must be > 0)", cfg_opt_name(opt), dn_str);
         return -1;
     }
 
     LDAPDN dn = NULL;
     int rc = ldap_str2dn(dn_str, &dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
-        log_error("option: '%s', value: '%s' (%s)", cfg_opt_name(opt), dn_str,
-            ldap_err2string(rc));
+        log_error("failed to validate ldap dn: option '%s', value '%s' (%s)",
+            cfg_opt_name(opt), dn_str, ldap_err2string(rc));
         return -1;
     }
     ldap_dnfree(dn);
@@ -153,8 +153,8 @@ cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
 
     long int timeout = cfg_opt_getnint(opt, 0);
     if (timeout <= 0) {
-        log_error("option: '%s', value: '%li' (value must be > 0)",
-            cfg_opt_name(opt), timeout);
+        log_error("failed to validate ldap search timeout: option '%s', "
+            "value '%li' (value must be > 0)", cfg_opt_name(opt), timeout);
         return -1;
     }
     return 0;
@@ -170,8 +170,8 @@ cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
 
     int ldap_option = str_to_enum(POX509_LIBLDAP, value);
     if (ldap_option == POX509_NO_SUCH_VALUE) {
-        log_error("option: '%s', value: '%s' (invalid value)",
-            cfg_opt_name(opt), value);
+        log_error("failed to convert value: option '%s', value '%s' "
+            "(invalid value)", cfg_opt_name(opt), value);
         return -1;
     }
     long int *ptr_result = result;
@@ -188,14 +188,14 @@ cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *cacerts_dir = cfg_opt_getnstr(opt, 0);
     if (cacerts_dir == NULL) {
-        log_debug("cfg_opt_getnstr() returned NULL");
+        log_error("failed to obtain cacerts dir option");
         return -1;
     }
     /* check if directory exists */
     DIR *cacerts_dir_stream = opendir(cacerts_dir);
     if (cacerts_dir_stream == NULL) {
-        log_error("option: '%s', value: '%s' (%s)", cfg_opt_name(opt),
-            cacerts_dir, strerror(errno));
+        log_error("failed to validate cacerts dir: option '%s', value '%s' (%s)",
+            cfg_opt_name(opt), cacerts_dir, strerror(errno));
         return -1;
     }
     closedir(cacerts_dir_stream);
@@ -244,7 +244,7 @@ parse_config(const char *cfg_file)
     /* initialize config */
     cfg_t *cfg = cfg_init(opts, CFGF_NONE);
     if (cfg == NULL) {
-        log_error("cfg_init() returned NULL");
+        log_error("failed to initialize config");
         return NULL;
     }
 
@@ -263,21 +263,12 @@ parse_config(const char *cfg_file)
 
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);
-    switch(rc) {
-    case CFG_SUCCESS:
-        return cfg;
-    case CFG_FILE_ERROR:
-        log_debug("cfg_parse(): '%s' (%s)", cfg_file, strerror(errno));
-        break;
-    case CFG_PARSE_ERROR:
-        log_debug("cfg_parse(): 'parse error'");
-        break;
-    default:
-        log_debug("cfg_parse(): 'unknown error' (%d)", rc);
+    if (rc != CFG_SUCCESS) {
+        cfg_free(cfg);
+        return NULL;
     }
 
-    cfg_free(cfg);
-    return NULL;
+    return cfg;
 }
 
 void
