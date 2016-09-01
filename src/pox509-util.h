@@ -64,6 +64,11 @@ enum pox509_section {
     POX509_LIBLDAP
 };
 
+struct pox509_keystore_record {
+    char *oneliner;
+    SIMPLEQ_ENTRY(pox509_keystore_record) next;
+};
+
 struct pox509_keystore_options {
     char *dn;
     char *uid;
@@ -106,6 +111,8 @@ struct pox509_info {
     TAILQ_HEAD(pox509_access_profiles, pox509_access_profile)
         *access_profiles;
     char ldap_online;
+    SIMPLEQ_HEAD(pox509_keystore_records, pox509_keystore_record)
+        *keystore_records;
     cfg_t *cfg;
 };
 
@@ -197,6 +204,7 @@ int create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length);
 int get_rdn_value_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
+int post_process_access_profiles(struct pox509_info *info);
 
 /* constructors */
 struct pox509_info *new_info();
@@ -208,6 +216,8 @@ struct pox509_key_provider *new_key_provider();
 struct pox509_keys *new_keys();
 struct pox509_key *new_key();
 struct pox509_keystore_options *new_keystore_options();
+struct pox509_keystore_records *new_keystore_records();
+struct pox509_keystore_record *new_keystore_record();
 /* destructors */
 void free_info(struct pox509_info *info);
 void free_ssh_server(struct pox509_ssh_server *ssh_server);
@@ -217,5 +227,7 @@ void free_key_providers(struct pox509_key_providers *key_providers);
 void free_key_provider(struct pox509_key_provider *key_provider);
 void free_keys(struct pox509_keys *keys);
 void free_key(struct pox509_key *key);
-void free_keystore_options(struct pox509_keystore_options *options);
+void free_keystore_options(struct pox509_keystore_options *keystore_options);
+void free_keystore_records(struct pox509_keystore_records *keystore_records);
+void free_keystore_record(struct pox509_keystore_record *keystore_record);
 #endif

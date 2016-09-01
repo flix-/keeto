@@ -32,6 +32,8 @@ pox509_strerror(int errnum)
     switch(errnum) {
     case POX509_OK:
         return "ok";
+    case POX509_INTERNAL_ERR:
+        return "internal error";
     case POX509_SYSTEM_ERR:
         return "system error";
     case POX509_NO_MEMORY:
@@ -68,6 +70,14 @@ pox509_strerror(int errnum)
         return "unknown access profile type";
     case POX509_NO_KEYSTORE_OPTION:
         return "no keystore option found";
+    case POX509_INVALID_CERT:
+        return "certificate invalid";
+    case POX509_KEY_TRANSFORM_ERR:
+        return "key transformation error";
+    case POX509_NO_KEY:
+        return "no key";
+    case POX509_OPENSSL_ERR:
+        return "openssl error";
 
     case POX509_UNKNOWN_ERR:
         return "unknown error";

@@ -35,6 +35,7 @@
 #include "pox509-config.h"
 #include "pox509-error.h"
 #include "pox509-log.h"
+#include "pox509-x509.h"
 
 #define GROUP_DN_BUFFER_SIZE 1024
 #define REGEX_PATTERN_UID "^[a-z][-a-z0-9]\\{0,31\\}$"
@@ -268,6 +269,144 @@ cleanup:
     return res;
 }
 
+static int
+post_process_key(struct pox509_info *info, struct pox509_key *key)
+{
+    if (info == NULL || key == NULL) {
+        fatal("info or key == NULL");
+    }
+
+    /* check certificate */
+    bool is_valid = false;
+    char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
+    int rc = validate_x509(key->x509, cacerts_dir, &is_valid);
+    if (rc != POX509_OK) {
+        return rc;
+    }
+    if (!is_valid) {
+        return POX509_INVALID_CERT;
+    }
+    log_info("certificate valid");
+
+
+    // (2) transform key --> POX509_KEY_TRANSFORM_ERR
+
+    return POX509_OK;
+}
+
+static int
+post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
+    *key_provider)
+{
+    if (info == NULL || key_provider == NULL) {
+        fatal("info or key_provider == NULL");
+    }
+
+    if (key_provider->keys == NULL) {
+        log_debug("keys empty when it shouldn't");
+        return POX509_INTERNAL_ERR;
+    }
+
+    struct pox509_key *key = NULL;
+    struct pox509_key *key_tmp = NULL;
+    TAILQ_FOREACH_SAFE(key, key_provider->keys, next, key_tmp) {
+        log_info("processing key");
+        int rc = post_process_key(info, key);
+        switch (rc) {
+        case POX509_OK:
+            continue;
+        case POX509_NO_MEMORY:
+            return rc;
+        default:
+            log_error("removing key (%s)", pox509_strerror(rc));
+            TAILQ_REMOVE(key_provider->keys, key, next);
+            free_key(key);
+        }
+    }
+    if (TAILQ_EMPTY(key_provider->keys)) {
+        return POX509_NO_KEY;
+    }
+
+    return POX509_OK;
+}
+
+static int
+post_process_access_profile(struct pox509_info *info, struct pox509_access_profile
+    *access_profile)
+{
+    if (info == NULL || access_profile == NULL) {
+        fatal("info or access_profile == NULL");
+    }
+
+    if (access_profile->key_providers == NULL) {
+        log_debug("key_providers empty when it shouldn't");
+        return POX509_INTERNAL_ERR;
+    }
+
+    struct pox509_key_provider *key_provider = NULL;
+    struct pox509_key_provider *key_provider_tmp = NULL;
+    TAILQ_FOREACH_SAFE(key_provider, access_profile->key_providers, next,
+        key_provider_tmp) {
+
+        log_info("processing key provider '%s'", key_provider->uid);
+        int rc = post_process_key_provider(info, key_provider);
+        switch (rc) {
+        case POX509_OK:
+            continue;
+        case POX509_NO_MEMORY:
+            return rc;
+        default:
+            log_error("removing key provider (%s)", pox509_strerror(rc));
+            TAILQ_REMOVE(access_profile->key_providers, key_provider, next);
+            free_key_provider(key_provider);
+        }
+    }
+    if (TAILQ_EMPTY(access_profile->key_providers)) {
+        return POX509_NO_KEY_PROVIDER;
+    }
+
+    return POX509_OK;
+}
+
+int
+post_process_access_profiles(struct pox509_info *info)
+{
+    if (info == NULL) {
+        fatal("info == NULL");
+    }
+
+    if (info->access_profiles == NULL) {
+        log_debug("access_profiles empty when it shouldn't");
+        return POX509_INTERNAL_ERR;
+    }
+
+    struct pox509_access_profile *access_profile = NULL;
+    struct pox509_access_profile *access_profile_tmp = NULL;
+    TAILQ_FOREACH_SAFE(access_profile, info->access_profiles, next,
+        access_profile_tmp) {
+
+        log_info("processing access profile '%s'", access_profile->uid);
+        int rc = post_process_access_profile(info, access_profile);
+        switch (rc) {
+        case POX509_OK:
+            continue;
+        case POX509_NO_MEMORY:
+            return rc;
+        default:
+            log_error("removing access profile (%s)", pox509_strerror(rc));
+            TAILQ_REMOVE(info->access_profiles, access_profile, next);
+            free_access_profile(access_profile);
+        }
+    }
+    if (TAILQ_EMPTY(info->access_profiles)) {
+        free_access_profiles(info->access_profiles);
+        info->access_profiles = NULL;
+        return POX509_NO_ACCESS_PROFILE;
+    }
+
+    return POX509_OK;
+}
+
 /* constructors */
 struct pox509_info *
 new_info()
@@ -373,6 +512,29 @@ new_keystore_options() {
     return keystore_options;
 }
 
+struct pox509_keystore_records *
+new_keystore_records()
+{
+    struct pox509_keystore_records *keystore_records =
+        malloc(sizeof *keystore_records);
+    if (keystore_records == NULL) {
+        return NULL;
+    }
+    SIMPLEQ_INIT(keystore_records);
+    return keystore_records;
+}
+
+struct pox509_keystore_record *
+new_keystore_record()
+{
+    struct pox509_keystore_record *keystore_record =
+        malloc(sizeof *keystore_record);
+    if (keystore_record == NULL) {
+        return NULL;
+    }
+    memset(keystore_record, 0, sizeof *keystore_record);
+    return keystore_record;
+}
 /* destructors */
 void
 free_info(struct pox509_info *info)
@@ -384,6 +546,7 @@ free_info(struct pox509_info *info)
     free(info->ssh_keystore_location);
     free_ssh_server(info->ssh_server);
     free_access_profiles(info->access_profiles);
+    free_keystore_records(info->keystore_records);
     free_config(info->cfg);
     free(info);
 }
@@ -479,15 +642,38 @@ free_key(struct pox509_key *key)
 }
 
 void
-free_keystore_options(struct pox509_keystore_options *options)
+free_keystore_options(struct pox509_keystore_options *keystore_options)
 {
-    if (options == NULL) {
+    if (keystore_options == NULL) {
         return;
     }
-    free(options->dn);
-    free(options->uid);
-    free(options->from_option);
-    free(options->command_option);
-    free(options);
+    free(keystore_options->dn);
+    free(keystore_options->uid);
+    free(keystore_options->from_option);
+    free(keystore_options->command_option);
+    free(keystore_options);
 }
 
+void
+free_keystore_records(struct pox509_keystore_records *keystore_records)
+{
+    if (keystore_records == NULL) {
+        return;
+    }
+    struct pox509_keystore_record *keystore_record = NULL;
+    while ((keystore_record = SIMPLEQ_FIRST(keystore_records))) {
+        SIMPLEQ_REMOVE_HEAD(keystore_records, next);
+        free_keystore_record(keystore_record);
+    }
+    free(keystore_records);
+}
+
+void
+free_keystore_record(struct pox509_keystore_record *keystore_record)
+{
+    if (keystore_record == NULL) {
+        return;
+    }
+    free(keystore_record->oneliner);
+    free(keystore_record);
+}

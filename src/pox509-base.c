@@ -172,27 +172,40 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case POX509_NO_MEMORY:
         log_error("system is out of memory");
         return PAM_BUF_ERR;
+    case POX509_NO_ACCESS_PROFILE:
+        log_info("access profile list empty");
+        return POX509_OK;
     case POX509_LDAP_CONNECTION_ERR:
         log_error("failed to connect to ldap");
         info->ldap_online = 0;
         return POX509_OK;
-    case POX509_NO_ACCESS_PROFILE:
-        log_info("no access profile found");
-        return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain keystore data from ldap (%s)",
             pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 
-    /* validate certificates and convert public key to OpenSSH
+    /*
+     * validate certificates and convert public key to OpenSSH
      * authorized_keys format
      */
-    //char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
-    //validate_x509(x509, cacerts_dir, info);
-    //x509_to_authorized_keys(x509, info);
+    log_info("post processing access profiles");
+    rc = post_process_access_profiles(info);
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        log_error("system is out of memory");
+        return PAM_BUF_ERR;
+    case POX509_NO_ACCESS_PROFILE:
+        log_info("access profile list empty");
+        return POX509_OK;
+    default:
+        log_error("failed to post process access profiles (%s)",
+            pox509_strerror(rc));
+        return PAM_SERVICE_ERR;
+    }
 
-    /* create oneliner for authorized_keys option */
     return PAM_SUCCESS;
 }
 

@@ -41,8 +41,7 @@
  * symlinked by their hash value. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void validate_x509(X509 *x509, const char *cacerts_dir,
-    struct pox509_info *info);
+int validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid);
 
 /**
  * Convert a x509 certificate to an OpenSSH authorized_keys file entry.
