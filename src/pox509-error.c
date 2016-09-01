@@ -32,8 +32,6 @@ pox509_strerror(int errnum)
     switch(errnum) {
     case POX509_OK:
         return "ok";
-    case POX509_INTERNAL_ERR:
-        return "internal error";
     case POX509_SYSTEM_ERR:
         return "system error";
     case POX509_NO_MEMORY:

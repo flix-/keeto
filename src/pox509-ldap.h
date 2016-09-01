@@ -57,5 +57,5 @@
  * Must not be @c NULL.
  * @param[out] x509 The parsed x509 certificate.
  */
-int get_keystore_data_from_ldap(struct pox509_info *info);
+int get_access_profiles_from_ldap(struct pox509_info *info);
 #endif

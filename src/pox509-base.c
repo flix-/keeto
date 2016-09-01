@@ -165,7 +165,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         info->ssh_keystore_location, SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
 
     /* get access profiles from ldap */
-    rc = get_keystore_data_from_ldap(info);
+    rc = get_access_profiles_from_ldap(info);
     switch (rc) {
     case POX509_OK:
         break;
@@ -180,7 +180,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         info->ldap_online = 0;
         return POX509_OK;
     default:
-        log_error("failed to obtain keystore data from ldap (%s)",
+        log_error("failed to obtain access profiles from ldap (%s)",
             pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }

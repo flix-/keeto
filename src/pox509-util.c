@@ -302,11 +302,6 @@ post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
         fatal("info or key_provider == NULL");
     }
 
-    if (key_provider->keys == NULL) {
-        log_debug("keys empty when it shouldn't");
-        return POX509_INTERNAL_ERR;
-    }
-
     struct pox509_key *key = NULL;
     struct pox509_key *key_tmp = NULL;
     TAILQ_FOREACH_SAFE(key, key_provider->keys, next, key_tmp) {
@@ -332,17 +327,13 @@ post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
 
 static int
 post_process_access_profile(struct pox509_info *info, struct pox509_access_profile
-    *access_profile)
+    *access_profile, struct pox509_keystore_records *keystore_records)
 {
-    if (info == NULL || access_profile == NULL) {
-        fatal("info or access_profile == NULL");
+    if (info == NULL || access_profile == NULL || keystore_records == NULL) {
+        fatal("info, access_profile or keystore_records == NULL");
     }
 
-    if (access_profile->key_providers == NULL) {
-        log_debug("key_providers empty when it shouldn't");
-        return POX509_INTERNAL_ERR;
-    }
-
+    int res = POX509_UNKNOWN_ERR;
     struct pox509_key_provider *key_provider = NULL;
     struct pox509_key_provider *key_provider_tmp = NULL;
     TAILQ_FOREACH_SAFE(key_provider, access_profile->key_providers, next,
@@ -365,7 +356,22 @@ post_process_access_profile(struct pox509_info *info, struct pox509_access_profi
         return POX509_NO_KEY_PROVIDER;
     }
 
-    return POX509_OK;
+    /* add keystore record */
+    struct pox509_keystore_record *keystore_record = new_keystore_record();
+    if (keystore_record == NULL) {
+        log_error("failed to allocate memory for keystore record");
+        return POX509_NO_MEMORY;
+    }
+
+    SIMPLEQ_INSERT_TAIL(keystore_records, keystore_record, next);
+    keystore_record = NULL;
+    res = POX509_OK;
+
+cleanup:
+    if (keystore_record != NULL) {
+        free_keystore_record(keystore_record);
+    }
+    return res;
 }
 
 int
@@ -375,9 +381,11 @@ post_process_access_profiles(struct pox509_info *info)
         fatal("info == NULL");
     }
 
-    if (info->access_profiles == NULL) {
-        log_debug("access_profiles empty when it shouldn't");
-        return POX509_INTERNAL_ERR;
+    int res = POX509_UNKNOWN_ERR;
+    struct pox509_keystore_records *keystore_records = new_keystore_records();
+    if (keystore_records == NULL) {
+        log_error("failed to allocate memory for keystore records");
+        return POX509_NO_MEMORY;
     }
 
     struct pox509_access_profile *access_profile = NULL;
@@ -386,12 +394,14 @@ post_process_access_profiles(struct pox509_info *info)
         access_profile_tmp) {
 
         log_info("processing access profile '%s'", access_profile->uid);
-        int rc = post_process_access_profile(info, access_profile);
+        int rc = post_process_access_profile(info, access_profile,
+            keystore_records);
         switch (rc) {
         case POX509_OK:
-            continue;
+            break;
         case POX509_NO_MEMORY:
-            return rc;
+            res = rc;
+            goto cleanup;
         default:
             log_error("removing access profile (%s)", pox509_strerror(rc));
             TAILQ_REMOVE(info->access_profiles, access_profile, next);
@@ -401,10 +411,19 @@ post_process_access_profiles(struct pox509_info *info)
     if (TAILQ_EMPTY(info->access_profiles)) {
         free_access_profiles(info->access_profiles);
         info->access_profiles = NULL;
-        return POX509_NO_ACCESS_PROFILE;
+        res = POX509_NO_ACCESS_PROFILE;
+        goto cleanup;
     }
 
-    return POX509_OK;
+    info->keystore_records = keystore_records;
+    keystore_records = NULL;
+    res = POX509_OK;
+
+cleanup:
+    if (keystore_records != NULL) {
+        free_keystore_records(keystore_records);
+    }
+    return res;
 }
 
 /* constructors */

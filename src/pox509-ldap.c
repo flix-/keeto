@@ -1208,7 +1208,7 @@ cleanup:
 }
 
 int
-get_keystore_data_from_ldap(struct pox509_info *info)
+get_access_profiles_from_ldap(struct pox509_info *info)
 {
     if (info == NULL) {
         fatal("info == NULL");
