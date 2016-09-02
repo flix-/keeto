@@ -15,13 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
 #include <stdlib.h>
 
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
 
 #include "queue.h"
+
 #include "pox509-error.h"
 #include "pox509-log.h"
 #include "pox509-util.h"

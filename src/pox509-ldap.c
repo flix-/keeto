@@ -698,7 +698,6 @@ cleanup_inner:
         res = POX509_NO_KEY_PROVIDER;
         goto cleanup_b;
     }
-
     access_profile->key_providers = key_providers;
     key_providers = NULL;
     res = POX509_OK;
@@ -745,8 +744,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         res = rc;
         goto cleanup_a;
     }
-    rc = add_key_providers(ldap_handle, info, group_member_entry,
-        access_profile);
+    rc = add_key_providers(ldap_handle, info, group_member_entry, access_profile);
     if (rc != POX509_OK) {
         res = rc;
         goto cleanup_b;
@@ -1221,7 +1219,7 @@ get_access_profiles_from_ldap(struct pox509_info *info)
 
     int res = POX509_UNKNOWN_ERR;
     /* init ldap handle */
-    LDAP *ldap_handle;
+    LDAP *ldap_handle = NULL;
     int rc = init_ldap_handle(&ldap_handle, info);
     if (rc != POX509_OK) {
         return rc;

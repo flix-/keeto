@@ -206,9 +206,9 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
             res = rc;
             goto cleanup_b;
         default:
-            res = rc;
             log_error("failed to obtain ssh key from rsa (%s)",
                 pox509_strerror(rc));
+            res = rc;
             goto cleanup_b;
         }
         break;
@@ -244,14 +244,15 @@ validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid)
     X509_STORE *trusted_ca_store = X509_STORE_new();
     if (trusted_ca_store == NULL) {
         log_error("failed to create trusted ca store");
-        return POX509_OPENSSL_ERR;
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_a;
     }
     X509_LOOKUP *trusted_ca_store_lookup = X509_STORE_add_lookup(trusted_ca_store,
         X509_LOOKUP_hash_dir());
     if (trusted_ca_store_lookup == NULL) {
         log_error("failed to create lookup object for ca store");
         res = POX509_X509_ERR;
-        goto cleanup_a;
+        goto cleanup_b;
     }
     int rc = X509_LOOKUP_add_dir(trusted_ca_store_lookup, cacerts_dir,
         X509_FILETYPE_PEM);
@@ -278,8 +279,8 @@ validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid)
     if (rc <= 0) {
         *is_valid = false;
         int cert_err = X509_STORE_CTX_get_error(ctx_store);
-        const char *cert_err_string = X509_verify_cert_error_string(cert_err);
-        log_error("certificate not valid (%s)", cert_err_string);
+        log_error("certificate not valid (%s)",
+            X509_verify_cert_error_string(cert_err));
     } else {
         *is_valid = true;
     }

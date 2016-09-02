@@ -264,7 +264,7 @@ parse_config(const char *cfg_file)
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);
     if (rc != CFG_SUCCESS) {
-        cfg_free(cfg);
+        free_config(cfg);
         return NULL;
     }
 
