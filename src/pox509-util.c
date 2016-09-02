@@ -270,6 +270,31 @@ cleanup:
 }
 
 static int
+add_keystore_record(struct pox509_keystore_records *keystore_records,
+    struct pox509_keystore_options *keystore_options, struct pox509_key *key)
+{
+    if (keystore_records == NULL || key == NULL) {
+        fatal("keystore_records or key == NULL");
+    }
+
+    struct pox509_keystore_record *keystore_record = new_keystore_record();
+    if (keystore_record == NULL) {
+        log_error("failed to allocate memory for keystore record");
+        return POX509_NO_MEMORY;
+    }
+
+    if (keystore_options != NULL) {
+        keystore_record->from_option = keystore_options->from_option;
+        keystore_record->command_option = keystore_options->command_option;
+    }
+    keystore_record->ssh_keytype = key->ssh_keytype;
+    keystore_record->ssh_key = key->ssh_key;
+    SIMPLEQ_INSERT_TAIL(keystore_records, keystore_record, next);
+
+    return POX509_OK;
+}
+
+static int
 post_process_key(struct pox509_info *info, struct pox509_key *key)
 {
     if (info == NULL || key == NULL) {
@@ -288,18 +313,23 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
     }
     log_info("certificate valid");
 
-
-    // (2) transform key --> POX509_KEY_TRANSFORM_ERR
-
+    /* add ssh key data */
+    rc = add_ssh_key_data_from_x509(key->x509, key);
+    if (rc != POX509_OK) {
+        return rc;
+    }
     return POX509_OK;
 }
 
 static int
-post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
-    *key_provider)
+post_process_key_provider(struct pox509_info *info,
+    struct pox509_key_provider *key_provider,
+    struct pox509_keystore_options *keystore_options,
+    struct pox509_keystore_records *keystore_records)
 {
-    if (info == NULL || key_provider == NULL) {
-        fatal("info or key_provider == NULL");
+    if (info == NULL || key_provider == NULL || keystore_records == NULL) {
+
+        fatal("info, key_provider or keystore_records == NULL");
     }
 
     struct pox509_key *key = NULL;
@@ -309,7 +339,18 @@ post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
         int rc = post_process_key(info, key);
         switch (rc) {
         case POX509_OK:
-            continue;
+            /* add key to keystore records */
+            log_info("adding keystore record");
+            rc = add_keystore_record(keystore_records, keystore_options, key);
+            switch (rc) {
+            case POX509_OK:
+                break;
+            case POX509_NO_MEMORY:
+                return rc;
+            default:
+                log_error("failed to add keystore record");
+            }
+            break;
         case POX509_NO_MEMORY:
             return rc;
         default:
@@ -326,24 +367,25 @@ post_process_key_provider(struct pox509_info *info, struct pox509_key_provider
 }
 
 static int
-post_process_access_profile(struct pox509_info *info, struct pox509_access_profile
-    *access_profile, struct pox509_keystore_records *keystore_records)
+post_process_access_profile(struct pox509_info *info,
+    struct pox509_access_profile *access_profile,
+    struct pox509_keystore_records *keystore_records)
 {
     if (info == NULL || access_profile == NULL || keystore_records == NULL) {
         fatal("info, access_profile or keystore_records == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
     struct pox509_key_provider *key_provider = NULL;
     struct pox509_key_provider *key_provider_tmp = NULL;
     TAILQ_FOREACH_SAFE(key_provider, access_profile->key_providers, next,
         key_provider_tmp) {
 
         log_info("processing key provider '%s'", key_provider->uid);
-        int rc = post_process_key_provider(info, key_provider);
+        int rc = post_process_key_provider(info, key_provider,
+            access_profile->keystore_options, keystore_records);
         switch (rc) {
         case POX509_OK:
-            continue;
+            break;
         case POX509_NO_MEMORY:
             return rc;
         default:
@@ -355,23 +397,7 @@ post_process_access_profile(struct pox509_info *info, struct pox509_access_profi
     if (TAILQ_EMPTY(access_profile->key_providers)) {
         return POX509_NO_KEY_PROVIDER;
     }
-
-    /* add keystore record */
-    struct pox509_keystore_record *keystore_record = new_keystore_record();
-    if (keystore_record == NULL) {
-        log_error("failed to allocate memory for keystore record");
-        return POX509_NO_MEMORY;
-    }
-
-    SIMPLEQ_INSERT_TAIL(keystore_records, keystore_record, next);
-    keystore_record = NULL;
-    res = POX509_OK;
-
-cleanup:
-    if (keystore_record != NULL) {
-        free_keystore_record(keystore_record);
-    }
-    return res;
+    return POX509_OK;
 }
 
 int
@@ -693,6 +719,9 @@ free_keystore_record(struct pox509_keystore_record *keystore_record)
     if (keystore_record == NULL) {
         return;
     }
-    free(keystore_record->oneliner);
+    /*
+     * do not free the members of the struct as they are all pointing
+     * to memory that is managed and freed in other structs.
+     */
     free(keystore_record);
 }

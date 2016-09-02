@@ -49,7 +49,7 @@ int validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid);
  * @param[in] x509 x509 certificate. Must not be @c NULL.
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
-void x509_to_authorized_keys(X509 *x509, struct pox509_info *info);
+int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
 
 /**
  * Get serial from x509 certificate.

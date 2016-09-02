@@ -76,6 +76,8 @@ pox509_strerror(int errnum)
         return "no key";
     case POX509_OPENSSL_ERR:
         return "openssl error";
+    case POX509_UNSUPPORTED_KEY_TYPE:
+        return "unsupported key type";
 
     case POX509_UNKNOWN_ERR:
         return "unknown error";

@@ -58,6 +58,33 @@ log_hex(char *attr, int value)
 }
 
 static void
+print_keystore_record(struct pox509_keystore_record *keystore_record)
+{
+    if (keystore_record == NULL) {
+        log_info("keystore_record empty");
+        return;
+    }
+    log_string("keystore_record->from_option", keystore_record->from_option);
+    log_string("keystore_record->command_option",
+        keystore_record->command_option);
+    log_string("keystore_record->ssh_keytype", keystore_record->ssh_keytype);
+    log_string("keystore_record->ssh_key", keystore_record->ssh_key);
+}
+
+static void
+print_keystore_records(struct pox509_keystore_records *keystore_records)
+{
+    if (keystore_records == NULL) {
+        log_info("keystore_records empty");
+        return;
+    }
+
+    struct pox509_keystore_record *keystore_record = NULL;
+    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        print_keystore_record(keystore_record);
+    }
+}
+static void
 print_keystore_options(struct pox509_keystore_options *keystore_options)
 {
     if (keystore_options == NULL) {
@@ -217,6 +244,8 @@ print_info(struct pox509_info *info)
     log_info(" ");
     print_access_profiles(info->access_profiles);
     log_int("info->ldap_online", info->ldap_online);
+    log_info(" ");
+    print_keystore_records(info->keystore_records);
 }
 
 

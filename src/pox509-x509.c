@@ -49,139 +49,204 @@ is_msb_set(unsigned char byte)
     }
 }
 
-//static void
-//pkey_to_authorized_keys(EVP_PKEY *pkey, struct pox509_info *pox509_info)
-//{
-//    if (pkey == NULL || pox509_info == NULL) {
-//        fatal("pkey or pox509_info == NULL");
-//    }
-//
-//    int pkey_type = EVP_PKEY_type(pkey->type);
-//    switch (pkey_type) {
-//    case EVP_PKEY_RSA: {
-//        pox509_info->ssh_keytype = strdup("ssh-rsa");
-//        if (pox509_info->ssh_keytype == NULL) {
-//            fatal("strdup()");
-//        }
-//        RSA *rsa = EVP_PKEY_get1_RSA(pkey);
-//        if (rsa == NULL) {
-//            fatal("EVP_PKEY_get1_RSA()");
-//        }
-//
-//        /*
-//         * create authorized_keys entry
-//         */
-//
-//        /* length of keytype WITHOUT the terminating null byte */
-//        size_t length_keytype = strlen(pox509_info->ssh_keytype);
-//        size_t length_exponent = BN_num_bytes(rsa->e);
-//        size_t length_modulus = BN_num_bytes(rsa->n);
-//        /*
-//         * the 4 bytes hold the length of the following value and the 2
-//         * extra bytes before the exponent and modulus are possibly
-//         * needed to prefix the values with leading zeroes if the most
-//         * significant bit of them is set. this is to avoid
-//         * misinterpreting the value as a negative number later.
-//         */
-//        size_t pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent +
-//            4 + 1 + length_modulus;
-//        size_t length_tmp_buffer = length_modulus > length_exponent ?
-//            length_modulus : length_exponent;
-//
-//        unsigned char blob[pre_length_blob];
-//        unsigned char tmp_buffer[length_tmp_buffer];
-//        unsigned char *blob_p = blob;
-//
-//        /* put length of keytype */
-//        PUT_32BIT(blob_p, length_keytype);
-//        blob_p += 4;
-//        /* put keytype */
-//        memcpy(blob_p, pox509_info->ssh_keytype, length_keytype);
-//        blob_p += length_keytype;
-//
-//        /* put length of exponent */
-//        BN_bn2bin(rsa->e, tmp_buffer);
-//        if (is_msb_set(tmp_buffer[0])) {
-//            PUT_32BIT(blob_p, length_exponent + 1);
-//            blob_p += 4;
-//            memset(blob_p, 0, 1);
-//            blob_p++;
-//        } else {
-//            PUT_32BIT(blob_p, length_exponent);
-//            blob_p += 4;
-//        }
-//        /* put exponent */
-//        memcpy(blob_p, tmp_buffer, length_exponent);
-//        blob_p += length_exponent;
-//
-//        /* put length of modulus */
-//        BN_bn2bin(rsa->n, tmp_buffer);
-//        if (is_msb_set(tmp_buffer[0])) {
-//            PUT_32BIT(blob_p, length_modulus + 1);
-//            blob_p += 4;
-//            memset(blob_p, 0, 1);
-//            blob_p++;
-//        } else {
-//            PUT_32BIT(blob_p, length_modulus);
-//            blob_p += 4;
-//        }
-//        /* put modulus */
-//        memcpy(blob_p, tmp_buffer, length_modulus);
-//        blob_p += length_modulus;
-//
-//        /*
-//         * base64 encode blob and store result in dto
-//         */
-//
-//        /* create base64 bio */
-//        BIO *bio_base64 = BIO_new(BIO_f_base64());
-//        if (bio_base64 == NULL) {
-//            fatal("BIO_new()");
-//        }
-//        BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
-//
-//        /* create memory bio */
-//        BIO *bio_mem = BIO_new(BIO_s_mem());
-//        if (bio_mem == NULL) {
-//            fatal("BIO_new()");
-//        }
-//        /* create bio chain base64->mem */
-//        BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
-//
-//        /* base64 encode blob and write to memory */
-//        size_t post_length_blob = blob_p - blob;
-//        BIO_write(bio_base64_mem, blob, post_length_blob);
-//        int rc = BIO_flush(bio_base64_mem);
-//        if (rc != 1) {
-//            fatal("BIO_flush()");
-//        }
-//
-//        /* store base64 encoded string in var and put null terminator */
-//        char *tmp_result = NULL;
-//        long data_out = BIO_get_mem_data(bio_mem, &tmp_result);
-//        pox509_info->ssh_key = malloc(data_out + 1);
-//        if (pox509_info->ssh_key == NULL) {
-//            fatal("malloc()");
-//        }
-//        memcpy(pox509_info->ssh_key, tmp_result, data_out);
-//        pox509_info->ssh_key[data_out] = '\0';
-//
-//        /* cleanup structures */
-//        BIO_free_all(bio_base64_mem);
-//        RSA_free(rsa);
-//
-//        break;
-//    }
-//    case EVP_PKEY_DSA:
-//        fatal("DSA is not supported yet");
-//    case EVP_PKEY_DH:
-//        fatal("DH is not supported yet");
-//    case EVP_PKEY_EC:
-//        fatal("EC is not supported yet");
-//    default:
-//        fatal("unsupported public key type (%d)", pkey->type);
-//    }
-//}
+static int
+get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
+{
+    if (pkey == NULL || ssh_keytype == NULL || ret == NULL) {
+        fatal("pkey, ssh_keytype or ret == NULL");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+    RSA *rsa = EVP_PKEY_get1_RSA(pkey);
+    if (rsa == NULL) {
+        log_error("failed to obtain rsa key");
+        return POX509_OPENSSL_ERR;
+    }
+    /* length of keytype WITHOUT the terminating null byte */
+    size_t length_keytype = strlen(ssh_keytype);
+    size_t length_exponent = BN_num_bytes(rsa->e);
+    size_t length_modulus = BN_num_bytes(rsa->n);
+    /*
+     * the 4 bytes hold the length of the following value and the 2
+     * extra bytes before the exponent and modulus are possibly
+     * needed to prefix the values with leading zeroes if the most
+     * significant bit of them is set. this is to avoid
+     * misinterpreting the value as a negative number later.
+     */
+    size_t pre_length_blob = 4 + length_keytype + 4 + 1 + length_exponent +
+        4 + 1 + length_modulus;
+    size_t length_tmp_buffer = length_modulus > length_exponent ?
+        length_modulus : length_exponent;
+
+    unsigned char blob[pre_length_blob];
+    unsigned char tmp_buffer[length_tmp_buffer];
+    unsigned char *blob_p = blob;
+
+    /* put length of keytype */
+    PUT_32BIT(blob_p, length_keytype);
+    blob_p += 4;
+    /* put keytype */
+    memcpy(blob_p, ssh_keytype, length_keytype);
+    blob_p += length_keytype;
+
+    /* put length of exponent */
+    BN_bn2bin(rsa->e, tmp_buffer);
+    if (is_msb_set(tmp_buffer[0])) {
+        PUT_32BIT(blob_p, length_exponent + 1);
+        blob_p += 4;
+        memset(blob_p, 0, 1);
+        blob_p++;
+    } else {
+        PUT_32BIT(blob_p, length_exponent);
+        blob_p += 4;
+    }
+    /* put exponent */
+    memcpy(blob_p, tmp_buffer, length_exponent);
+    blob_p += length_exponent;
+
+    /* put length of modulus */
+    BN_bn2bin(rsa->n, tmp_buffer);
+    if (is_msb_set(tmp_buffer[0])) {
+        PUT_32BIT(blob_p, length_modulus + 1);
+        blob_p += 4;
+        memset(blob_p, 0, 1);
+        blob_p++;
+    } else {
+        PUT_32BIT(blob_p, length_modulus);
+        blob_p += 4;
+    }
+    /* put modulus */
+    memcpy(blob_p, tmp_buffer, length_modulus);
+    blob_p += length_modulus;
+
+    /* base64 encode blob */
+
+    /* create base64 bio */
+    BIO *bio_base64 = BIO_new(BIO_f_base64());
+    if (bio_base64 == NULL) {
+        log_error("failed to create new base64 bio");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_a;
+    }
+    BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
+
+    /* create memory bio */
+    BIO *bio_mem = BIO_new(BIO_s_mem());
+    if (bio_mem == NULL) {
+        log_error("failed to create new mem bio");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_b;
+    }
+    /* create bio chain base64->mem */
+    BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
+
+    /* base64 encode blob and write to memory */
+    size_t post_length_blob = blob_p - blob;
+    BIO_write(bio_base64_mem, blob, post_length_blob);
+    int rc = BIO_flush(bio_base64_mem);
+    if (rc != 1) {
+        log_error("failed to flush bio");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_c;
+    }
+
+    /* store base64 encoded string in var and put null terminator */
+    char *tmp_result = NULL;
+    long data_out = BIO_get_mem_data(bio_mem, &tmp_result);
+    char *ssh_key = malloc(data_out + 1);
+    if (ssh_key == NULL) {
+        log_error("failed to allocate memory for ssh key");
+        res = POX509_NO_MEMORY;
+        goto cleanup_c;
+    }
+    memcpy(ssh_key, tmp_result, data_out);
+    ssh_key[data_out] = '\0';
+
+//    BIO_free_all(bio_base64_mem);
+    *ret = ssh_key;
+    res = POX509_OK;
+
+cleanup_c:
+    BIO_vfree(bio_mem);
+cleanup_b:
+    BIO_vfree(bio_base64);
+cleanup_a:
+    RSA_free(rsa);
+    return res;
+}
+
+int
+add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
+{
+    if (x509 == NULL || key == NULL) {
+        fatal("x509 or key == NULL");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+    EVP_PKEY *pkey = X509_get_pubkey(x509);
+    if (pkey == NULL) {
+        log_error("failed to extract public key from certificate");
+        return POX509_X509_ERR;
+    }
+    char *ssh_keytype = NULL;
+    char *ssh_key = NULL;
+
+    int pkey_type = EVP_PKEY_base_id(pkey);
+    switch (pkey_type) {
+    case EVP_PKEY_RSA:
+        ssh_keytype = strdup("ssh-rsa");
+        if (ssh_keytype == NULL) {
+            log_error("failed to duplicate ssh keytype");
+            res = POX509_NO_MEMORY;
+            goto cleanup_a;
+        }
+        int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &ssh_key);
+        switch (rc) {
+        case POX509_OK:
+            break;
+        case POX509_NO_MEMORY:
+            res = rc;
+            goto cleanup_b;
+        default:
+            log_error("failed to obtain ssh key from rsa (%s)",
+                pox509_strerror(rc));
+            goto cleanup_b;
+        }
+        break;
+    case EVP_PKEY_DSA:
+        log_error("dsa keys are not supported");
+        res = POX509_UNSUPPORTED_KEY_TYPE;
+        goto cleanup_a;
+    case EVP_PKEY_DH:
+        log_error("dh keys are not supported");
+        res = POX509_UNSUPPORTED_KEY_TYPE;
+        goto cleanup_a;
+    case EVP_PKEY_EC:
+        log_error("ec keys are not supported");
+        res = POX509_UNSUPPORTED_KEY_TYPE;
+        goto cleanup_a;
+    default:
+        log_error("unsupported key type (%d)", pkey_type);
+        res = POX509_UNSUPPORTED_KEY_TYPE;
+        goto cleanup_a;
+    }
+    key->ssh_keytype = ssh_keytype;
+    ssh_keytype = NULL;
+    key->ssh_key = ssh_key;
+    ssh_key = NULL;
+    res = POX509_OK;
+
+    if (ssh_key != NULL) {
+        free(ssh_key);
+    }
+cleanup_b:
+    if (ssh_keytype != NULL) {
+        free(ssh_keytype);
+    }
+cleanup_a:
+    EVP_PKEY_free(pkey);
+    return res;
+}
 
 int
 validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid)
@@ -247,25 +312,6 @@ cleanup_a:
     EVP_cleanup();
     return res;
 }
-
-//void
-//x509_to_authorized_keys(X509 *x509, struct pox509_info *pox509_info)
-//{
-//    if (x509 == NULL || pox509_info == NULL) {
-//        fatal("x509 or pox509_info == NULL");
-//    }
-//
-//    /*
-//     * extract public key and convert into OpenSSH authorized_keys
-//     * format
-//     */
-//    EVP_PKEY *pkey = X509_get_pubkey(x509);
-//    if (pkey == NULL) {
-//        fatal("X509_get_pubkey(): unable to load public key");
-//    }
-//    pkey_to_authorized_keys(pkey, pox509_info);
-//    EVP_PKEY_free(pkey);
-//}
 
 char *
 get_serial_from_x509(X509 *x509)
