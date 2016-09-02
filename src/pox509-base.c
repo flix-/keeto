@@ -205,7 +205,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
             pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-
     return PAM_SUCCESS;
 }
 

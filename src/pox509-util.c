@@ -306,6 +306,7 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
     char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
     int rc = validate_x509(key->x509, cacerts_dir, &is_valid);
     if (rc != POX509_OK) {
+        log_error("failed to validate certificate");
         return rc;
     }
     if (!is_valid) {
@@ -316,6 +317,7 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
     /* add ssh key data */
     rc = add_ssh_key_data_from_x509(key->x509, key);
     if (rc != POX509_OK) {
+        log_error("failed to add key data from x509");
         return rc;
     }
     return POX509_OK;

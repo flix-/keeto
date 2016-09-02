@@ -124,7 +124,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     /* create base64 bio */
     BIO *bio_base64 = BIO_new(BIO_f_base64());
     if (bio_base64 == NULL) {
-        log_error("failed to create new base64 bio");
+        log_error("failed to create base64 bio");
         res = POX509_OPENSSL_ERR;
         goto cleanup_a;
     }
@@ -133,7 +133,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     /* create memory bio */
     BIO *bio_mem = BIO_new(BIO_s_mem());
     if (bio_mem == NULL) {
-        log_error("failed to create new mem bio");
+        log_error("failed to create mem bio");
         res = POX509_OPENSSL_ERR;
         goto cleanup_b;
     }
@@ -162,7 +162,6 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     memcpy(ssh_key, tmp_result, data_out);
     ssh_key[data_out] = '\0';
 
-//    BIO_free_all(bio_base64_mem);
     *ret = ssh_key;
     res = POX509_OK;
 
@@ -189,7 +188,6 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
         return POX509_X509_ERR;
     }
     char *ssh_keytype = NULL;
-    char *ssh_key = NULL;
 
     int pkey_type = EVP_PKEY_base_id(pkey);
     switch (pkey_type) {
@@ -200,7 +198,7 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
             res = POX509_NO_MEMORY;
             goto cleanup_a;
         }
-        int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &ssh_key);
+        int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &key->ssh_key);
         switch (rc) {
         case POX509_OK:
             break;
@@ -208,6 +206,7 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
             res = rc;
             goto cleanup_b;
         default:
+            res = rc;
             log_error("failed to obtain ssh key from rsa (%s)",
                 pox509_strerror(rc));
             goto cleanup_b;
@@ -232,13 +231,8 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
     }
     key->ssh_keytype = ssh_keytype;
     ssh_keytype = NULL;
-    key->ssh_key = ssh_key;
-    ssh_key = NULL;
     res = POX509_OK;
 
-    if (ssh_key != NULL) {
-        free(ssh_key);
-    }
 cleanup_b:
     if (ssh_keytype != NULL) {
         free(ssh_keytype);
