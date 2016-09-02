@@ -65,18 +65,19 @@ enum pox509_section {
 };
 
 struct pox509_keystore_record {
-    char *from_option;
-    char *command_option;
+    char *uid;
     char *ssh_keytype;
     char *ssh_key;
+    char *command_option;
+    char *from_option;
     SIMPLEQ_ENTRY(pox509_keystore_record) next;
 };
 
 struct pox509_keystore_options {
     char *dn;
     char *uid;
-    char *from_option;
     char *command_option;
+    char *from_option;
 };
 
 struct pox509_key {

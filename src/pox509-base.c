@@ -174,11 +174,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        return POX509_OK;
+        return PAM_SUCCESS;
     case POX509_LDAP_CONNECTION_ERR:
         log_error("failed to connect to ldap");
         info->ldap_online = 0;
-        return POX509_OK;
+        return PAM_SUCCESS;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
             pox509_strerror(rc));
@@ -199,7 +199,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        return POX509_OK;
+        return PAM_SUCCESS;
     default:
         log_error("failed to post process access profiles (%s)",
             pox509_strerror(rc));

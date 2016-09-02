@@ -212,18 +212,6 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
             goto cleanup_b;
         }
         break;
-    case EVP_PKEY_DSA:
-        log_error("dsa keys are not supported");
-        res = POX509_UNSUPPORTED_KEY_TYPE;
-        goto cleanup_a;
-    case EVP_PKEY_DH:
-        log_error("dh keys are not supported");
-        res = POX509_UNSUPPORTED_KEY_TYPE;
-        goto cleanup_a;
-    case EVP_PKEY_EC:
-        log_error("ec keys are not supported");
-        res = POX509_UNSUPPORTED_KEY_TYPE;
-        goto cleanup_a;
     default:
         log_error("unsupported key type (%d)", pkey_type);
         res = POX509_UNSUPPORTED_KEY_TYPE;

@@ -270,11 +270,12 @@ cleanup:
 }
 
 static int
-add_keystore_record(struct pox509_keystore_records *keystore_records,
-    struct pox509_keystore_options *keystore_options, struct pox509_key *key)
+add_keystore_record(struct pox509_key_provider *key_provider,
+    struct pox509_keystore_options *keystore_options, struct pox509_key *key,
+    struct pox509_keystore_records *keystore_records)
 {
-    if (keystore_records == NULL || key == NULL) {
-        fatal("keystore_records or key == NULL");
+    if (key_provider == NULL || key == NULL || keystore_records == NULL) {
+        fatal("key_provider, key or keystore_records == NULL");
     }
 
     struct pox509_keystore_record *keystore_record = new_keystore_record();
@@ -283,12 +284,13 @@ add_keystore_record(struct pox509_keystore_records *keystore_records,
         return POX509_NO_MEMORY;
     }
 
-    if (keystore_options != NULL) {
-        keystore_record->from_option = keystore_options->from_option;
-        keystore_record->command_option = keystore_options->command_option;
-    }
+    keystore_record->uid = key_provider->uid;
     keystore_record->ssh_keytype = key->ssh_keytype;
     keystore_record->ssh_key = key->ssh_key;
+    if (keystore_options != NULL) {
+        keystore_record->command_option = keystore_options->command_option;
+        keystore_record->from_option = keystore_options->from_option;
+    }
     SIMPLEQ_INSERT_TAIL(keystore_records, keystore_record, next);
 
     return POX509_OK;
@@ -343,7 +345,8 @@ post_process_key_provider(struct pox509_info *info,
         case POX509_OK:
             /* add key to keystore records */
             log_info("adding keystore record");
-            rc = add_keystore_record(keystore_records, keystore_options, key);
+            rc = add_keystore_record(key_provider, keystore_options, key,
+                keystore_records);
             switch (rc) {
             case POX509_OK:
                 break;
@@ -696,8 +699,8 @@ free_keystore_options(struct pox509_keystore_options *keystore_options)
     }
     free(keystore_options->dn);
     free(keystore_options->uid);
-    free(keystore_options->from_option);
     free(keystore_options->command_option);
+    free(keystore_options->from_option);
     free(keystore_options);
 }
 
@@ -727,3 +730,4 @@ free_keystore_record(struct pox509_keystore_record *keystore_record)
      */
     free(keystore_record);
 }
+

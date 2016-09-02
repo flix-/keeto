@@ -64,11 +64,12 @@ print_keystore_record(struct pox509_keystore_record *keystore_record)
         log_info("keystore_record empty");
         return;
     }
-    log_string("keystore_record->from_option", keystore_record->from_option);
-    log_string("keystore_record->command_option",
-        keystore_record->command_option);
+    log_string("keystore_record->uid", keystore_record->uid);
     log_string("keystore_record->ssh_keytype", keystore_record->ssh_keytype);
     log_string("keystore_record->ssh_key", keystore_record->ssh_key);
+    log_string("keystore_record->command_option",
+        keystore_record->command_option);
+    log_string("keystore_record->from_option", keystore_record->from_option);
 }
 
 static void
@@ -94,9 +95,9 @@ print_keystore_options(struct pox509_keystore_options *keystore_options)
 
     log_string("keystore_options->dn", keystore_options->dn);
     log_string("keystore_options->uid", keystore_options->uid);
-    log_string("keystore_options->from_option", keystore_options->from_option);
     log_string("keystore_options->command_option",
         keystore_options->command_option);
+    log_string("keystore_options->from_option", keystore_options->from_option);
 }
 
 static void

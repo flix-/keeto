@@ -386,30 +386,6 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     }
 
     /* get attribute values (optional) */
-    char **keystore_options_from = NULL;
-    rc = get_attr_values_as_string(ldap_handle, keystore_options_entry,
-        POX509_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
-    switch (rc) {
-    case POX509_OK:
-        keystore_options->from_option = strdup(keystore_options_from[0]);
-        if (keystore_options->from_option == NULL) {
-            log_error("failed to duplicate keystore option 'from'");
-            res = POX509_NO_MEMORY;
-            goto cleanup_b;
-        }
-        log_info("added keystore option 'from'");
-        break;
-    case POX509_LDAP_NO_SUCH_ATTR:
-        log_info("skipped keystore option 'from' (%s)",
-            POX509_KEYSTORE_OPTIONS_FROM_ATTR);
-        break;
-    default:
-        log_error("failed to obtain keystore option 'from': attribute '%s' (%s)",
-            POX509_KEYSTORE_OPTIONS_FROM_ATTR, pox509_strerror(rc));
-        res = rc;
-        goto cleanup_a;
-    }
-
     char **keystore_options_command = NULL;
     rc = get_attr_values_as_string(ldap_handle, keystore_options_entry,
         POX509_KEYSTORE_OPTIONS_CMD_ATTR, &keystore_options_command);
@@ -419,7 +395,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         if (keystore_options->command_option == NULL) {
             log_error("failed to duplicate keystore option 'command'");
             res = POX509_NO_MEMORY;
-            goto cleanup_c;
+            goto cleanup_b;
         }
         log_info("added keystore option 'command'");
         break;
@@ -430,6 +406,30 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     default:
         log_error("failed to obtain keystore option 'command': attribute '%s' (%s)",
             POX509_KEYSTORE_OPTIONS_CMD_ATTR, pox509_strerror(rc));
+        res = rc;
+        goto cleanup_a;
+    }
+
+    char **keystore_options_from = NULL;
+    rc = get_attr_values_as_string(ldap_handle, keystore_options_entry,
+        POX509_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
+    switch (rc) {
+    case POX509_OK:
+        keystore_options->from_option = strdup(keystore_options_from[0]);
+        if (keystore_options->from_option == NULL) {
+            log_error("failed to duplicate keystore option 'from'");
+            res = POX509_NO_MEMORY;
+            goto cleanup_c;
+        }
+        log_info("added keystore option 'from'");
+        break;
+    case POX509_LDAP_NO_SUCH_ATTR:
+        log_info("skipped keystore option 'from' (%s)",
+            POX509_KEYSTORE_OPTIONS_FROM_ATTR);
+        break;
+    default:
+        log_error("failed to obtain keystore option 'from': attribute '%s' (%s)",
+            POX509_KEYSTORE_OPTIONS_FROM_ATTR, pox509_strerror(rc));
         res = rc;
         goto cleanup_b;
     }
@@ -446,9 +446,9 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     res = POX509_OK;
 
 cleanup_c:
-    free_attr_values_as_string(keystore_options_command);
-cleanup_b:
     free_attr_values_as_string(keystore_options_from);
+cleanup_b:
+    free_attr_values_as_string(keystore_options_command);
 cleanup_a:
     if (keystore_options != NULL) {
         free_keystore_options(keystore_options);
@@ -1048,7 +1048,12 @@ add_ssh_server_entry(LDAP *ldap_handle, struct pox509_info *info,
         res = POX509_LDAP_ERR;
         goto cleanup_b;
     }
-    ssh_server->uid = cfg_getstr(info->cfg, "ssh_server_uid");
+    ssh_server->uid = strdup(cfg_getstr(info->cfg, "ssh_server_uid"));
+    if (ssh_server->uid == NULL) {
+        log_error("failed to duplicate ssh server uid");
+        res = POX509_NO_MEMORY;
+        goto cleanup_b;
+    }
 
     *ret = ssh_server_entry;
     ssh_server_entry = NULL;
