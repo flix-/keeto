@@ -1,6 +1,5 @@
-auth	requisite	pox509-base.so  /usr/local/etc/ssh/pox509.conf
-auth	optional	pox509-audit.so
-auth	required	pox509-validate.so
+auth	requisite	pam_pox509.so       /usr/local/etc/ssh/pox509.conf
+auth	optional	pam_pox509_audit.so
 account required    pam_permit.so
 session required    pam_permit.so
 

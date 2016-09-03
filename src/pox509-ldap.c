@@ -150,10 +150,15 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
     char **objectclasses = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         "objectClass", &objectclasses);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain access profile type: attribute '%s' (%s)",
             "objectClass", pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
 
     int res = POX509_UNKNOWN_ACCESS_PROFILE_TYPE;
@@ -194,7 +199,7 @@ get_group_member_entry(LDAP *ldap_handle, struct pox509_info *info,
     if (rc != LDAP_SUCCESS) {
         log_error("failed to search ldap: base '%s' (%s)", group_dn,
             ldap_err2string(rc));
-        res = POX509_LDAP_ERR;
+        res = POX509_LDAP_NO_SUCH_ENTRY;
         goto cleanup;
     }
     *ret = group_member_entry;
@@ -222,10 +227,15 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
     char **target_keystore_group_dn = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain target keystore group dn: attribute '%s' (%s)",
             POX509_AOBP_TARGET_KEYSTORE_ATTR, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
     log_info("processing target keystore group '%s'",
         target_keystore_group_dn[0]);
@@ -237,17 +247,25 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
     rc = get_group_member_entry(ldap_handle, info, target_keystore_group_dn[0],
         target_keystore_group_member_attr, &group_member_entry);
     if (rc != POX509_OK) {
-        res = rc;
+        log_error("failed to obtain target keystore group member entry (%s)",
+            pox509_strerror(rc));
+        res = POX509_LDAP_NO_SUCH_ENTRY;
         goto cleanup_a;
     }
     /* get target keystore dns */
     char **target_keystore_dns = NULL;
     rc = get_attr_values_as_string(ldap_handle, group_member_entry,
         target_keystore_group_member_attr, &target_keystore_dns);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        res = rc;
+        goto cleanup_b;
+    default:
         log_error("failed to obtain target keystore dns: attribute '%s' (%s)",
             target_keystore_group_member_attr, pox509_strerror(rc));
-        res = rc;
+        res = POX509_LDAP_SCHEMA_ERR;
         goto cleanup_b;
     }
 
@@ -268,6 +286,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", target_keystore_dn,
                 ldap_err2string(rc));
+            log_info("skipped target keystore");
             goto cleanup_inner;
         }
         /* get uid of target keystore */
@@ -285,7 +304,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         default:
             log_error("failed to obtain target keystore uid: attribute '%s' (%s)",
                 target_keystore_uid_attr, pox509_strerror(rc));
-            log_info("skipped target keystore (%s)", pox509_strerror(rc));
+            log_info("skipped target keystore");
             goto cleanup_inner;
         }
         /* check uid */
@@ -320,10 +339,15 @@ check_access_profile_enabled(LDAP *ldap_handle,
     char **access_profile_state = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         POX509_AP_IS_ENABLED, &access_profile_state);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain access profile state: attribute '%s' (%s)",
             POX509_AP_IS_ENABLED, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
     *ret = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ? true : false;
     free_attr_values_as_string(access_profile_state);
@@ -342,7 +366,14 @@ check_access_profile_relevance_generic(LDAP *ldap_handle,
     bool is_profile_enabled = false;
     int rc = check_access_profile_enabled(ldap_handle, access_profile_entry,
         &is_profile_enabled);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
+        log_error("failed to check if profile is enabled (%s)",
+            pox509_strerror(rc));
         return rc;
     }
     if (!is_profile_enabled) {
@@ -399,6 +430,9 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         }
         log_info("added keystore option 'command'");
         break;
+    case POX509_NO_MEMORY:
+        res = rc;
+        goto cleanup_a;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore option 'command' (%s)",
             POX509_KEYSTORE_OPTIONS_CMD_ATTR);
@@ -423,6 +457,9 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         }
         log_info("added keystore option 'from'");
         break;
+    case POX509_NO_MEMORY:
+        res = rc;
+        goto cleanup_b;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore option 'from' (%s)",
             POX509_KEYSTORE_OPTIONS_FROM_ATTR);
@@ -509,7 +546,7 @@ add_keys(LDAP *ldap_handle, struct pox509_info *info,
     if (rc != POX509_OK) {
         log_error("failed to obtain key provider certificate: attribute '%s' (%s)",
             key_provider_cert_attr, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
 
     struct pox509_keys *keys = new_keys();
@@ -569,10 +606,15 @@ add_key_provider(LDAP *ldap_handle, struct pox509_info *info,
     char **key_provider_uid = NULL;
     int rc = get_attr_values_as_string(ldap_handle, key_provider_entry,
         key_provider_uid_attr, &key_provider_uid);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain key provider uid: attribute '%s' (%s)",
             key_provider_uid_attr, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
     /*
      * for direct access profiles a key provider is only relevant
@@ -613,6 +655,7 @@ add_key_provider(LDAP *ldap_handle, struct pox509_info *info,
         res = rc;
         goto cleanup_b;
     }
+
     TAILQ_INSERT_TAIL(key_providers, key_provider, next);
     key_provider = NULL;
     res = POX509_OK;
@@ -644,10 +687,15 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
     char **key_provider_dns = NULL;
     int rc = get_attr_values_as_string(ldap_handle, group_member_entry,
         key_provider_group_member_attr, &key_provider_dns);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain key provider dns: attribute '%s' (%s)",
             key_provider_group_member_attr, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
 
     struct pox509_key_providers *key_providers = new_key_providers();
@@ -674,6 +722,7 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", key_provider_dn,
                 ldap_err2string(rc));
+            log_info("skipped key provider");
             goto cleanup_inner;
         }
         rc = add_key_provider(ldap_handle, info, access_profile,
@@ -728,10 +777,15 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     char **key_provider_group_dn = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         POX509_AP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain key provider group dn: attribute '%s' (%s)",
             POX509_AP_KEY_PROVIDER_ATTR, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
     log_info("processing key provider group '%s'", key_provider_group_dn[0]);
 
@@ -741,7 +795,9 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     rc = get_group_member_entry(ldap_handle, info, key_provider_group_dn[0],
         key_provider_group_member_attr, &group_member_entry);
     if (rc != POX509_OK) {
-        res = rc;
+        log_error("failed to obtain key provider group member entry (%s)",
+            pox509_strerror(rc));
+        res = POX509_LDAP_NO_SUCH_ENTRY;
         goto cleanup_a;
     }
     rc = add_key_providers(ldap_handle, info, group_member_entry, access_profile);
@@ -770,8 +826,9 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)",
                 keystore_options_dn[0], ldap_err2string(rc));
-            res = rc;
-            goto cleanup_inner;
+            res = POX509_LDAP_NO_SUCH_ENTRY;
+            ldap_msgfree(keystore_options_entry);
+            goto cleanup_c;
         }
         rc = add_keystore_options(ldap_handle, keystore_options_entry,
             access_profile);
@@ -779,18 +836,25 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         case POX509_OK:
             log_info("added keystore options");
             break;
+        case POX509_NO_MEMORY:
+            res = rc;
+            ldap_msgfree(keystore_options_entry);
+            goto cleanup_c;
         case POX509_NO_KEYSTORE_OPTION:
             log_info("keystore options entry has no option set - remove "
                 "keystore options from access profile?!");
             break;
         default:
+            log_error("failed to add keystore options (%s)", pox509_strerror(rc));
             res = rc;
             ldap_msgfree(keystore_options_entry);
             goto cleanup_c;
         }
-cleanup_inner:
         ldap_msgfree(keystore_options_entry);
         break;
+    case POX509_NO_MEMORY:
+        res = rc;
+        goto cleanup_b;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore options (%s)", pox509_strerror(rc));
         break;
@@ -827,7 +891,14 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     bool is_access_profile_relevant = false;
     int rc = check_access_profile_relevance_generic(ldap_handle,
         access_profile_entry, &is_access_profile_relevant);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
+        log_error("failed to check access profile relevance (%s)",
+            pox509_strerror(rc));
         return rc;
     }
     if (!is_access_profile_relevant) {
@@ -838,7 +909,14 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     enum pox509_access_profile_type access_profile_type;
     rc = get_access_profile_type(ldap_handle, access_profile_entry,
         &access_profile_type);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
+        log_error("failed to determine access profile type (%s)",
+            pox509_strerror(rc));
         return rc;
     }
     /*
@@ -850,7 +928,14 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         bool is_aobp_relevant = false;
         rc = check_access_profile_relevance_aobp(ldap_handle, info,
             access_profile_entry, &is_aobp_relevant);
-        if (rc != POX509_OK) {
+        switch (rc) {
+        case POX509_OK:
+            break;
+        case POX509_NO_MEMORY:
+            return rc;
+        default:
+            log_error("failed to check access on behalf profile relevance (%s)",
+                pox509_strerror(rc));
             return rc;
         }
         if (!is_aobp_relevant) {
@@ -875,7 +960,7 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     if (rc != POX509_OK) {
         log_error("failed to obtain rdn from dn '%s' (%s)", access_profile->dn,
             pox509_strerror(rc));
-        res = rc;
+        res = POX509_LDAP_ERR;
         goto cleanup;
     }
 
@@ -912,10 +997,15 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
     char **access_profile_dns = NULL;
     int rc = get_attr_values_as_string(ldap_handle, ssh_server_entry,
         ssh_server_access_profile_attr, &access_profile_dns);
-    if (rc != POX509_OK) {
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
+        return rc;
+    default:
         log_error("failed to obtain access profile dns: attribute '%s' (%s)",
             ssh_server_access_profile_attr, pox509_strerror(rc));
-        return rc;
+        return POX509_LDAP_SCHEMA_ERR;
     }
 
     struct pox509_access_profiles *access_profiles = new_access_profiles();
@@ -933,11 +1023,11 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
 
         LDAPMessage *access_profile_entry = NULL;
         rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
-            NULL, NULL, 0, NULL, NULL, &search_timeout, 1,
-                &access_profile_entry);
+            NULL, NULL, 0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", access_profile_dn,
                 ldap_err2string(rc));
+            log_info("skipped access profile");
             goto cleanup_inner;
         }
         rc = add_access_profile(ldap_handle, info, access_profile_entry,
@@ -991,14 +1081,13 @@ add_ssh_server_entry(LDAP *ldap_handle, struct pox509_info *info,
         cfg_getint(info->cfg, "ldap_ssh_server_search_scope");
     /* construct search filter */
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
-    char *ssh_server_uid_attr = cfg_getstr(info->cfg,
-        "ldap_ssh_server_uid_attr");
+    char *ssh_server_uid_attr = cfg_getstr(info->cfg, "ldap_ssh_server_uid_attr");
     char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
     int rc = create_ldap_search_filter(ssh_server_uid_attr, ssh_server_uid,
         filter, sizeof filter);
     if (rc != POX509_OK) {
         log_error("failed to create ldap search filter (%s)", pox509_strerror(rc));
-        return rc;
+        return POX509_SYSTEM_ERR;
     }
     char *ssh_server_access_profile_attr = cfg_getstr(info->cfg,
         "ldap_ssh_server_access_profile_attr");
@@ -1013,7 +1102,7 @@ add_ssh_server_entry(LDAP *ldap_handle, struct pox509_info *info,
     if (rc != LDAP_SUCCESS) {
         log_error("failed to search ldap: base '%s' (%s)", ssh_server_base_dn,
             ldap_err2string(rc));
-        res = POX509_LDAP_ERR;
+        res = POX509_LDAP_NO_SUCH_ENTRY;
         goto cleanup_a;
     }
 
@@ -1117,7 +1206,7 @@ connect_to_ldap(LDAP *ldap_handle, struct pox509_info *info)
         .bv_val = ldap_bind_pwd
     };
     rc = ldap_sasl_bind_s(ldap_handle, ldap_bind_dn, LDAP_SASL_SIMPLE, &cred,
-        NULL, NULL, NULL);
+            NULL, NULL, NULL);
     memset(ldap_bind_pwd, 0, ldap_bind_pwd_length);
     if (rc != LDAP_SUCCESS) {
         log_error("failed to bind to ldap (%s)", ldap_err2string(rc));
@@ -1126,7 +1215,7 @@ connect_to_ldap(LDAP *ldap_handle, struct pox509_info *info)
     return POX509_OK;
 }
 
-static int
+    static int
 set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
 {
     if (ldap_handle == NULL || info == NULL) {
@@ -1136,10 +1225,10 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
     /* set protocol version */
     int ldap_version = LDAP_VERSION3;
     int rc = ldap_set_option(ldap_handle, LDAP_OPT_PROTOCOL_VERSION,
-        &ldap_version);
+            &ldap_version);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_PROTOCOL_VERSION', "
-            "value '%d'", ldap_version);
+                "value '%d'", ldap_version);
         return POX509_LDAP_ERR;
     }
 
@@ -1148,7 +1237,7 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_REQUIRE_CERT', "
-            "value '%d'", req_cert);
+                "value '%d'", req_cert);
         return POX509_LDAP_ERR;
     }
 
@@ -1157,7 +1246,7 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cacerts_dir);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CACERTDIR', "
-            "value '%s'", cacerts_dir);
+                "value '%s'", cacerts_dir);
         return POX509_LDAP_ERR;
     }
 
@@ -1169,7 +1258,7 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_NEWCTX', "
-            "value '%d'", new_ctx);
+                "value '%d'", new_ctx);
         return POX509_LDAP_ERR;
     }
     return POX509_OK;
@@ -1193,7 +1282,7 @@ init_ldap_handle(LDAP **ret, struct pox509_info *info)
     rc = set_ldap_options(ldap_handle, info);
     if (rc != POX509_OK) {
         log_error("failed to set ldap options (%s)", pox509_strerror(rc));
-        res = rc;
+        res = POX509_LDAP_ERR;
         goto cleanup;
     }
     *ret = ldap_handle;
@@ -1237,9 +1326,15 @@ get_access_profiles_from_ldap(struct pox509_info *info)
     /* add ssh server entry */
     LDAPMessage *ssh_server_entry = NULL;
     rc = add_ssh_server_entry(ldap_handle, info, &ssh_server_entry); 
-    if (rc != POX509_OK) {
-        log_error("failed to add ssh server (%s)", pox509_strerror(rc));
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
         res = rc;
+        goto cleanup_a;
+    default:
+        log_error("failed to add ssh server (%s)", pox509_strerror(rc));
+        res = POX509_NO_SSH_SERVER;
         goto cleanup_a;
     }
     log_info("added ssh server '%s' (%s)", info->ssh_server->uid,

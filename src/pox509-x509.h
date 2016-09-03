@@ -74,4 +74,5 @@ char *get_issuer_from_x509(X509 *x509);
  * @param[out] pox509_info DTO. Must not be @c NULL.
  */
 char *get_subject_from_x509(X509 *x509);
+void free_x509(X509 *x509);
 #endif

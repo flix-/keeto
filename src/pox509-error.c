@@ -38,22 +38,18 @@ pox509_strerror(int errnum)
         return "no memory";
     case POX509_NO_SUCH_VALUE:
         return "no such value";
-    case POX509_PARSE_CONFIG_ERR:
-        return "parse config error";
     case POX509_REGEX_ERR:
         return "regex error";
     case POX509_LDAP_ERR:
         return "ldap error";
     case POX509_LDAP_CONNECTION_ERR:
         return "ldap connection error";
+    case POX509_LDAP_SCHEMA_ERR:
+        return "ldap schema error";
     case POX509_LDAP_NO_SUCH_ENTRY:
         return "no such ldap entry";
     case POX509_LDAP_NO_SUCH_ATTR:
         return "no such ldap attribute";
-    case POX509_LDAP_NO_SUCH_VALUE:
-        return "no such ldap value";
-    case POX509_LDAP_INVALID_RESULT:
-        return "invalid ldap result";
     case POX509_NOT_RELEVANT:
         return "not relevant";
     case POX509_NO_CERT:
@@ -68,8 +64,10 @@ pox509_strerror(int errnum)
         return "unknown access profile type";
     case POX509_NO_KEYSTORE_OPTION:
         return "no keystore option found";
+    case POX509_CERT_VALIDATION_ERR:
+        return "certificate validation error";
     case POX509_INVALID_CERT:
-        return "certificate invalid";
+        return "invalid certificate";
     case POX509_KEY_TRANSFORM_ERR:
         return "key transformation error";
     case POX509_NO_KEY:
@@ -78,6 +76,8 @@ pox509_strerror(int errnum)
         return "openssl error";
     case POX509_UNSUPPORTED_KEY_TYPE:
         return "unsupported key type";
+    case POX509_NO_SSH_SERVER:
+        return "no ssh server found";
 
     case POX509_UNKNOWN_ERR:
         return "unknown error";

@@ -230,6 +230,15 @@ print_ssh_server(struct pox509_ssh_server *ssh_server)
 }
 
 static void
+print_config(cfg_t *cfg)
+{
+    if (cfg == NULL) {
+        log_info("cfg empty");
+        return;
+    }
+}
+
+static void
 print_info(struct pox509_info *info)
 {
     if (info == NULL) {
@@ -238,6 +247,7 @@ print_info(struct pox509_info *info)
     }
 
     log_info(" ");
+    print_config(info->cfg);
     log_string("info->uid", info->uid);
     log_string("info->ssh_keystore_location", info->ssh_keystore_location);
     log_info(" ");

@@ -354,3 +354,12 @@ get_subject_from_x509(X509 *x509)
     return X509_NAME_oneline(subject, NULL, 0);
 }
 
+void
+free_x509(X509 *x509)
+{
+    if (x509 == NULL) {
+        return;
+    }
+    X509_free(x509);
+}
+

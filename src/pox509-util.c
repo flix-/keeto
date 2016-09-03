@@ -308,19 +308,23 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
     char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
     int rc = validate_x509(key->x509, cacerts_dir, &is_valid);
     if (rc != POX509_OK) {
-        log_error("failed to validate certificate");
-        return rc;
+        log_error("failed to validate certificate (%s)", pox509_strerror(rc));
+        return POX509_CERT_VALIDATION_ERR;
     }
     if (!is_valid) {
         return POX509_INVALID_CERT;
     }
-    log_info("certificate valid");
 
     /* add ssh key data */
     rc = add_ssh_key_data_from_x509(key->x509, key);
-    if (rc != POX509_OK) {
-        log_error("failed to add key data from x509");
+    switch (rc) {
+    case POX509_OK:
+        break;
+    case POX509_NO_MEMORY:
         return rc;
+    default:
+        log_error("failed to add key data (%s)", pox509_strerror(rc));
+        return POX509_KEY_TRANSFORM_ERR;
     }
     return POX509_OK;
 }
@@ -332,8 +336,11 @@ post_process_key_provider(struct pox509_info *info,
     struct pox509_keystore_records *keystore_records)
 {
     if (info == NULL || key_provider == NULL || keystore_records == NULL) {
-
         fatal("info, key_provider or keystore_records == NULL");
+    }
+
+    if (key_provider->keys == NULL) {
+        fatal("key_provider->keys == NULL");
     }
 
     struct pox509_key *key = NULL;
@@ -380,6 +387,10 @@ post_process_access_profile(struct pox509_info *info,
         fatal("info, access_profile or keystore_records == NULL");
     }
 
+    if (access_profile->key_providers == NULL) {
+        fatal("access_profile->key_providers == NULL");
+    }
+
     struct pox509_key_provider *key_provider = NULL;
     struct pox509_key_provider *key_provider_tmp = NULL;
     TAILQ_FOREACH_SAFE(key_provider, access_profile->key_providers, next,
@@ -410,6 +421,10 @@ post_process_access_profiles(struct pox509_info *info)
 {
     if (info == NULL) {
         fatal("info == NULL");
+    }
+
+    if (info->access_profiles == NULL) {
+        fatal("info->access_profiles == NULL");
     }
 
     int res = POX509_UNKNOWN_ERR;
@@ -592,12 +607,12 @@ free_info(struct pox509_info *info)
     if (info == NULL) {
         return;
     }
+    free_config(info->cfg);
     free(info->uid);
     free(info->ssh_keystore_location);
     free_ssh_server(info->ssh_server);
     free_access_profiles(info->access_profiles);
     free_keystore_records(info->keystore_records);
-    free_config(info->cfg);
     free(info);
 }
 
@@ -685,7 +700,7 @@ free_key(struct pox509_key *key)
     if (key == NULL) {
         return;
     }
-    X509_free(key->x509);
+    free_x509(key->x509);
     free(key->ssh_keytype);
     free(key->ssh_key);
     free(key);

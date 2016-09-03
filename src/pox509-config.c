@@ -98,16 +98,16 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 }
 
 static int
-cfg_validate_ldap_starttls(cfg_t *cfg, cfg_opt_t *opt)
+cfg_validate_boolean(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
         fatal("cfg or opt == NULL");
     }
 
-    long int starttls = cfg_opt_getnint(opt, 0);
-    if (starttls != 0 && starttls != 1) {
-        log_error("failed to validate starttls: option '%s', value '%li' "
-            "(value must be either 0 or 1)", cfg_opt_name(opt), starttls);
+    long int value = cfg_opt_getnint(opt, 0);
+    if (value != 0 && value != 1) {
+        log_error("failed to validate boolean: option '%s', value '%li' "
+            "(value must be either 0 or 1)", cfg_opt_name(opt), value);
         return -1;
     }
     return 0;
@@ -238,6 +238,7 @@ parse_config(const char *cfg_file)
         CFG_STR("ssh_keystore_location",
             "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
+        CFG_INT("ldap_strict", 1, CFGF_NONE),
         CFG_END()
     };
 
@@ -253,13 +254,14 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "syslog_facility",
         &cfg_validate_syslog_facility);
     cfg_set_validate_func(cfg, "ldap_uri", &cfg_validate_ldap_uri);
-    cfg_set_validate_func(cfg, "ldap_starttls", &cfg_validate_ldap_starttls);
+    cfg_set_validate_func(cfg, "ldap_starttls", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
     cfg_set_validate_func(cfg, "ldap_ssh_server_base_dn",
         &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
+    cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
 
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);
@@ -277,7 +279,6 @@ free_config(cfg_t *cfg)
     if (cfg == NULL) {
         return;
     }
-    /* free cfg structure */
     cfg_free(cfg);
 }
 

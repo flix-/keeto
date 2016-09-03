@@ -172,13 +172,18 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case POX509_NO_MEMORY:
         log_error("system is out of memory");
         return PAM_BUF_ERR;
-    case POX509_NO_ACCESS_PROFILE:
-        log_info("access profile list empty");
-        return PAM_SUCCESS;
     case POX509_LDAP_CONNECTION_ERR:
         log_error("failed to connect to ldap");
         info->ldap_online = 0;
+        int ldap_strict = cfg_getint(info->cfg, "ldap_strict");
+        if (ldap_strict) {
+            return PAM_AUTH_ERR;
+        }
         return PAM_SUCCESS;
+    case POX509_NO_ACCESS_PROFILE:
+        log_info("access profile list empty");
+        /* TODO: delete authorized_keys file here */
+        return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
             pox509_strerror(rc));
@@ -199,12 +204,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        return PAM_SUCCESS;
+        /* TODO: delete authorized_keys file here */
+        return PAM_AUTH_ERR;
     default:
         log_error("failed to post process access profiles (%s)",
             pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
+
     return PAM_SUCCESS;
 }
 

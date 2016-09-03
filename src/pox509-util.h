@@ -109,6 +109,7 @@ struct pox509_ssh_server {
 };
 
 struct pox509_info {
+    cfg_t *cfg;
     char *uid;
     char *ssh_keystore_location;
     struct pox509_ssh_server *ssh_server;
@@ -117,7 +118,6 @@ struct pox509_info {
     char ldap_online;
     SIMPLEQ_HEAD(pox509_keystore_records, pox509_keystore_record)
         *keystore_records;
-    cfg_t *cfg;
 };
 
 /**
