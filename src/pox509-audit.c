@@ -236,6 +236,36 @@ print_config(cfg_t *cfg)
         log_info("cfg empty");
         return;
     }
+
+    log_string("cfg->syslog_facility", cfg_getstr(cfg, "syslog_facility"));
+    log_string("cfg->ldap_uri", cfg_getstr(cfg, "ldap_uri"));
+    log_int("cfg->ldap_starttls", cfg_getint(cfg, "ldap_starttls"));
+    log_string("cfg->ldap_bind_dn", cfg_getstr(cfg, "ldap_bind_dn"));
+    log_string("cfg->ldap_bind_pwd", cfg_getstr(cfg, "ldap_bind_pwd"));
+    log_int("cfg->ldap_search_timeout", cfg_getint(cfg, "ldap_search_timeout"));
+    log_string("cfg->ldap_ssh_server_base_dn", cfg_getstr(cfg,
+        "ldap_ssh_server_base_dn"));
+    log_int("cfg->ldap_ssh_server_search_scope", cfg_getint(cfg,
+        "ldap_ssh_server_search_scope"));
+    log_string("cfg->ldap_ssh_server_uid_attr", cfg_getstr(cfg,
+        "ldap_ssh_server_uid_attr"));
+    log_string("cfg->ldap_ssh_server_access_profile_attr", cfg_getstr(cfg,
+        "ldap_ssh_server_access_profile_attr"));
+    log_string("cfg->ldap_target_keystore_group_member_attr", cfg_getstr(cfg,
+        "ldap_target_keystore_group_member_attr"));
+    log_string("cfg->ldap_target_keystore_uid_attr", cfg_getstr(cfg,
+        "ldap_target_keystore_uid_attr"));
+    log_string("cfg->ldap_key_provider_group_member_attr", cfg_getstr(cfg,
+        "ldap_key_provider_group_member_attr"));
+    log_string("cfg->ldap_key_provider_uid_attr", cfg_getstr(cfg,
+        "ldap_key_provider_uid_attr"));
+    log_string("cfg->ldap_key_provider_cert_attr", cfg_getstr(cfg,
+        "ldap_key_provider_cert_attr"));
+    log_string("cfg->ssh_server_uid", cfg_getstr(cfg, "ssh_server_uid"));
+    log_string("cfg->ssh_keystore_location", cfg_getstr(cfg,
+        "ssh_keystore_location"));
+    log_string("cfg->cacerts_dir", cfg_getstr(cfg, "cacerts_dir"));
+    log_int("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 }
 
 static void
@@ -248,6 +278,7 @@ print_info(struct pox509_info *info)
 
     log_info(" ");
     print_config(info->cfg);
+    log_info(" ");
     log_string("info->uid", info->uid);
     log_string("info->ssh_keystore_location", info->ssh_keystore_location);
     log_info(" ");

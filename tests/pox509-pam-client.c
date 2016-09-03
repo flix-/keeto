@@ -56,7 +56,6 @@ main(int argc, char **argv)
     default:
         printf("authentication error (%s)\n", pam_strerror(pamh,rc));
     }
-
     rc = pam_end(pamh, end_status);
     if (rc != PAM_SUCCESS) {
         printf("failed to destroy pam (%s)\n", pam_strerror(pamh,rc));

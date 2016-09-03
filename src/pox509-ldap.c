@@ -280,7 +280,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         log_info("checking target keystore '%s'", target_keystore_dn);
 
         LDAPMessage *target_keystore_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
+        int rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
             NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
             &target_keystore_entry);
         if (rc != LDAP_SUCCESS) {
@@ -291,14 +291,13 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         }
         /* get uid of target keystore */
         char **target_keystore_uid = NULL;
-        int rc = get_attr_values_as_string(ldap_handle, target_keystore_entry,
+        rc = get_attr_values_as_string(ldap_handle, target_keystore_entry,
             target_keystore_uid_attr, &target_keystore_uid);
         switch (rc) {
         case POX509_OK:
             break;
         case POX509_NO_MEMORY:
             res = rc;
-            free_attr_values_as_string(target_keystore_uid);
             ldap_msgfree(target_keystore_entry);
             goto cleanup_c;
         default:
@@ -557,7 +556,7 @@ add_keys(LDAP *ldap_handle, struct pox509_info *info,
     }
 
     for (int i = 0; key_provider_certs[i] != NULL; i++) {
-        rc = add_key(key_provider_certs[i], keys);
+        int rc = add_key(key_provider_certs[i], keys);
         switch (rc) {
         case POX509_OK:
             log_info("added key");
@@ -717,7 +716,7 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
         log_info("processing key provider '%s'", key_provider_dn);
 
         LDAPMessage *key_provider_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
+        int rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
             NULL, attrs, 0, NULL, NULL, &search_timeout, 1, &key_provider_entry);
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", key_provider_dn,
@@ -857,7 +856,8 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         goto cleanup_b;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore options (%s)", pox509_strerror(rc));
-        break;
+        res = POX509_OK;
+        goto cleanup_b;
     default:
         log_error("failed to obtain keystore options dn: attribute '%s' (%s)",
             POX509_AP_KEYSTORE_OPTIONS_ATTR, pox509_strerror(rc));
@@ -1022,7 +1022,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
         log_info("processing access profile '%s'", access_profile_dn);
 
         LDAPMessage *access_profile_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
+        int rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
             NULL, NULL, 0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", access_profile_dn,
@@ -1053,7 +1053,6 @@ cleanup_inner:
         res = POX509_NO_ACCESS_PROFILE;
         goto cleanup_b;
     }
-
     info->access_profiles = access_profiles;
     access_profiles = NULL;
     res = POX509_OK;
@@ -1215,7 +1214,7 @@ connect_to_ldap(LDAP *ldap_handle, struct pox509_info *info)
     return POX509_OK;
 }
 
-    static int
+static int
 set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
 {
     if (ldap_handle == NULL || info == NULL) {
@@ -1265,10 +1264,10 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
 }
 
 static int
-init_ldap_handle(LDAP **ret, struct pox509_info *info)
+init_ldap_handle(struct pox509_info *info, LDAP **ret)
 {
-    if (ret == NULL || info == NULL) {
-        fatal("ret or info == NULL");
+    if (info == NULL || ret == NULL) {
+        fatal("info or ret == NULL");
     }
 
     int res = POX509_UNKNOWN_ERR;
@@ -1309,7 +1308,7 @@ get_access_profiles_from_ldap(struct pox509_info *info)
     int res = POX509_UNKNOWN_ERR;
     /* init ldap handle */
     LDAP *ldap_handle = NULL;
-    int rc = init_ldap_handle(&ldap_handle, info);
+    int rc = init_ldap_handle(info, &ldap_handle);
     if (rc != POX509_OK) {
         return rc;
     }
