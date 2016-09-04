@@ -338,7 +338,7 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
         fwrite("\n", 1, 1, tmp_keystore_file);
     }
     /* set permissions */
-    int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP);
+    int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",
             tmp_keystore, strerror(errno));
