@@ -321,39 +321,32 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
 
     struct pox509_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
-        if (keystore_record->command_option != NULL) {
-            fwrite("command=", strlen("command="), 1, tmp_keystore_file);
-            fwrite("\"", 1, 1, tmp_keystore_file);
-            fwrite(keystore_record->command_option,
-                strlen(keystore_record->command_option), 1, tmp_keystore_file);
-            fwrite("\"", 1, 1, tmp_keystore_file);
+        bool is_command_option_set = keystore_record->command_option != NULL ?
+            true : false;
+        bool is_from_option_set = keystore_record->from_option != NULL ?
+            true : false;
+        bool is_option_set = false;
+
+        if (is_command_option_set) {
+            fprintf(tmp_keystore_file, "command=\"%s\"",
+                keystore_record->command_option);
+            is_option_set = true;
         }
-        if (keystore_record->from_option != NULL) {
-            if (keystore_record->command_option != NULL) {
-                fwrite(",", 1, 1, tmp_keystore_file);
+        if (is_from_option_set) {
+            if (is_option_set) {
+                fprintf(tmp_keystore_file, ",");
             }
-            fwrite("from=", strlen("from="), 1, tmp_keystore_file);
-            fwrite("\"", 1, 1, tmp_keystore_file);
-            fwrite(keystore_record->from_option,
-                strlen(keystore_record->from_option), 1, tmp_keystore_file);
-            fwrite("\"", 1, 1, tmp_keystore_file);
+            fprintf(tmp_keystore_file, "from=\"%s\"",
+                keystore_record->from_option);
+            is_option_set = true;
         }
-        if (keystore_record->command_option != NULL ||
-            keystore_record->from_option != NULL) {
-
-            fwrite(" ", 1, 1, tmp_keystore_file);
+        if (is_option_set) {
+            fprintf(tmp_keystore_file, " ");
         }
-
-        fwrite(keystore_record->ssh_keytype, strlen(keystore_record->ssh_keytype),
-            1, tmp_keystore_file);
-        fwrite(" ", 1, 1, tmp_keystore_file);
-        fwrite(keystore_record->ssh_key, strlen(keystore_record->ssh_key), 1,
-            tmp_keystore_file);
-        fwrite(" ", 1, 1, tmp_keystore_file);
-        fwrite(keystore_record->uid, strlen(keystore_record->uid), 1,
-            tmp_keystore_file);
-        fwrite("\n", 1, 1, tmp_keystore_file);
+        fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
+            keystore_record->ssh_key, keystore_record->uid);
     }
+
     /* set permissions */
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
@@ -373,7 +366,6 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
             tmp_keystore, keystore, strerror(errno));
         return POX509_SYSTEM_ERR;
     }
-
     return POX509_OK;
 }
 
