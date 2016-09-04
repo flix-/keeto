@@ -177,6 +177,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         info->ldap_online = 0;
         int ldap_strict = cfg_getint(info->cfg, "ldap_strict");
         if (ldap_strict) {
+            log_info("ldap strict mode active - refusing access");
             return PAM_AUTH_ERR;
         }
         return PAM_SUCCESS;
