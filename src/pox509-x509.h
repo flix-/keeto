@@ -39,8 +39,8 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value) )
 
-int validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid);
 int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
+int validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid);
 char *get_serial_from_x509(X509 *x509);
 char *get_issuer_from_x509(X509 *x509);
 char *get_subject_from_x509(X509 *x509);
