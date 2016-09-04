@@ -182,7 +182,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SUCCESS;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        /* TODO: delete authorized_keys file here */
+        rc = unlink(info->ssh_keystore_location);
+        if (rc == -1) {
+            log_error("failed to unlink keystore file '%s' (%s)",
+                info->ssh_keystore_location, strerror(errno));
+        }
         return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
@@ -191,8 +195,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /*
-     * validate certificates and convert public key to OpenSSH
-     * authorized_keys format
+     * validate certificates, convert public key to OpenSSH
+     * authorized_keys format and create keystore records
      */
     log_info("post processing access profiles");
     rc = post_process_access_profiles(info);
@@ -204,13 +208,29 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        /* TODO: delete authorized_keys file here */
+        rc = unlink(info->ssh_keystore_location);
+        if (rc == -1) {
+            log_error("failed to unlink keystore file '%s' (%s)",
+                info->ssh_keystore_location, strerror(errno));
+        }
         return PAM_AUTH_ERR;
     default:
         log_error("failed to post process access profiles (%s)",
             pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
+
+    /* write keystore records to keystore file */
+    log_info("writing keystore file");
+    rc = write_keystore(info->ssh_keystore_location, info->keystore_records);
+    switch (rc) {
+    case POX509_OK:
+        break;
+    default:
+        log_error("failed to write keystore file (%s)", pox509_strerror(rc));
+        return PAM_SERVICE_ERR;
+    }
+    log_info("done");
 
     return PAM_SUCCESS;
 }

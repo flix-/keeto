@@ -269,6 +269,91 @@ cleanup:
     return res;
 }
 
+int
+write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
+{
+    if (keystore == NULL || keystore_records == NULL) {
+        fatal("keystore or keystore_records == NULL");
+    }
+
+    /* create temporary file */
+    char *template_suffix = "-XXXXXXX";
+    size_t tmp_keystore_size = strlen(keystore) +
+        strlen(template_suffix) + 1;
+    char tmp_keystore[tmp_keystore_size];
+    strcpy(tmp_keystore, keystore);
+    strcat(tmp_keystore, template_suffix);
+    int tmp_keystore_fd = mkstemp(tmp_keystore);
+    if (tmp_keystore_fd == -1) {
+        log_error("failed to create temporary keystore file '%s' (%s)",
+            tmp_keystore, strerror(errno));
+        return POX509_SYSTEM_ERR;
+    }
+
+    FILE *tmp_keystore_file = fdopen(tmp_keystore_fd, "w");
+    if (tmp_keystore_file == NULL) {
+        log_error("failed to open temporary keystore file '%s' for writing (%s)",
+            tmp_keystore, strerror(errno));
+        int rc = close(tmp_keystore_fd);
+        if (rc == -1) {
+            log_error("failed to close file descriptor of temporary keystore "
+                "file '%s' (%s)", tmp_keystore, strerror(errno));
+        }
+        return POX509_SYSTEM_ERR;
+    }
+
+    struct pox509_keystore_record *keystore_record = NULL;
+    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        if (keystore_record->command_option != NULL) {
+            fwrite("command=", strlen("command="), 1, tmp_keystore_file);
+            fwrite("\"", 1, 1, tmp_keystore_file);
+            fwrite(keystore_record->command_option,
+                strlen(keystore_record->command_option), 1, tmp_keystore_file);
+            fwrite("\"", 1, 1, tmp_keystore_file);
+        }
+        if (keystore_record->from_option != NULL) {
+            if (keystore_record->command_option != NULL) {
+                fwrite(",", 1, 1, tmp_keystore_file);
+            }
+            fwrite("from=", strlen("from="), 1, tmp_keystore_file);
+            fwrite("\"", 1, 1, tmp_keystore_file);
+            fwrite(keystore_record->from_option,
+                strlen(keystore_record->from_option), 1, tmp_keystore_file);
+            fwrite("\"", 1, 1, tmp_keystore_file);
+        }
+        if (keystore_record->command_option != NULL ||
+            keystore_record->from_option != NULL) {
+
+            fwrite(" ", 1, 1, tmp_keystore_file);
+        }
+
+        fwrite(keystore_record->ssh_keytype, strlen(keystore_record->ssh_keytype),
+            1, tmp_keystore_file);
+        fwrite(" ", 1, 1, tmp_keystore_file);
+        fwrite(keystore_record->ssh_key, strlen(keystore_record->ssh_key), 1,
+            tmp_keystore_file);
+        fwrite(" ", 1, 1, tmp_keystore_file);
+        fwrite(keystore_record->uid, strlen(keystore_record->uid), 1,
+            tmp_keystore_file);
+        fwrite("\n", 1, 1, tmp_keystore_file);
+        fwrite("\n", 1, 1, tmp_keystore_file);
+    }
+    int rc = fclose(tmp_keystore_file);
+    if (rc != 0) {
+        log_error("failed to flush stream and close file descriptor of "
+            "temporary keystore file '%s' (%s)", tmp_keystore, strerror(errno));
+        return POX509_SYSTEM_ERR;
+    }
+    rc = rename(tmp_keystore, keystore);
+    if (rc == -1) {
+        log_error("failed to move temp keystore file from '%s' to '%s' (%s)",
+            tmp_keystore, keystore, strerror(errno));
+        return POX509_SYSTEM_ERR;
+    }
+
+    return POX509_OK;
+}
+
 static int
 add_keystore_record(struct pox509_key_provider *key_provider,
     struct pox509_keystore_options *keystore_options, struct pox509_key *key,
@@ -460,7 +545,6 @@ post_process_access_profiles(struct pox509_info *info)
         res = POX509_NO_ACCESS_PROFILE;
         goto cleanup;
     }
-
     info->keystore_records = keystore_records;
     keystore_records = NULL;
     res = POX509_OK;

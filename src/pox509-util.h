@@ -209,6 +209,8 @@ int create_ldap_search_filter(const char *attr, const char *value, char *dst,
 int get_rdn_value_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
 int post_process_access_profiles(struct pox509_info *info);
+int write_keystore(char *keystore_file, struct pox509_keystore_records
+    *keystore_records);
 
 /* constructors */
 struct pox509_info *new_info();
