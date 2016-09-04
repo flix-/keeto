@@ -443,7 +443,7 @@ post_process_key_provider(struct pox509_info *info,
         case POX509_OK:
             /* add key to keystore records */
             log_info("adding keystore record");
-            int rc = add_keystore_record(key_provider, keystore_options, key,
+            rc = add_keystore_record(key_provider, keystore_options, key,
                 keystore_records);
             switch (rc) {
             case POX509_OK:

@@ -280,7 +280,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         log_info("checking target keystore '%s'", target_keystore_dn);
 
         LDAPMessage *target_keystore_entry = NULL;
-        int rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
+        rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
             NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
             &target_keystore_entry);
         if (rc != LDAP_SUCCESS) {
@@ -556,7 +556,7 @@ add_keys(LDAP *ldap_handle, struct pox509_info *info,
     }
 
     for (int i = 0; key_provider_certs[i] != NULL; i++) {
-        int rc = add_key(key_provider_certs[i], keys);
+        rc = add_key(key_provider_certs[i], keys);
         switch (rc) {
         case POX509_OK:
             log_info("added key");
@@ -716,7 +716,7 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
         log_info("processing key provider '%s'", key_provider_dn);
 
         LDAPMessage *key_provider_entry = NULL;
-        int rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
+        rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
             NULL, attrs, 0, NULL, NULL, &search_timeout, 1, &key_provider_entry);
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", key_provider_dn,
@@ -1022,7 +1022,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
         log_info("processing access profile '%s'", access_profile_dn);
 
         LDAPMessage *access_profile_entry = NULL;
-        int rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
+        rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
             NULL, NULL, 0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
         if (rc != LDAP_SUCCESS) {
             log_error("failed to search ldap: base '%s' (%s)", access_profile_dn,
