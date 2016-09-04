@@ -336,9 +336,15 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
         fwrite(keystore_record->uid, strlen(keystore_record->uid), 1,
             tmp_keystore_file);
         fwrite("\n", 1, 1, tmp_keystore_file);
-        fwrite("\n", 1, 1, tmp_keystore_file);
     }
-    int rc = fclose(tmp_keystore_file);
+    /* set permissions */
+    int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (rc == -1) {
+        log_error("failed to set permissions for temp keystore file '%s' (%s)",
+            tmp_keystore, strerror(errno));
+        return POX509_SYSTEM_ERR;
+    }
+    rc = fclose(tmp_keystore_file);
     if (rc != 0) {
         log_error("failed to flush stream and close file descriptor of "
             "temporary keystore file '%s' (%s)", tmp_keystore, strerror(errno));
