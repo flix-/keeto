@@ -15,31 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Config file processing.
- *
- * @file pox509-config.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-15
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_CONFIG_H
 #define POX509_CONFIG_H
 
 #include <confuse.h>
 
-/**
- * Parse configuration file.
- *
- * @param[in] cfg_file Path to configuration file. Must not be @c NULL.
- */
 cfg_t *parse_config(const char *cfg_file);
-
-/**
- * Release allocated memory from configuration structure.
- *
- * @param[in] cfg Configuration structure. Must not be @c NULL.
- */
 void free_config(cfg_t *cfg);
 #endif

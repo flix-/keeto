@@ -15,15 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Definition of error values.
- *
- * @file pox509-error.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2016-08-13
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_ERROR_H
 #define POX509_ERROR_H
 

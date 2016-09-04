@@ -54,13 +54,8 @@ enum pox509_access_profile_type {
     ACCESS_ON_BEHALF_PROFILE,
 };
 
-/**
- * Sections for config lookup table.
- */
 enum pox509_section {
-    /** Section holding config options regarding syslog. */
     POX509_SYSLOG = 0,
-    /** Section holding config options regarding libldap. */
     POX509_LIBLDAP
 };
 
@@ -120,90 +115,11 @@ struct pox509_info {
         *keystore_records;
 };
 
-/**
- * Map a value from string to enum constant.
- *
- * Some configuration options have to be set to enum constants. For
- * example the syslog_facility accepts LOG_KERN, LOG_USER etc. This enum
- * constants are actually integer values. In the configuration file they
- * are passed as strings. This function maps the input string to the
- * appropriate enum constant.
- *
- * @param[in] sec Name of the section that shall be searched. Valid
- * values are: SYSLOG, LIBLDAP.
- * @param[in] key String that shall be mapped. Must not be @c NULL.
- *
- * @return Upon successful completion, the appropriate enum constant
- * shall be returned. Otherwise -EINVAL shall be returned.
- */
 int str_to_enum(enum pox509_section section, const char *key);
-
-/**
- * Check if file is a regular and readable file.
- *
- * @param[in] file Path to file. Must not be @c NULL.
- *
- * @return Shall return true if file is a regular and readable file or
- * false otherwise.
- */
-bool is_readable_file(const char *file);
-
-/**
- * Check UID against a regular expression.
- *
- * @param[in] uid UID that shall be checked. Must not be @c NULL.
- *
- * @return Shall return true if UID matches regex or false otherwise.
- */
+bool is_file_readable(const char *file);
 int check_uid(const char *uid, bool *res);
-
-/**
- * Overwrite a token in a string with a substitution value.
- *
- * The token has the form '\%token' and will be completely replaced
- * with the value pointed by subst.
- * For example the string "/usr/local/etc/ssh/authorized_keys/%u" with
- * the token 'u' and the substitution value "foo" will yield
- * "/usr/local/etc/ssh/authorized_keys/foo".
- *
- *
- * @param[in] token Token that shall be replaced.
- * @param[in] subst Substitution value for '\%@p token'. Must not be @c
- * NULL.
- * @param[in] src Input string that shall be replaced. Must not be @c
- * NULL.
- * @param[out] dst Output buffer where substituted string shall be
- * written to. Must not be @c NULL.
- * @param[in] dst_length Length of the output buffer. Must be > 0.
- *
- * @warning Before calling #substitute_token make sure that values that
- * can lead to unwanted behavior are filtered.
- *
- * @warning For example if the substitution value for the token can be
- * chosen by an attacker and the function is used for replacing tokens
- * in a path.
- *
- * @warning Consider the following path:
- * "/usr/local/etc/ssh/authorized_keys/%u"
- *
- * @warning An attacker can change the path easily if he provides the
- * following substitution value: "../authorized_keys/root"
- *
- * @warning This will lead to the following path:
- * /usr/local/etc/ssh/authorized_keys/../authorized_keys/root"
- */
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
-
-/**
- * Create LDAP search filter from RDN attribute and UID.
- *
- * @param[in] attr Attribute. Must not be @c NULL.
- * @param[in] value Value. Must not be @c NULL.
- * @param[out] dst Output buffer where result shall be written to. Must
- * not be @c NULL.
- * @param[in] dst_length Length of the output buffer. Must be > 0.
- */
 int create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length);
 int get_rdn_value_from_dn(const char *, char **buffer);
@@ -211,6 +127,7 @@ struct timeval get_ldap_search_timeout(cfg_t *cfg);
 int post_process_access_profiles(struct pox509_info *info);
 int write_keystore(char *keystore_file, struct pox509_keystore_records
     *keystore_records);
+void remove_keystore_file(char *keystore_file);
 
 /* constructors */
 struct pox509_info *new_info();

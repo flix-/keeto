@@ -126,7 +126,7 @@ get_ldap_search_timeout(cfg_t *cfg)
 }
 
 bool
-is_readable_file(const char *file)
+is_file_readable(const char *file)
 {
     if (file == NULL) {
         fatal("file == NULL");
@@ -151,6 +151,23 @@ is_readable_file(const char *file)
         return false;
     }
     return true;
+}
+
+void
+remove_keystore_file(char *keystore_file)
+{
+    if (keystore_file == NULL) {
+        fatal("keystore_file == NULL");
+    }
+
+    if (access(keystore_file, F_OK) == 0) {
+        int rc = unlink(keystore_file);
+        if (rc == -1) {
+            log_error("failed to remove keystore file '%s' (%s)", keystore_file,
+                strerror(errno));
+        }
+        log_info("removed keystore file '%s'", keystore_file);
+    }
 }
 
 int

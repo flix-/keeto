@@ -15,15 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * LDAP processing.
- *
- * @file pox509-ldap.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-15
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_LDAP_H
 #define POX509_LDAP_H
 
@@ -45,17 +36,5 @@
 #define POX509_KEYSTORE_OPTIONS_FROM_ATTR "pox509KeystoreOptionFrom"
 #define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
 
-/**FIXME
- * Obtain access permission and x509 certificate of user from LDAP.
- *
- * The user object corresponding to the given UID is searched in the
- * LDAP server and access permission as well as the x509 certificate
- * of the user will be retrieved.
- *
- * @param[in] cfg Configuration structure. Must not be @c NULL.
- * @param[out] pox509_info DTO. Access permission will be stored here.
- * Must not be @c NULL.
- * @param[out] x509 The parsed x509 certificate.
- */
 int get_access_profiles_from_ldap(struct pox509_info *info);
 #endif

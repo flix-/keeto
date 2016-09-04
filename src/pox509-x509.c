@@ -33,12 +33,6 @@
 #include "pox509-error.h"
 #include "pox509-log.h"
 
-#define PUT_32BIT(cp, value)( \
-    (cp)[0] = (unsigned char)((value) >> 24), \
-    (cp)[1] = (unsigned char)((value) >> 16), \
-    (cp)[2] = (unsigned char)((value) >> 8), \
-    (cp)[3] = (unsigned char)(value) )
-
 static bool
 is_msb_set(unsigned char byte)
 {

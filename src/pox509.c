@@ -83,7 +83,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
     const char *cfg_file = argv[0];
-    if(!is_readable_file(cfg_file)) {
+    if(!is_file_readable(cfg_file)) {
         log_error("failed to open config file '%s' for reading", cfg_file);
         return PAM_SERVICE_ERR;
     }
@@ -183,11 +183,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SUCCESS;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        rc = unlink(info->ssh_keystore_location);
-        if (rc == -1) {
-            log_error("failed to unlink keystore file '%s' (%s)",
-                info->ssh_keystore_location, strerror(errno));
-        }
+        remove_keystore_file(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
@@ -209,11 +205,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        rc = unlink(info->ssh_keystore_location);
-        if (rc == -1) {
-            log_error("failed to unlink keystore file '%s' (%s)",
-                info->ssh_keystore_location, strerror(errno));
-        }
+        remove_keystore_file(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to post process access profiles (%s)",

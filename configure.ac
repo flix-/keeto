@@ -14,7 +14,7 @@ LT_INIT([disable-static dlopen pic-only])
 AC_PROG_CC
 
 # define preprocessor symbols
-AC_DEFINE(DEBUG, 1)
+AC_DEFINE(DEBUG, 0)
 
 # Checks for libraries.
 PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
