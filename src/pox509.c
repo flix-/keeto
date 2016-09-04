@@ -132,7 +132,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * against a restrictive regular expression.
      */
     bool is_uid_valid = false;
-    rc = check_uid(uid, &is_uid_valid);
+    char *uid_regex = cfg_getstr(info->cfg, "uid_regex");
+    rc = check_uid(uid_regex, uid, &is_uid_valid);
     if (rc != POX509_OK) {
         log_error("failed to check uid (%s)", pox509_strerror(rc));
         return PAM_SERVICE_ERR;

@@ -38,7 +38,6 @@
 #include "pox509-x509.h"
 
 #define GROUP_DN_BUFFER_SIZE 1024
-#define REGEX_PATTERN_UID "^[a-z][-a-z0-9]\\{0,31\\}$"
 
 struct pox509_str_to_enum_entry {
     char *key;
@@ -171,14 +170,14 @@ remove_keystore_file(char *keystore_file)
 }
 
 int
-check_uid(const char *uid, bool *is_uid_valid)
+check_uid(char *regex, const char *uid, bool *is_uid_valid)
 {
-    if (uid == NULL || is_uid_valid == NULL) {
-        fatal("uid or is_uid_valid == NULL");
+    if (regex == NULL || uid == NULL || is_uid_valid == NULL) {
+        fatal("regex, uid or is_uid_valid == NULL");
     }
 
     regex_t regex_uid;
-    int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
+    int rc = regcomp(&regex_uid, regex, REG_EXTENDED | REG_NOSUB);
     if (rc != 0) {
         log_error("failed to compile regex (%d)", rc);
         return POX509_REGEX_ERR;
@@ -347,7 +346,6 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
             keystore_record->ssh_key, keystore_record->uid);
     }
 
-    /* set permissions */
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",

@@ -25,6 +25,7 @@
 #include <sys/types.h>
 
 #include <ldap.h>
+#include <regex.h>
 
 #include "pox509-error.h"
 #include "pox509-log.h"
@@ -202,6 +203,30 @@ cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
     return 0;
 }
 
+static int
+cfg_validate_regex(cfg_t *cfg, cfg_opt_t *opt)
+{
+    if (cfg == NULL || opt == NULL) {
+        fatal("cfg or opt == NULL");
+    }
+
+    const char *regex = cfg_opt_getnstr(opt, 0);
+    if (regex == NULL) {
+        log_error("failed to obtain uid regex option");
+        return -1;
+    }
+    /* check if regex compiles */
+    regex_t regex_comp;
+    int rc = regcomp(&regex_comp, regex, REG_EXTENDED | REG_NOSUB);
+    if (rc != 0) {
+        log_error("failed to compile uid regex: option '%s', value '%s' (%d)",
+            cfg_opt_name(opt), regex, rc);
+        return -1;
+    }
+    regfree(&regex_comp);
+    return 0;
+}
+
 cfg_t *
 parse_config(const char *cfg_file)
 {
@@ -218,6 +243,7 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=ssh,dc=hq", CFGF_NONE),
         CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
+        CFG_INT("ldap_strict", 0, CFGF_NONE),
 
         CFG_STR("ldap_ssh_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
             CFGF_NONE),
@@ -238,7 +264,7 @@ parse_config(const char *cfg_file)
         CFG_STR("ssh_keystore_location",
             "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
-        CFG_INT("ldap_strict", 1, CFGF_NONE),
+        CFG_STR("uid_regex", "^[a-z][-a-z0-9]{0,31}$", CFGF_NONE),
         CFG_END()
     };
 
@@ -258,10 +284,11 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
+    cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "ldap_ssh_server_base_dn",
         &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
-    cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
+    cfg_set_validate_func(cfg, "uid_regex", &cfg_validate_regex);
 
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);

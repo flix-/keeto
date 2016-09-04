@@ -243,6 +243,7 @@ print_config(cfg_t *cfg)
     log_string("cfg->ldap_bind_dn", cfg_getstr(cfg, "ldap_bind_dn"));
     log_string("cfg->ldap_bind_pwd", cfg_getstr(cfg, "ldap_bind_pwd"));
     log_int("cfg->ldap_search_timeout", cfg_getint(cfg, "ldap_search_timeout"));
+    log_int("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
     log_string("cfg->ldap_ssh_server_base_dn", cfg_getstr(cfg,
         "ldap_ssh_server_base_dn"));
     log_int("cfg->ldap_ssh_server_search_scope", cfg_getint(cfg,
@@ -265,7 +266,6 @@ print_config(cfg_t *cfg)
     log_string("cfg->ssh_keystore_location", cfg_getstr(cfg,
         "ssh_keystore_location"));
     log_string("cfg->cacerts_dir", cfg_getstr(cfg, "cacerts_dir"));
-    log_int("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 }
 
 static void
@@ -307,10 +307,12 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 
     /* set log facility */
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
-    rc = set_syslog_facility(syslog_facility);
-    if (rc != POX509_OK) {
-        log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
-            pox509_strerror(rc));
+    if (syslog_facility != NULL) {
+        rc = set_syslog_facility(syslog_facility);
+        if (rc != POX509_OK) {
+            log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
+                pox509_strerror(rc));
+        }
     }
     print_info(info);
 
