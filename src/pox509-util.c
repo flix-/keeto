@@ -292,14 +292,20 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
         fatal("keystore or keystore_records == NULL");
     }
 
+    int res = POX509_UNKNOWN_ERR;
     /* create temporary file */
     char *template_suffix = "-XXXXXXX";
-    size_t tmp_keystore_size = strlen(keystore) +
-        strlen(template_suffix) + 1;
+    size_t tmp_keystore_size = strlen(keystore) + strlen(template_suffix) + 1;
     char tmp_keystore[tmp_keystore_size];
     strcpy(tmp_keystore, keystore);
     strcat(tmp_keystore, template_suffix);
+    /*
+     * in older versions of glibc mkstemp sets permission of
+     * temp file to 0666. being on the safe side...
+     */
+    mode_t mask = umask(S_IXUSR | S_IRWXG | S_IRWXO);
     int tmp_keystore_fd = mkstemp(tmp_keystore);
+    umask(mask);
     if (tmp_keystore_fd == -1) {
         log_error("failed to create temporary keystore file '%s' (%s)",
             tmp_keystore, strerror(errno));
@@ -345,26 +351,30 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
         fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
             keystore_record->ssh_key, keystore_record->uid);
     }
-
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",
             tmp_keystore, strerror(errno));
-        return POX509_SYSTEM_ERR;
+        res = POX509_SYSTEM_ERR;
+        goto cleanup;
     }
+    rc = rename(tmp_keystore, keystore);
+    if (rc == -1) {
+        log_error("failed to move temp keystore file from '%s' to '%s' (%s)",
+            tmp_keystore, keystore, strerror(errno));
+        res = POX509_SYSTEM_ERR;
+        goto cleanup;
+    }
+    res = POX509_OK;
+
+cleanup:
     rc = fclose(tmp_keystore_file);
     if (rc != 0) {
         log_error("failed to flush stream and close file descriptor of "
             "temporary keystore file '%s' (%s)", tmp_keystore, strerror(errno));
         return POX509_SYSTEM_ERR;
     }
-    rc = rename(tmp_keystore, keystore);
-    if (rc == -1) {
-        log_error("failed to move temp keystore file from '%s' to '%s' (%s)",
-            tmp_keystore, keystore, strerror(errno));
-        return POX509_SYSTEM_ERR;
-    }
-    return POX509_OK;
+    return res;
 }
 
 static int
