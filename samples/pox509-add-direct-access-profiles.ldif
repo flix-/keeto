@@ -18,3 +18,13 @@ pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
 description: direct-access-noopts2 profile
 
+dn: cn=direct-access-noopts3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509AccessProfile
+objectClass: pox509DirectAccessProfile
+cn: direct-access-noopts3
+pox509KeyProvider: cn=pox509-test-user-and-friends,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+pox509Enabled: TRUE
+description: direct-access-noopts3 profile
+

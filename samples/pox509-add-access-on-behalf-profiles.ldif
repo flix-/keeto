@@ -42,3 +42,14 @@ pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: FALSE
 description: access-on-behalf-from4 profile
 
+dn: cn=access-on-behalf-irregular,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509AccessProfile
+objectClass: pox509AccessOnBehalfProfile
+cn: access-on-behalf-irregular
+pox509TargetKeystore: cn=buxtehude,dc=example,dc=org
+pox509KeyProvider: cn=noe,dc=example,dc=org
+pox509KeystoreOptions: cn=punkt,dc=huhu
+pox509Enabled: FALSE
+description: access-on-behalf-irregular profile
+

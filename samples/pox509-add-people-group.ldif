@@ -32,3 +32,10 @@ cn: foo
 member: cn=foo,ou=people,dc=ssh,dc=hq
 description: foo only group
 
+dn: cn=pox509-test-user-and-friends,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: pox509-test-user-and-friends
+member: cn=pox509-test-user,ou=people,dc=ssh,dc=hq
+description: pox509-test-user-and-friends
+
