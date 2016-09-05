@@ -186,7 +186,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SUCCESS;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        remove_keystore_file(info->ssh_keystore_location);
+        remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
@@ -208,7 +208,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     case POX509_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
-        remove_keystore_file(info->ssh_keystore_location);
+        remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to post process access profiles (%s)",

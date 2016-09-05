@@ -153,19 +153,19 @@ file_readable(const char *file)
 }
 
 void
-remove_keystore_file(char *keystore_file)
+remove_keystore(char *keystore)
 {
-    if (keystore_file == NULL) {
-        fatal("keystore_file == NULL");
+    if (keystore == NULL) {
+        fatal("keystore == NULL");
     }
 
-    if (access(keystore_file, F_OK) == 0) {
-        int rc = unlink(keystore_file);
+    if (access(keystore, F_OK) == 0) {
+        int rc = unlink(keystore);
         if (rc == -1) {
-            log_error("failed to remove keystore file '%s' (%s)", keystore_file,
+            log_error("failed to remove keystore file '%s' (%s)", keystore,
                 strerror(errno));
         }
-        log_info("removed keystore file '%s'", keystore_file);
+        log_info("removed keystore file '%s'", keystore);
     }
 }
 
