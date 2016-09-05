@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 #include <confuse.h>
 #include <openssl/x509.h>
@@ -68,6 +69,7 @@ cleanup_info(pam_handle_t *pamh, void *data, int error_status)
     struct pox509_info *info = data;
     log_info("freeing info");
     free_info(info);
+    closelog();
 }
 
 PAM_EXTERN int
@@ -83,7 +85,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
     const char *cfg_file = argv[0];
-    if(!is_file_readable(cfg_file)) {
+    if(!file_readable(cfg_file)) {
         log_error("failed to open config file '%s' for reading", cfg_file);
         return PAM_SERVICE_ERR;
     }
@@ -131,14 +133,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
      * to minimize this attack vector the given uid will be tested
      * against a restrictive regular expression.
      */
-    bool is_uid_valid = false;
+    bool uid_valid = false;
     char *uid_regex = cfg_getstr(info->cfg, "uid_regex");
-    rc = check_uid(uid_regex, uid, &is_uid_valid);
+    rc = check_uid(uid_regex, uid, &uid_valid);
     if (rc != POX509_OK) {
         log_error("failed to check uid (%s)", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-    if (!is_uid_valid) {
+    if (!uid_valid) {
         log_error("invalid uid '%s'", uid);
         return PAM_AUTH_ERR;
     }

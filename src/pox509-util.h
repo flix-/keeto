@@ -116,8 +116,8 @@ struct pox509_info {
 };
 
 int str_to_enum(enum pox509_section section, const char *key);
-bool is_file_readable(const char *file);
-int check_uid(char *regex, const char *uid, bool *is_uid_valid);
+bool file_readable(const char *file);
+int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
 int create_ldap_search_filter(const char *attr, const char *value, char *dst,

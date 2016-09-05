@@ -274,8 +274,8 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
     char *target_keystore_uid_attr = cfg_getstr(info->cfg,
         "ldap_target_keystore_uid_attr");
     char *attrs[] = { target_keystore_uid_attr, NULL };
-    bool is_relevant = false;
-    for (int i = 0; target_keystore_dns[i] != NULL && !is_relevant; i++) {
+    bool relevant = false;
+    for (int i = 0; target_keystore_dns[i] != NULL && !relevant; i++) {
         char *target_keystore_dn = target_keystore_dns[i];
         log_info("checking target keystore '%s'", target_keystore_dn);
 
@@ -308,13 +308,13 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         }
         /* check uid */
         if (strcmp(info->uid, target_keystore_uid[0]) == 0) {
-            is_relevant = true;
+            relevant = true;
         }
         free_attr_values_as_string(target_keystore_uid);
 cleanup_inner:
         ldap_msgfree(target_keystore_entry);
     }
-    *ret = is_relevant;
+    *ret = relevant;
     res = POX509_OK;
 
 cleanup_c:
@@ -334,10 +334,10 @@ check_access_profile_enabled(LDAP *ldap_handle,
         fatal("ldap_handle, access_profile_entry or ret == NULL");
     }
 
-    /* determine state of access profile from POX509_AP_IS_ENABLED attribute */
+    /* determine state of access profile from POX509_AP_ENABLED attribute */
     char **access_profile_state = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AP_IS_ENABLED, &access_profile_state);
+        POX509_AP_ENABLED, &access_profile_state);
     switch (rc) {
     case POX509_OK:
         break;
@@ -345,7 +345,7 @@ check_access_profile_enabled(LDAP *ldap_handle,
         return rc;
     default:
         log_error("failed to obtain access profile state: attribute '%s' (%s)",
-            POX509_AP_IS_ENABLED, pox509_strerror(rc));
+            POX509_AP_ENABLED, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
     *ret = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ? true : false;
@@ -362,9 +362,9 @@ check_access_profile_relevance_generic(LDAP *ldap_handle,
     }
 
     /* check if acccess profile entry is enabled */
-    bool is_profile_enabled = false;
+    bool profile_enabled = false;
     int rc = check_access_profile_enabled(ldap_handle, access_profile_entry,
-        &is_profile_enabled);
+        &profile_enabled);
     switch (rc) {
     case POX509_OK:
         break;
@@ -375,7 +375,7 @@ check_access_profile_relevance_generic(LDAP *ldap_handle,
             pox509_strerror(rc));
         return rc;
     }
-    if (!is_profile_enabled) {
+    if (!profile_enabled) {
         log_info("access profile disabled");
         *ret = false;
         return POX509_OK;
@@ -621,9 +621,9 @@ add_key_provider(LDAP *ldap_handle, struct pox509_info *info,
      * currently logging in.
      */
     if (access_profile->type == DIRECT_ACCESS_PROFILE) {
-        bool is_authorized = strcmp(key_provider_uid[0], info->uid) == 0 ?
+        bool authorized = strcmp(key_provider_uid[0], info->uid) == 0 ?
             true : false;
-        if (!is_authorized) {
+        if (!authorized) {
             res = POX509_NOT_RELEVANT;
             goto cleanup_a;
         }
@@ -888,9 +888,9 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
 
     int res = POX509_UNKNOWN_ERR;
     /* check if acccess profile is relevant */
-    bool is_access_profile_relevant = false;
+    bool access_profile_relevant = false;
     int rc = check_access_profile_relevance_generic(ldap_handle,
-        access_profile_entry, &is_access_profile_relevant);
+        access_profile_entry, &access_profile_relevant);
     switch (rc) {
     case POX509_OK:
         break;
@@ -901,7 +901,7 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
             pox509_strerror(rc));
         return rc;
     }
-    if (!is_access_profile_relevant) {
+    if (!access_profile_relevant) {
         return POX509_NOT_RELEVANT;
     }
 
@@ -925,9 +925,9 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
      * the user currently logging in.
      */
     if (access_profile_type == ACCESS_ON_BEHALF_PROFILE) {
-        bool is_aobp_relevant = false;
+        bool aobp_relevant = false;
         rc = check_access_profile_relevance_aobp(ldap_handle, info,
-            access_profile_entry, &is_aobp_relevant);
+            access_profile_entry, &aobp_relevant);
         switch (rc) {
         case POX509_OK:
             break;
@@ -938,7 +938,7 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
                 pox509_strerror(rc));
             return rc;
         }
-        if (!is_aobp_relevant) {
+        if (!aobp_relevant) {
             return POX509_NOT_RELEVANT;
         }
     }

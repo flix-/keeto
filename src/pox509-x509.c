@@ -34,7 +34,7 @@
 #include "pox509-log.h"
 
 static bool
-is_msb_set(unsigned char byte)
+msb_set(unsigned char byte)
 {
     if (byte & 0x80) {
         return true;
@@ -85,7 +85,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
 
     /* put length of exponent */
     BN_bn2bin(rsa->e, tmp_buffer);
-    if (is_msb_set(tmp_buffer[0])) {
+    if (msb_set(tmp_buffer[0])) {
         PUT_32BIT(blob_p, length_exponent + 1);
         blob_p += 4;
         memset(blob_p, 0, 1);
@@ -100,7 +100,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
 
     /* put length of modulus */
     BN_bn2bin(rsa->n, tmp_buffer);
-    if (is_msb_set(tmp_buffer[0])) {
+    if (msb_set(tmp_buffer[0])) {
         PUT_32BIT(blob_p, length_modulus + 1);
         blob_p += 4;
         memset(blob_p, 0, 1);
@@ -225,7 +225,7 @@ cleanup_a:
 }
 
 int
-validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid)
+validate_x509(X509 *x509, const char *cacerts_dir, bool *valid)
 {
     if (x509 == NULL || cacerts_dir == NULL) {
         fatal("x509 or cacerts_dir == NULL");
@@ -271,12 +271,12 @@ validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid)
     }
     rc = X509_verify_cert(ctx_store);
     if (rc <= 0) {
-        *is_valid = false;
+        *valid = false;
         int cert_err = X509_STORE_CTX_get_error(ctx_store);
         log_error("certificate not valid (%s)",
             X509_verify_cert_error_string(cert_err));
     } else {
-        *is_valid = true;
+        *valid = true;
     }
 
     res = POX509_OK;

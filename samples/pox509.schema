@@ -1,6 +1,6 @@
 # attributes
 attributetype ( 1.0.86.86.86.86.2.1.1
-	NAME 'pox509IsEnabled'
+	NAME 'pox509Enabled'
 	DESC 'enable/disable access profile'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
     SINGLE-VALUE )
@@ -41,7 +41,7 @@ objectclass	( 1.0.86.86.86.86.2.2.1
 	DESC 'access profile'
 	SUP top
 	ABSTRACT
-	MUST ( cn $ pox509KeyProvider $ pox509IsEnabled )
+	MUST ( cn $ pox509KeyProvider $ pox509Enabled )
     MAY ( description $ pox509KeystoreOptions ) )
 
 objectclass	( 1.0.86.86.86.86.2.2.2

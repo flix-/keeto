@@ -39,11 +39,14 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
         fatal("prefix or fmt == NULL");
     }
 
+    static bool initialized = false;
+    if (!initialized) {
+        openlog("pox509", LOG_PID, pox509_syslog_facility);
+        initialized = true;
+    }
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    openlog("pox509", LOG_PID, pox509_syslog_facility);
     syslog(pox509_syslog_facility, "%s %s\n", prefix, buffer);
-    closelog();
 }
 
 void

@@ -40,7 +40,7 @@
     (cp)[3] = (unsigned char)(value) )
 
 int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
-int validate_x509(X509 *x509, const char *cacerts_dir, bool *is_valid);
+int validate_x509(X509 *x509, const char *cacerts_dir, bool *valid);
 char *get_serial_from_x509(X509 *x509);
 char *get_issuer_from_x509(X509 *x509);
 char *get_subject_from_x509(X509 *x509);

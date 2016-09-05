@@ -125,7 +125,7 @@ get_ldap_search_timeout(cfg_t *cfg)
 }
 
 bool
-is_file_readable(const char *file)
+file_readable(const char *file)
 {
     if (file == NULL) {
         fatal("file == NULL");
@@ -170,10 +170,10 @@ remove_keystore_file(char *keystore_file)
 }
 
 int
-check_uid(char *regex, const char *uid, bool *is_uid_valid)
+check_uid(char *regex, const char *uid, bool *uid_valid)
 {
-    if (regex == NULL || uid == NULL || is_uid_valid == NULL) {
-        fatal("regex, uid or is_uid_valid == NULL");
+    if (regex == NULL || uid == NULL || uid_valid == NULL) {
+        fatal("regex, uid or uid_valid == NULL");
     }
 
     regex_t regex_uid;
@@ -186,9 +186,9 @@ check_uid(char *regex, const char *uid, bool *is_uid_valid)
     regfree(&regex_uid);
 
     if (rc == 0) {
-        *is_uid_valid = true;
+        *uid_valid = true;
     } else {
-        *is_uid_valid = false;
+        *uid_valid = false;
     }
     return POX509_OK;
 }
@@ -320,26 +320,26 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
 
     struct pox509_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
-        bool is_command_option_set = keystore_record->command_option != NULL ?
+        bool command_option_set = keystore_record->command_option != NULL ?
             true : false;
-        bool is_from_option_set = keystore_record->from_option != NULL ?
+        bool from_option_set = keystore_record->from_option != NULL ?
             true : false;
-        bool is_option_set = false;
+        bool option_set = false;
 
-        if (is_command_option_set) {
+        if (command_option_set) {
             fprintf(tmp_keystore_file, "command=\"%s\"",
                 keystore_record->command_option);
-            is_option_set = true;
+            option_set = true;
         }
-        if (is_from_option_set) {
-            if (is_option_set) {
+        if (from_option_set) {
+            if (option_set) {
                 fprintf(tmp_keystore_file, ",");
             }
             fprintf(tmp_keystore_file, "from=\"%s\"",
                 keystore_record->from_option);
-            is_option_set = true;
+            option_set = true;
         }
-        if (is_option_set) {
+        if (option_set) {
             fprintf(tmp_keystore_file, " ");
         }
         fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
@@ -402,14 +402,14 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
     }
 
     /* check certificate */
-    bool is_valid = false;
+    bool valid = false;
     char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
-    int rc = validate_x509(key->x509, cacerts_dir, &is_valid);
+    int rc = validate_x509(key->x509, cacerts_dir, &valid);
     if (rc != POX509_OK) {
         log_error("failed to validate certificate (%s)", pox509_strerror(rc));
         return POX509_CERT_VALIDATION_ERR;
     }
-    if (!is_valid) {
+    if (!valid) {
         return POX509_INVALID_CERT;
     }
 

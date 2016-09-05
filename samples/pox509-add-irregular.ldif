@@ -6,6 +6,6 @@ cn: irregularDN
 pox509TargetKeystore: cn=buxtehude,dc=example,dc=org
 pox509KeyProvider: cn=noe,dc=example,dc=org
 pox509KeystoreOptions: cn=punkt,dc=huhu
-pox509IsEnabled: FALSE
+pox509Enabled: FALSE
 description: irregularDN profile
 

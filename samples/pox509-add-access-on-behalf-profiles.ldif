@@ -6,7 +6,7 @@ cn: access-on-behalf-from1
 pox509TargetKeystore: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: TRUE
+pox509Enabled: TRUE
 description: access-on-behalf-from1 profile
 
 dn: cn=access-on-behalf-from2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
@@ -17,7 +17,7 @@ cn: access-on-behalf-from2
 pox509TargetKeystore: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foobar,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: TRUE
+pox509Enabled: TRUE
 description: access-on-behalf-from2 profile
 
 dn: cn=access-on-behalf-from3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
@@ -28,7 +28,7 @@ cn: access-on-behalf-from3
 pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: TRUE
+pox509Enabled: TRUE
 description: access-on-behalf-from3 profile
 
 dn: cn=access-on-behalf-from4,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
@@ -39,6 +39,6 @@ cn: access-on-behalf-from4
 pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509IsEnabled: FALSE
+pox509Enabled: FALSE
 description: access-on-behalf-from4 profile
 
