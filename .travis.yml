@@ -17,10 +17,9 @@ install:
 
 before_script:
   - ./autogen.sh
-  - sudo mkdir -p /usr/local/etc/ssh/cacerts
 
 script:
   - ./configure --libdir=/lib/security --disable-dependency-tracking
   - make
-#  - make check
+  - make check
 

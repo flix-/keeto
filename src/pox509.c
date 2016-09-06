@@ -85,7 +85,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
     const char *cfg_file = argv[0];
-    if(!file_readable(cfg_file)) {
+    if (!file_readable(cfg_file)) {
         log_error("failed to open config file '%s' for reading", cfg_file);
         return PAM_SERVICE_ERR;
     }

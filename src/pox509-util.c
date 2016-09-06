@@ -101,7 +101,7 @@ str_to_enum(enum pox509_section section, const char *key)
     struct pox509_str_to_enum_entry *str_to_enum_entry;
     for (str_to_enum_entry = str_to_enum_lt[section];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
-        if(strcmp(str_to_enum_entry->key, key) != 0) {
+        if (strcmp(str_to_enum_entry->key, key) != 0) {
             continue;
         }
         return str_to_enum_entry->value;
@@ -255,7 +255,7 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
 }
 
 int
-get_rdn_value_from_dn(const char *dn, char **buffer)
+get_rdn_from_dn(const char *dn, char **buffer)
 {
     if (dn == NULL || buffer == NULL) {
         fatal("dn or buffer == NULL");

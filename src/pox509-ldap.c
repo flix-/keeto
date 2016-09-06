@@ -407,7 +407,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         res = POX509_LDAP_ERR;
         goto cleanup_a;
     }
-    int rc = get_rdn_value_from_dn(keystore_options->dn, &keystore_options->uid);
+    int rc = get_rdn_from_dn(keystore_options->dn, &keystore_options->uid);
     if (rc != POX509_OK) {
         log_error("failed to obtain rdn from dn '%s' (%s)", keystore_options->dn,
             pox509_strerror(rc));
@@ -956,7 +956,7 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         res = POX509_LDAP_ERR;
         goto cleanup;
     }
-    rc = get_rdn_value_from_dn(access_profile->dn, &access_profile->uid);
+    rc = get_rdn_from_dn(access_profile->dn, &access_profile->uid);
     if (rc != POX509_OK) {
         log_error("failed to obtain rdn from dn '%s' (%s)", access_profile->dn,
             pox509_strerror(rc));
