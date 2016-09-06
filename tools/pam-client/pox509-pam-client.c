@@ -61,6 +61,6 @@ main(int argc, char **argv)
         printf("failed to destroy pam (%s)\n", pam_strerror(pamh,rc));
         return -1;
     }
-    return 1;
+    return 0;
 }
 

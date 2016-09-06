@@ -22,4 +22,5 @@ script:
   - ./configure --libdir=/lib/security --disable-dependency-tracking
   - make
   - make check
+  - cat tests/test-suite.log
 
