@@ -159,14 +159,18 @@ remove_keystore(char *keystore)
         fatal("keystore == NULL");
     }
 
-    if (access(keystore, F_OK) == 0) {
-        int rc = unlink(keystore);
-        if (rc == -1) {
+    int rc = unlink(keystore);
+    if (rc == -1) {
+        switch (errno) {
+        case ENOENT:
+            break;
+        default:
             log_error("failed to remove keystore file '%s' (%s)", keystore,
                 strerror(errno));
         }
-        log_info("removed keystore file '%s'", keystore);
+        return;
     }
+    log_info("removed keystore file '%s'", keystore);
 }
 
 int
