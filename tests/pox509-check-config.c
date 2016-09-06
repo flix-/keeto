@@ -52,7 +52,6 @@ START_TEST
 (t_parse_config_pos)
 {
     char *config_file = CONFIGSDIR "/valid.conf";
-    printf("config_file: %s", config_file);
     if (!file_readable(config_file)) {
         ck_abort_msg("config (%s) not readable", config_file);
     }
