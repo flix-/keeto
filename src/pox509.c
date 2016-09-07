@@ -472,7 +472,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_BUF_ERR;
     }
 
-    /* expand keystore path and add to dto */
+    /* expand keystore path and add to info */
     info->ssh_keystore_location = malloc(SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
     if (info->ssh_keystore_location == NULL) {
         log_error("failed to allocate memory for ssh keystore location buffer");
