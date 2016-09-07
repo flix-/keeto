@@ -1,55 +1,33 @@
-dn: cn=access-on-behalf-from1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf-from1
+cn: access-on-behalf-1
 pox509TargetKeystore: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: TRUE
-description: access-on-behalf-from1 profile
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+pox509Enabled: FALSE
+description: access-on-behalf-1 profile
 
-dn: cn=access-on-behalf-from2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf-from2
+cn: access-on-behalf2
 pox509TargetKeystore: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=foobar,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
-description: access-on-behalf-from2 profile
+description: access-on-behalf2 profile
 
-dn: cn=access-on-behalf-from3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf-from3
+cn: access-on-behalf3
 pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: TRUE
-description: access-on-behalf-from3 profile
-
-dn: cn=access-on-behalf-from4,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf-from4
-pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=foo,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: FALSE
-description: access-on-behalf-from4 profile
-
-dn: cn=access-on-behalf-irregular,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf-irregular
-pox509TargetKeystore: cn=buxtehude,dc=example,dc=org
-pox509KeyProvider: cn=noe,dc=example,dc=org
-pox509KeystoreOptions: cn=punkt,dc=huhu
-pox509Enabled: FALSE
-description: access-on-behalf-irregular profile
+description: access-on-behalf3 profile
 

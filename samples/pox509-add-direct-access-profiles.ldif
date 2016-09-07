@@ -1,30 +1,30 @@
-dn: cn=direct-access-noopts1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
-cn: direct-access-noopts1
-pox509KeyProvider: cn=foobartux,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+cn: direct-access-1
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=command-from,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
-description: direct-access-noopts1 profile
+description: direct-access-1 profile
 
-dn: cn=direct-access-noopts2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
-cn: direct-access-noopts1
-pox509KeyProvider: cn=foobartuxtuxlegacy,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+cn: direct-access-2
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: TRUE
-description: direct-access-noopts2 profile
+pox509Enabled: FALSE
+description: direct-access-2 profile
 
-dn: cn=direct-access-noopts3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
-cn: direct-access-noopts3
-pox509KeyProvider: cn=pox509-test-user-and-friends,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+cn: direct-access-3
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
-description: direct-access-noopts3 profile
+description: direct-access-3 profile
 
