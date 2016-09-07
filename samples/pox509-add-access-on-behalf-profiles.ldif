@@ -9,25 +9,25 @@ pox509KeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: FALSE
 description: access-on-behalf-1 profile
 
-dn: cn=access-on-behalf2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf2
+cn: access-on-behalf-2
 pox509TargetKeystore: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
-description: access-on-behalf2 profile
+description: access-on-behalf-2 profile
 
-dn: cn=access-on-behalf3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509AccessOnBehalfProfile
-cn: access-on-behalf3
+cn: access-on-behalf-3
 pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: FALSE
-description: access-on-behalf3 profile
+description: access-on-behalf-3 profile
 
