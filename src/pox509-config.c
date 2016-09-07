@@ -239,7 +239,7 @@ parse_config(const char *cfg_file)
         CFG_STR("syslog_facility", "LOG_LOCAL1", CFGF_NONE),
 
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
-        CFG_INT("ldap_starttls", 0, CFGF_NONE),
+        CFG_INT("ldap_starttls", 1, CFGF_NONE),
         CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=ssh,dc=hq", CFGF_NONE),
         CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
