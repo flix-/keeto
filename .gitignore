@@ -8,7 +8,6 @@
 Makefile
 Makefile.in
 libtool
-tests/pox509-check
 autom4te.cache
 autoscan.log
 config.cache
@@ -23,5 +22,5 @@ tests/.deps
 build-aux
 aclocal.m4
 m4
-doc/html
+tests/pox509-check
 

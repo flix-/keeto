@@ -7,18 +7,13 @@ cn: config
 olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
-#olcTLSCACertificatePath: /usr/local/etc/ssh/cacerts/
-#olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
-#olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
+olcTLSCACertificatePath: /usr/local/etc/ssh/cacerts/
+olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
+olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
 
 #############
 # cn=module #
 #############
-dn: cn=module,cn=config
-objectClass: olcModuleList
-cn: module
-olcModulePath: /usr/lib/openldap
-olcModuleLoad: memberof
 
 #############
 # cn=schema #
@@ -33,6 +28,7 @@ include: file:///etc/openldap/schema/inetorgperson.ldif
 include: file:///etc/openldap/schema/openldap.ldif
 include: file:///etc/openldap/schema/nis.ldif
 include: file:///etc/openldap/schema/misc.ldif
+include: file:///etc/openldap/schema/pox509.ldif
 
 ################
 # olcBackend=x #
@@ -66,12 +62,4 @@ olcDbDirectory:	/var/lib/openldap/dc=ssh,dc=hq
 olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq
-
-# add memberof overlay
-dn: olcOverlay=memberof,olcDatabase={1}hdb,cn=config
-objectClass: olcMemberOf
-olcOverlay: memberof
-olcMemberOfGroupOC: groupOfNames
-olcMemberOfMemberAD: member
-olcMemberOfMemberOfAD: memberOf
 

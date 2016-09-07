@@ -18,11 +18,12 @@
 #ifndef POX509_CHECK_X509_H
 #define POX509_CHECK_X509_H
 
+#include <stdbool.h>
 #include <check.h>
 
 struct pox509_validate_x509_entry {
     char *file;
-    char exp_result;
+    bool exp_result;
 };
 
 Suite *make_x509_suite(void);

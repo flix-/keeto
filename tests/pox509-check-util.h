@@ -25,6 +25,17 @@
 
 #include <check.h>
 
+struct pox509_file_readable_entry {
+    char *file;
+    mode_t mode;
+    bool exp_result;
+};
+
+struct pox509_check_uid_entry {
+    char *uid;
+    bool exp_result;
+};
+
 struct pox509_substitute_token_entry {
     char token;
     char *subst;
@@ -40,21 +51,10 @@ struct pox509_create_ldap_search_filter_entry {
     char *exp_result;
 };
 
-struct pox509_check_access_permission_entry {
-    char *group_dn;
-    char *identifier;
-    char exp_result;
-};
-
-struct pox509_is_valid_uid_entry {
-    char *uid;
-    bool exp_result;
-};
-
-struct pox509_is_readable_file_entry {
-    char *file;
-    mode_t mode;
-    bool exp_result;
+struct pox509_get_rdn_from_dn_entry {
+    char *dn;
+    int exp_res;
+    char *exp_result;
 };
 
 Suite *make_util_suite(void);

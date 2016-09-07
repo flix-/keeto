@@ -1,0 +1,18 @@
+dn: uid=db2admin,ou=technical-users,dc=ssh,dc=hq
+objectClass: top
+objectClass: account
+uid: db2admin
+description: db2 admin account
+
+dn: uid=postgres,ou=technical-users,dc=ssh,dc=hq
+objectClass: top
+objectClass: account
+uid: postgres
+description: postgress admin account
+
+dn: uid=mysql,ou=technical-users,dc=ssh,dc=hq
+objectClass: top
+objectClass: account
+uid: mysql
+description: mysql admin account
+

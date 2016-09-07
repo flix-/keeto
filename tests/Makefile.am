@@ -9,14 +9,19 @@ pox509_check_SOURCES = pox509-check-config.h \
                        pox509-check-x509.h \
                        pox509-check-x509.c \
                        pox509-check-main.c \
+                       ../src/pox509-config.h \
+                       ../src/pox509-config.c \
+                       ../src/pox509-error.h \
+                       ../src/pox509-error.c \
                        ../src/pox509-log.h \
                        ../src/pox509-log.c \
                        ../src/pox509-util.h \
-                       ../src/pox509-util.c
+                       ../src/pox509-util.c \
+                       ../src/pox509-x509.h
 pox509_check_LDADD = ${LDADD_CHECK}
-pox509_check_CPPFLAGS = -DCACERTSDIR="\"${srcdir}/ca_certificates\"" \
-                        -DX509CERTSDIR="\"${srcdir}/validate_x509\"" \
-                        -DCONFIGSDIR="\"${srcdir}/init_and_parse_config\"" \
-                        -DKEYSDIR="\"${srcdir}/pkey_to_authorized_keys\"" \
-                        -DREADABLEFILESDIR="\"${srcdir}/is_readable_file\""
+pox509_check_CPPFLAGS = -DCONFIGSDIR="\"${srcdir}/configs\"" \
+                        -DFILEREADABLEDIR="\"${srcdir}/file_readable\"" \
+                        -DKEYSTORERECORDSDIR="\"${srcdir}/keystore_records\"" \
+                        -DX509CERTSDIR="\"${srcdir}/certificates\"" \
+                        -DCACERTSDIR="\"${srcdir}/ca_certificates\""
 

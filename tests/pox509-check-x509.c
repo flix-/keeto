@@ -18,6 +18,7 @@
 #include "pox509-check-x509.h"
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,219 +35,101 @@
 #define BUFFER_SIZE 4096
 
 static struct pox509_validate_x509_entry validate_x509_lt[] = {
-    { X509CERTSDIR "/not-trusted-ca.pem", 0 },
-    { X509CERTSDIR "/trusted-ca-but-expired.pem", 0 },
-    { X509CERTSDIR "/trusted-and-not-expired.pem", 1 }
+    { X509CERTSDIR "/untrusted-ca.pem", false },
+    { X509CERTSDIR "/trusted-ca-expired.pem", false },
+    { X509CERTSDIR "/valid.pem", true }
 };
+
+/*
+ * get_ssh_key_from_rsa()
+ */
+START_TEST
+(t_get_ssh_key_from_rsa)
+{
+    char *keystore_records = KEYSTORERECORDSDIR "/ssh-rsa.txt";
+    char *ssh_keytype = "ssh-rsa";
+
+    FILE *keystore_records_file = fopen(keystore_records, "r");
+    if (keystore_records_file == NULL) {
+        ck_abort_msg("failed to open '%s' (%s)", keystore_records,
+            strerror(errno));
+    }
+
+    char keystore_record_parsed[BUFFER_SIZE];
+    while (fgets(keystore_record_parsed, sizeof keystore_record_parsed,
+        keystore_records_file) != NULL) {
+
+        char *pem_file_rel = strtok(keystore_record_parsed, ":");
+        char *exp_keystore_record = strtok(NULL, "\n");
+        if (pem_file_rel == NULL || exp_keystore_record == NULL) {
+            fclose(keystore_records_file);
+            ck_abort_msg("failed to parse '%s'", keystore_records);
+        }
+
+        char pem_file_abs[BUFFER_SIZE];
+        snprintf(pem_file_abs, sizeof pem_file_abs, "%s/%s", KEYSTORERECORDSDIR,
+            pem_file_rel);
+        FILE *pem_file = fopen(pem_file_abs, "r");
+        if (pem_file == NULL) {
+            fclose(keystore_records_file);
+            ck_abort_msg("failed to open '%s' (%s)", pem_file_abs, strerror(errno));
+        }
+
+        EVP_PKEY *pkey = PEM_read_PUBKEY(pem_file, NULL, NULL, NULL);
+        if (pkey == NULL) {
+            fclose(pem_file);
+            fclose(keystore_records_file);
+            ck_abort_msg("failed to read pubkey from '%s'", pem_file_abs);
+        }
+        fclose(pem_file);
+        char *ssh_key = NULL;
+        int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &ssh_key);
+        if (rc != POX509_OK) {
+            fclose(keystore_records_file);
+            ck_abort_msg("failed to add key data (%s)", pox509_strerror(rc));
+        }
+        char keystore_record[BUFFER_SIZE];
+        snprintf(keystore_record, sizeof keystore_record, "%s %s", ssh_keytype,
+            ssh_key);
+        ck_assert_str_eq(exp_keystore_record, keystore_record);
+        free(ssh_key);
+    }
+    fclose(keystore_records_file);
+}
+END_TEST
 
 /*
  * validate_x509()
  */
 START_TEST
-(t_validate_x509_exit_x509_null)
-{
-    char *ca_certs_dir = CACERTSDIR;
-    struct pox509_info pox509_info;
-    validate_x509(NULL, ca_certs_dir, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_validate_x509_exit_cacerts_dir_null)
-{
-    X509 x509;
-    struct pox509_info pox509_info;
-    validate_x509(&x509, NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_validate_x509_exit_pox509_info_null)
-{
-    X509 x509;
-    char *ca_certs_dir = CACERTSDIR;
-    validate_x509(&x509, ca_certs_dir, NULL);
-}
-END_TEST
-
-START_TEST
-(t_validate_x509_exit_x509_cacerts_dir_pox509_info_null)
-{
-    validate_x509(NULL, NULL, NULL);
-}
-END_TEST
-
-START_TEST
 (t_validate_x509)
 {
-    char *x509_cert = validate_x509_lt[_i].file;
-    char exp_result = validate_x509_lt[_i].exp_result;
+    char *x509_path = validate_x509_lt[_i].file;
+    bool exp_result = validate_x509_lt[_i].exp_result;
 
-    struct pox509_info pox509_info = {
-        .has_valid_cert = -1
-    };
-    char *ca_certs_dir = CACERTSDIR;
+    char *cacerts_dir = CACERTSDIR;
+    bool valid = false;
 
-    FILE *x509_cert_file = fopen(x509_cert, "r");
-    if (x509_cert_file == NULL) {
-        ck_abort_msg("fopen() failed ('%s')", x509_cert);
+    FILE *x509_file = fopen(x509_path, "r");
+    if (x509_file == NULL) {
+        ck_abort_msg("failed to open '%s' (%s)", x509_path, strerror(errno));
     }
 
-    X509 *x509 = PEM_read_X509(x509_cert_file, NULL, NULL, NULL);
+    X509 *x509 = PEM_read_X509(x509_file, NULL, NULL, NULL);
     if (x509 == NULL) {
-        ck_abort_msg("PEM_read_X509() failed");
+        fclose(x509_file);
+        ck_abort_msg("failed to read x509 from pem file '%s'", x509_path);
     }
-    fclose(x509_cert_file);
-    validate_x509(x509, ca_certs_dir, &pox509_info);
-    ck_assert_int_eq(pox509_info.has_valid_cert, exp_result);
-}
-END_TEST
+    fclose(x509_file);
 
-/*
- * pkey_to_authorized_keys()
- */
-START_TEST
-(t_pkey_to_authorized_keys_exit_pkey_null)
-{
-    struct pox509_info pox509_info;
-    pkey_to_authorized_keys(NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_pkey_to_authorized_keys_exit_pox509_info_null)
-{
-    EVP_PKEY pkey;
-    pkey_to_authorized_keys(&pkey, NULL);
-}
-END_TEST
-
-START_TEST
-(t_pkey_to_authorized_keys_exit_pkey_pox509_info_null)
-{
-    pkey_to_authorized_keys(NULL, NULL);
-}
-END_TEST
-
-START_TEST
-(t_pkey_to_authorized_keys)
-{
-    char *directory = KEYSDIR;
-    char *oneliner = KEYSDIR "/ssh-rsa.txt";
-
-    FILE *fh_oneliner = fopen(oneliner, "r");
-    if (fh_oneliner == NULL) {
-        ck_abort_msg("fopen() failed ('%s')", oneliner);
+    int rc = validate_x509(x509, cacerts_dir, &valid);
+    if (rc != POX509_OK) {
+        free_x509(x509);
+        ck_abort_msg("failed to validate certificate (%s)", pox509_strerror(rc));
     }
+    free_x509(x509);
 
-    char line_buffer[BUFFER_SIZE];
-    while (fgets(line_buffer, sizeof line_buffer, fh_oneliner) != NULL) {
-        char *pem_file_rel = strtok(line_buffer, ":");
-        char *exp_ssh_rsa = strtok(NULL, "\n");
-        if (pem_file_rel == NULL || exp_ssh_rsa == NULL) {
-            ck_abort_msg("parsing failure");
-        }
-
-        char pem_file_abs[BUFFER_SIZE];
-        snprintf(pem_file_abs, sizeof pem_file_abs, "%s/%s", directory,
-            pem_file_rel);
-        FILE *f_pem_file = fopen(pem_file_abs, "r");
-        if (f_pem_file == NULL) {
-            ck_abort_msg("fopen() failed ('%s')", pem_file_abs);
-        }
-
-        EVP_PKEY *pkey = PEM_read_PUBKEY(f_pem_file, NULL, NULL, NULL);
-        if (pkey == NULL) {
-            ck_abort_msg("PEM_read_PUBKEY() failed ('%s')", pem_file_abs);
-        }
-
-        struct pox509_info pox509_info;
-        pkey_to_authorized_keys(pkey, &pox509_info);
-        char ssh_rsa[BUFFER_SIZE];
-        snprintf(ssh_rsa, sizeof ssh_rsa, "%s %s", pox509_info.ssh_keytype,
-            pox509_info.ssh_key);
-        ck_assert_str_eq(ssh_rsa, exp_ssh_rsa);
-        fclose(f_pem_file);
-    }
-    fclose(fh_oneliner);
-}
-END_TEST
-
-/*
- * get_serial_from_x509()
- */
-START_TEST
-(t_get_serial_from_x509_exit_x509_null)
-{
-    struct pox509_info pox509_info;
-    get_serial_from_x509(NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_get_serial_from_x509_exit_pox509_info_null)
-{
-    X509 x509;
-    get_serial_from_x509(&x509, NULL);
-}
-END_TEST
-
-START_TEST
-(t_get_serial_from_x509_exit_x509_pox509_info_null)
-{
-    get_serial_from_x509(NULL, NULL);
-}
-END_TEST
-
-/*
- * get_issuer_from_x509()
- */
-START_TEST
-(t_get_issuer_from_x509_exit_x509_null)
-{
-    struct pox509_info pox509_info;
-    get_issuer_from_x509(NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_get_issuer_from_x509_exit_pox509_info_null)
-{
-    X509 x509;
-    get_issuer_from_x509(&x509, NULL);
-}
-END_TEST
-
-START_TEST
-(t_get_issuer_from_x509_exit_x509_pox509_info_null)
-{
-    get_issuer_from_x509(NULL, NULL);
-}
-END_TEST
-
-/*
- * get_subject_from_x509()
- */
-START_TEST
-(t_get_subject_from_x509_exit_x509_null)
-{
-    struct pox509_info pox509_info;
-    get_subject_from_x509(NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_get_subject_from_x509_exit_pox509_info_null)
-{
-    X509 x509;
-    get_subject_from_x509(&x509, NULL);
-}
-END_TEST
-
-START_TEST
-(t_get_subject_from_x509_exit_x509_pox509_info_null)
-{
-    get_subject_from_x509(NULL, NULL);
+    ck_assert_int_eq(exp_result, valid);
 }
 END_TEST
 
@@ -262,50 +145,14 @@ make_x509_suite(void)
     /*
      * main test cases
      */
+    
+    /* get_ssh_key_from_rsa() */
+    tcase_add_test(tc_main, t_get_ssh_key_from_rsa);
 
     /* validate_x509() */
-    tcase_add_exit_test(tc_main, t_validate_x509_exit_x509_null, EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_validate_x509_exit_cacerts_dir_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_validate_x509_exit_pox509_info_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_validate_x509_exit_x509_cacerts_dir_pox509_info_null, EXIT_FAILURE);
-    int length_vx509_lt = sizeof validate_x509_lt / sizeof validate_x509_lt[0];
-    tcase_add_loop_test(tc_main, t_validate_x509, 0, length_vx509_lt);
-
-    /* pkey_to_authorized_keys() */
-    tcase_add_exit_test(tc_main, t_pkey_to_authorized_keys_exit_pkey_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_pkey_to_authorized_keys_exit_pox509_info_null, EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_pkey_to_authorized_keys_exit_pkey_pox509_info_null, EXIT_FAILURE);
-    tcase_add_test(tc_main, t_pkey_to_authorized_keys);
-
-    /* get_serial_from_x509() */
-    tcase_add_exit_test(tc_main, t_get_serial_from_x509_exit_x509_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_get_serial_from_x509_exit_pox509_info_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_get_serial_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
-
-    /* get_issuer_from_x509() */
-    tcase_add_exit_test(tc_main, t_get_issuer_from_x509_exit_x509_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_get_issuer_from_x509_exit_pox509_info_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_get_issuer_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
-
-    /* get_subject_from_x509() */
-    tcase_add_exit_test(tc_main, t_get_subject_from_x509_exit_x509_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_get_subject_from_x509_exit_pox509_info_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_get_subject_from_x509_exit_x509_pox509_info_null, EXIT_FAILURE);
+    int validate_x509_lt_items = sizeof validate_x509_lt /
+        sizeof validate_x509_lt[0];
+    tcase_add_loop_test(tc_main, t_validate_x509, 0, validate_x509_lt_items);
 
     return s;
 }

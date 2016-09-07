@@ -24,6 +24,7 @@
 
 #include <syslog.h>
 
+#include "pox509-error.h"
 #include "pox509-util.h"
 
 #define LOG_BUFFER_SIZE 4096
@@ -38,15 +39,18 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
         fatal("prefix or fmt == NULL");
     }
 
+    static bool initialized = false;
+    if (!initialized) {
+        openlog("pox509", LOG_PID, pox509_syslog_facility);
+        initialized = true;
+    }
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    openlog("pox509", LOG_PID, pox509_syslog_facility);
     syslog(pox509_syslog_facility, "%s %s\n", prefix, buffer);
-    closelog();
 }
 
 void
-log_msg(const char *fmt, ...)
+log_info(const char *fmt, ...)
 {
     if (fmt == NULL) {
         fatal("fmt == NULL");
@@ -54,12 +58,12 @@ log_msg(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    pox509_log("[#]", fmt, ap);
+    pox509_log("[I]", fmt, ap);
     va_end(ap);
 }
 
 void
-log_success(const char *fmt, ...)
+log_error(const char *fmt, ...)
 {
     if (fmt == NULL) {
         fatal("fmt == NULL");
@@ -67,12 +71,12 @@ log_success(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    pox509_log("[+]", fmt, ap);
+    pox509_log("[E]", fmt, ap);
     va_end(ap);
 }
 
 void
-pox509_log_fail(const char *filename, const char *function, int line,
+pox509_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...)
 {
     if (filename == NULL || function == NULL || fmt == NULL) {
@@ -80,7 +84,7 @@ pox509_log_fail(const char *filename, const char *function, int line,
     }
 
     char prefix[LOG_PREFIX_BUFFER_SIZE];
-    snprintf(prefix, sizeof prefix, "[-] [%s, %s(), %d]", filename, function,
+    snprintf(prefix, sizeof prefix, "[D] [%s, %s(), %d]", filename, function,
         line);
     va_list ap;
     va_start(ap, fmt);
@@ -113,12 +117,11 @@ set_syslog_facility(const char *syslog_facility)
         fatal("syslog_facility == NULL");
     }
 
-    int value = str_to_enum(SYSLOG, syslog_facility);
-    if (value == -EINVAL) {
-        return -EINVAL;
+    int value = str_to_enum(POX509_SYSLOG, syslog_facility);
+    if (value == POX509_NO_SUCH_VALUE) {
+        return POX509_NO_SUCH_VALUE;
     }
-
     pox509_syslog_facility = value;
-    return 0;
+    return POX509_OK;
 }
 

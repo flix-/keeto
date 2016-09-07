@@ -1,0 +1,24 @@
+dn: cn=pox509-test-server1,ou=server,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: pox509-test-server1
+description: pox509-test-server1
+member: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+
+dn: cn=pox509-test-server2,ou=server,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: pox509-test-server2
+description: pox509-test-server2
+member: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+member: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+

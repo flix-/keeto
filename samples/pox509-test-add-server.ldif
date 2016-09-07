@@ -1,7 +1,0 @@
-dn: cn=pox509-test-server,ou=groups,dc=ssh,dc=hq
-objectClass: top
-objectClass: groupOfNames
-cn: pox509-test-server
-description: pox509-test-server
-member: uid=__LAST_MAN_STANDING__
-

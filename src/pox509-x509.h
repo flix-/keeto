@@ -33,46 +33,16 @@
 
 #include "pox509-util.h"
 
-/**
- * Validate a x509 certificate.
- *
- * @param[in] x509 X509 certificate. Must not be @c NULL.
- * @param[in] cacerts_dir Path to directory with trusted root CA's
- * symlinked by their hash value. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void validate_x509(X509 *x509, const char *cacerts_dir,
-    struct pox509_info *pox509_info);
+#define PUT_32BIT(cp, value)( \
+    (cp)[0] = (unsigned char)((value) >> 24), \
+    (cp)[1] = (unsigned char)((value) >> 16), \
+    (cp)[2] = (unsigned char)((value) >> 8), \
+    (cp)[3] = (unsigned char)(value) )
 
-/**
- * Convert a x509 certificate to an OpenSSH authorized_keys file entry.
- *
- * @param[in] x509 x509 certificate. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void x509_to_authorized_keys(X509 *x509, struct pox509_info *pox509_info);
-
-/**
- * Get serial from x509 certificate.
- *
- * @param[in] x509 x509 certificate. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void get_serial_from_x509(X509 *x509, struct pox509_info *pox509_info);
-
-/**
- * Get issuer from x509 certificate.
- *
- * @param[in] x509 x509 certificate. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void get_issuer_from_x509(X509 *x509, struct pox509_info *pox509_info);
-
-/**
- * Get subject from x509 certificate.
- *
- * @param[in] x509 x509 certificate. Must not be @c NULL.
- * @param[out] pox509_info DTO. Must not be @c NULL.
- */
-void get_subject_from_x509(X509 *x509, struct pox509_info *pox509_info);
+int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
+int validate_x509(X509 *x509, const char *cacerts_dir, bool *valid);
+char *get_serial_from_x509(X509 *x509);
+char *get_issuer_from_x509(X509 *x509);
+char *get_subject_from_x509(X509 *x509);
+void free_x509(X509 *x509);
 #endif

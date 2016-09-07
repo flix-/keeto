@@ -15,35 +15,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * LDAP processing.
- *
- * @file pox509-ldap.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-15
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_LDAP_H
 #define POX509_LDAP_H
 
+#include "queue.h"
 #include <confuse.h>
-#include <openssl/x509.h>
 
 #include "pox509-util.h"
 
-/**
- * Obtain access permission and x509 certificate of user from LDAP.
- *
- * The user object corresponding to the given UID is searched in the
- * LDAP server and access permission as well as the x509 certificate
- * of the user will be retrieved.
- *
- * @param[in] cfg Configuration structure. Must not be @c NULL.
- * @param[out] pox509_info DTO. Access permission will be stored here.
- * Must not be @c NULL.
- * @param[out] x509 The parsed x509 certificate.
- */
-void retrieve_authorization_and_x509_from_ldap(cfg_t *cfg,
-    struct pox509_info *pox509_info, X509 **x509);
+#define LDAP_BOOL_TRUE "TRUE"
+
+#define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
+#define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
+
+#define POX509_AP_KEY_PROVIDER_ATTR "pox509KeyProvider"
+#define POX509_AP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
+#define POX509_AP_ENABLED "pox509Enabled"
+#define POX509_AOBP_TARGET_KEYSTORE_ATTR "pox509TargetKeystore"
+
+#define POX509_KEYSTORE_OPTIONS_FROM_ATTR "pox509KeystoreOptionFrom"
+#define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
+
+int get_access_profiles_from_ldap(struct pox509_info *info);
 #endif

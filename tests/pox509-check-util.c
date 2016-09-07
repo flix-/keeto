@@ -17,7 +17,6 @@
 
 #include "pox509-check-util.h"
 
-#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -30,30 +29,29 @@
 #include <bits/types.h>
 #include <sys/stat.h>
 
+#include "../src/pox509-error.h"
 #include "../src/pox509-util.h"
 
-static struct pox509_is_readable_file_entry is_readable_file_lt[] = {
-    { READABLEFILESDIR "/file-none", 0, false },
-    { READABLEFILESDIR "/file-execute", S_IXUSR, false },
-    { READABLEFILESDIR "/file-execute-read", S_IXUSR|S_IRUSR, true },
-    { READABLEFILESDIR "/file-execute-write", S_IXUSR|S_IWUSR, false },
-    { READABLEFILESDIR "/file-execute-write-read", S_IXUSR|S_IWUSR|S_IRUSR,
-    true },
-    { READABLEFILESDIR "/file-read", S_IRUSR, true },
-    { READABLEFILESDIR "/file-write", S_IWUSR, false },
-    { READABLEFILESDIR "/file-write-read", S_IWUSR|S_IRUSR, true },
-    { READABLEFILESDIR "/dir-none", 0, false },
-    { READABLEFILESDIR "/dir-execute", S_IXUSR, false },
-    { READABLEFILESDIR "/dir-execute-read", S_IXUSR|S_IRUSR, false },
-    { READABLEFILESDIR "/dir-execute-write", S_IXUSR|S_IWUSR, false },
-    { READABLEFILESDIR "/dir-execute-write-read", S_IXUSR|S_IWUSR|S_IRUSR,
-    false },
-    { READABLEFILESDIR "/dir-read", S_IRUSR, false },
-    { READABLEFILESDIR "/dir-write", S_IWUSR, false },
-    { READABLEFILESDIR "/dir-write-read", S_IWUSR|S_IRUSR, false }
+static struct pox509_file_readable_entry file_readable_lt[] = {
+    { FILEREADABLEDIR "/file-none", 0, false },
+    { FILEREADABLEDIR "/file-read", S_IRUSR, true },
+    { FILEREADABLEDIR "/file-read-write", S_IRUSR|S_IWUSR, true },
+    { FILEREADABLEDIR "/file-read-execute", S_IRUSR|S_IXUSR, true },
+    { FILEREADABLEDIR "/file-read-write-execute", S_IRUSR|S_IWUSR|S_IXUSR, true },
+    { FILEREADABLEDIR "/file-write", S_IWUSR, false },
+    { FILEREADABLEDIR "/file-write-execute", S_IWUSR|S_IXUSR, false },
+    { FILEREADABLEDIR "/file-execute", S_IXUSR, false },
+    { FILEREADABLEDIR "/dir-none", 0, false },
+    { FILEREADABLEDIR "/dir-read", S_IRUSR, false },
+    { FILEREADABLEDIR "/dir-read-write", S_IRUSR|S_IWUSR, false },
+    { FILEREADABLEDIR "/dir-read-execute", S_IRUSR|S_IXUSR, false },
+    { FILEREADABLEDIR "/dir-read-write-execute", S_IRUSR|S_IWUSR|S_IXUSR, false },
+    { FILEREADABLEDIR "/dir-write", S_IWUSR, false },
+    { FILEREADABLEDIR "/dir-write-execute", S_IWUSR|S_IXUSR, false },
+    { FILEREADABLEDIR "/dir-execute", S_IXUSR, false }
 };
 
-static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
+static struct pox509_check_uid_entry check_uid_lt[] = {
     { "pox509-test-user", true },
     { "Pox509-test-user", false },
     { "pox509-Test-user", false },
@@ -63,6 +61,7 @@ static struct pox509_is_valid_uid_entry is_valid_uid_lt[] = {
     { "abcdefghijklmnopqrstuvwxyzaabbccd", false },
     { "../authorized_keys/root", false },
     { "..", false },
+    { "", false },
     { "_foo", false }
 };
 
@@ -97,80 +96,61 @@ static struct pox509_create_ldap_search_filter_entry
     { "uid", "foo", 6, "uid=f" }
 };
 
-static struct pox509_check_access_permission_entry
-    check_access_permission_lt[] = {
-    { "cn=blub,dc=abc,dc=def", "blub", 1 },
-    { "cn==blub,dc=abc,dc=def", "\\3Dblub", 1 },
-    { "cn=cn=blub,dc=abc,dc=def", "cn\\3Dblub", 1 },
-    { "cn=blub", "blub", 1 },
-    { "cn= blub", "blub", 1},
-    { "cn=blub,dc=abc,dc=def", "foo", 0 },
-    { "cn=", "", 1 }
+static struct pox509_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
+    { "cn=foo,dc=ssh,dc=hq", POX509_OK, "foo" },
+    { "xyzcn=bar,dc=ssh,dc=hq", POX509_OK, "bar" },
+    { "www.xy.z", POX509_LDAP_ERR, NULL }
 };
 
 /*
  * str_to_enum()
  */
 START_TEST
-(t_str_to_enum_exit_key_null)
-{
-    str_to_enum(SYSLOG, NULL);
-}
-END_TEST
-
-START_TEST
 (t_str_to_enum)
 {
-    int rc = str_to_enum(SYSLOG, "foo");
-    ck_assert_int_eq(rc, -EINVAL);
-    rc = str_to_enum(SYSLOG, "LOG_FTP");
-    ck_assert_int_eq(rc, LOG_FTP);
-    rc = str_to_enum(LIBLDAP, "foo");
-    ck_assert_int_eq(rc, -EINVAL);
-    rc = str_to_enum(LIBLDAP, "LDAP_SCOPE_BASE");
-    ck_assert_int_eq(rc, LDAP_SCOPE_BASE);
+    int rc = str_to_enum(POX509_SYSLOG, "LOG_LOCAL1");
+    ck_assert_int_eq(LOG_LOCAL1, rc);
+    rc = str_to_enum(POX509_LIBLDAP, "LDAP_SCOPE_BASE");
+    ck_assert_int_eq(LDAP_SCOPE_BASE, rc);
+    rc = str_to_enum(POX509_SYSLOG, "LOG_FOO");
+    ck_assert_int_eq(POX509_NO_SUCH_VALUE, rc);
+    rc = str_to_enum(POX509_LIBLDAP, "LDAP_BAR");
+    ck_assert_int_eq(POX509_NO_SUCH_VALUE, rc);
 }
 END_TEST
 
 /*
- * init_data_transfer_object()
+ * file_readable()
  */
 START_TEST
-(t_init_data_transfer_object_exit_pox509_info_null)
+(t_file_readable_file_not_found)
 {
-    init_data_transfer_object(NULL);
-}
-END_TEST
-
-/*
- * is_readable_file()
- */
-START_TEST
-(t_is_readable_file_file_null)
-{
-    is_readable_file(NULL);
+    char *file = FILEREADABLEDIR "/not-existent";
+    bool result = file_readable(file);
+    ck_assert_int_eq(false, result);
 }
 END_TEST
 
 START_TEST
-(t_is_readable_file)
+(t_file_readable)
 {
-    char *file = is_readable_file_lt[_i].file;
-    mode_t mode = is_readable_file_lt[_i].mode;
-    bool exp_result = is_readable_file_lt[_i].exp_result;
+    char *file = file_readable_lt[_i].file;
+    mode_t mode = file_readable_lt[_i].mode;
+    bool exp_result = file_readable_lt[_i].exp_result;
 
     int rc = chmod(file, mode);
     if (rc == -1) {
-        ck_abort_msg("chmod() failed");
+        ck_abort_msg("failed to chmod");
     }
 
-    rc = is_readable_file(file);
-    ck_assert_int_eq(rc, exp_result);
+    bool result = file_readable(file);
+    ck_assert_int_eq(exp_result, result);
 
+    /* reset values */
     struct stat stat_buffer;
     rc = stat(file, &stat_buffer);
     if (rc != 0) {
-        ck_abort_msg("stat() failed");
+        ck_abort_msg("failed to stat");
     }
     if (S_ISREG(stat_buffer.st_mode)) {
         rc = chmod(file, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
@@ -181,93 +161,33 @@ START_TEST
         return;
     }
     if (rc == -1) {
-        ck_abort_msg("chmod() failed");
+        ck_abort_msg("failed to chmod");
     }
 }
 END_TEST
 
-START_TEST
-(t_is_readable_file_not_existent_file)
-{
-    char *file = READABLEFILESDIR "/this_file_does_not_exist";
-    bool exp_result = false;
-
-    bool rc = is_readable_file(file);
-    ck_assert_int_eq(rc, exp_result);
-}
-END_TEST
-
 /*
- * is_valid_uid()
+ * check_uid()
  */
 START_TEST
-(t_is_valid_uid_exit_uid_null)
+(t_check_uid)
 {
-    is_valid_uid(NULL);
-}
-END_TEST
+    char *regex = "^[a-z][-a-z0-9]{0,31}$";
+    char *uid = check_uid_lt[_i].uid;
+    bool exp_result = check_uid_lt[_i].exp_result;
 
-START_TEST
-(t_is_valid_uid)
-{
-    char *uid = is_valid_uid_lt[_i].uid;
-    bool exp_result = is_valid_uid_lt[_i].exp_result;
-
-    bool rc = is_valid_uid(uid);
-    ck_assert_int_eq(rc, exp_result);
+    bool uid_valid = false;
+    int rc = check_uid(regex, uid, &uid_valid);
+    if (rc != POX509_OK) {
+        ck_abort_msg("failed to check uid");
+    }
+    ck_assert_int_eq(exp_result, uid_valid);
 }
 END_TEST
 
 /*
  * substitute_token()
  */
-START_TEST
-(t_substitute_token_exit_subst_null)
-{
-    size_t dst_length = 1024;
-    char dst[dst_length];
-    substitute_token('u', NULL, "/home/%u/", dst, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_substitute_token_exit_src_null)
-{
-    size_t dst_length = 1024;
-    char dst[dst_length];
-    substitute_token('u', "foo", NULL, dst, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_substitute_token_exit_dst_null)
-{
-    substitute_token('u', "foo", "/home/%u/", NULL, 1024);
-}
-END_TEST
-
-START_TEST
-(t_substitute_token_exit_subst_src_dst_null)
-{
-    substitute_token('u', NULL, NULL, NULL, 1024);
-}
-END_TEST
-
-START_TEST
-(t_substitute_token_exit_dst_length_0)
-{
-    char dst[1024];
-    substitute_token('u', "foo", "/home/%u/", dst, 0);
-}
-END_TEST
-
-START_TEST
-(t_substitute_token_exit_subst_src_dst_null_dst_length_0)
-{
-    substitute_token('u', NULL, NULL, NULL, 0);
-}
-END_TEST
-
 START_TEST
 (t_substitute_token)
 {
@@ -279,64 +199,14 @@ START_TEST
 
     size_t dst_buffer_length = 1024;
     char dst[dst_buffer_length];
-    strncpy(dst, "1.FC KOELN", dst_buffer_length);
     substitute_token(token, subst, src, dst, dst_length);
-    ck_assert_str_eq(dst, exp_result);
+    ck_assert_str_eq(exp_result, dst);
 }
 END_TEST
 
 /*
  * create_ldap_search_filter()
  */
-START_TEST
-(t_create_ldap_search_filter_exit_rdn_null)
-{
-    size_t dst_length = 1024;
-    char dst[dst_length];
-    create_ldap_search_filter(NULL, "foo", dst, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_create_ldap_search_filter_exit_uid_null)
-{
-    size_t dst_length = 1024;
-    char dst[dst_length];
-    create_ldap_search_filter("cn", NULL, dst, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_create_ldap_search_filter_exit_dst_null)
-{
-    size_t dst_length = 1024;
-    create_ldap_search_filter("cn", "foo", NULL, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_create_ldap_search_filter_exit_rdn_uid_dst_null)
-{
-    size_t dst_length = 1024;
-    create_ldap_search_filter(NULL, NULL, NULL, dst_length);
-}
-END_TEST
-
-START_TEST
-(t_create_ldap_search_filter_exit_dst_length_0)
-{
-    char dst[1024];
-    create_ldap_search_filter("cn", "foo", dst, 0);
-}
-END_TEST
-
-START_TEST
-(t_create_ldap_search_filter_exit_rdn_uid_dst_null_dst_length_0)
-{
-    create_ldap_search_filter(NULL, NULL, NULL, 0);
-}
-END_TEST
-
 START_TEST
 (t_create_ldap_search_filter)
 {
@@ -347,65 +217,32 @@ START_TEST
 
     size_t dst_buffer_length = 1024;
     char dst[dst_buffer_length];
-    strncpy(dst, "1.FC KOELN", dst_buffer_length);
     create_ldap_search_filter(rdn, uid, dst, dst_length);
-    ck_assert_str_eq(dst, exp_result);
+    ck_assert_str_eq( exp_result, dst);
 }
 END_TEST
 
 /*
- * check_access_permission()
+ * get_rdn_from_dn()
  */
 START_TEST
-(t_check_access_permission_exit_group_dn_null)
+(t_get_rdn_from_dn)
 {
-    struct pox509_info pox509_info;
-    check_access_permission(NULL, "foo", &pox509_info);
-}
-END_TEST
+    char *dn = get_rdn_from_dn_lt[_i].dn;
+    int exp_res = get_rdn_from_dn_lt[_i].exp_res;
+    char *exp_result = get_rdn_from_dn_lt[_i].exp_result;
 
-START_TEST
-(t_check_access_permission_exit_identifier_null)
-{
-    struct pox509_info pox509_info;
-    check_access_permission("cn=foo,dc=bar", NULL, &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_check_access_permission_exit_pox509_info_null)
-{
-    check_access_permission("cn=foo,dc=bar", "blub", NULL);
-}
-END_TEST
-
-START_TEST
-(t_check_access_permission_exit_group_dn_identifier_pox509_info_null)
-{
-    check_access_permission(NULL, NULL, NULL);
-}
-END_TEST
-
-START_TEST
-(t_check_access_permission_exit_group_dn_length_0)
-{
-    struct pox509_info pox509_info;
-    check_access_permission("", "foo", &pox509_info);
-}
-END_TEST
-
-START_TEST
-(t_check_access_permission)
-{
-    char *group_dn = check_access_permission_lt[_i].group_dn;
-    char *identifier = check_access_permission_lt[_i].identifier;
-    char exp_result = check_access_permission_lt[_i].exp_result;
-
-    struct pox509_info pox509_info = {
-        .has_access = -1
-    };
-    check_access_permission(group_dn, identifier, &pox509_info);
-    ck_assert_int_eq(pox509_info.has_access, exp_result);
+    char *buffer = NULL;
+    int rc = get_rdn_from_dn(dn, &buffer);
+    ck_assert_int_eq(exp_res, rc);
+    switch (rc) {
+    case POX509_OK:
+        ck_assert_str_eq(exp_result, buffer);
+        break;
+    default:
+        ck_assert_ptr_eq(NULL, buffer);
+    }
+    free(buffer);
 }
 END_TEST
 
@@ -423,76 +260,32 @@ make_util_suite(void)
      */
 
     /* str_to_enum() */
-    tcase_add_exit_test(tc_main, t_str_to_enum_exit_key_null, EXIT_FAILURE);
     tcase_add_test(tc_main, t_str_to_enum);
 
-    /* init_data_transfer_object() */
-    tcase_add_exit_test(tc_main,
-        t_init_data_transfer_object_exit_pox509_info_null, EXIT_FAILURE);
+    /* file_readable() */
+    tcase_add_test(tc_main, t_file_readable_file_not_found);
+    int file_readable_lt_items = sizeof file_readable_lt /
+        sizeof file_readable_lt[0];
+    tcase_add_loop_test(tc_main, t_file_readable, 0, file_readable_lt_items);
 
-    /* is_readable_file() */
-    tcase_add_exit_test(tc_main, t_is_readable_file_file_null, EXIT_FAILURE);
-    int length_irf_lt = sizeof is_readable_file_lt /
-        sizeof is_readable_file_lt[0];
-    tcase_add_loop_test(tc_main, t_is_readable_file, 0, length_irf_lt);
-    tcase_add_test(tc_main, t_is_readable_file_not_existent_file);
-
-    /* is_valid_uid() */
-    tcase_add_exit_test(tc_main, t_is_valid_uid_exit_uid_null, EXIT_FAILURE);
-    int length_ivu_lt = sizeof is_valid_uid_lt / sizeof is_valid_uid_lt[0];
-    tcase_add_loop_test(tc_main, t_is_valid_uid, 0, length_ivu_lt);
+    /* check_uid() */
+    int check_uid_lt_items = sizeof check_uid_lt / sizeof check_uid_lt[0];
+    tcase_add_loop_test(tc_main, t_check_uid, 0, check_uid_lt_items);
 
     /* substitute_token() */
-    tcase_add_exit_test(tc_main, t_substitute_token_exit_subst_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_substitute_token_exit_src_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_substitute_token_exit_dst_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_substitute_token_exit_subst_src_dst_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_substitute_token_exit_dst_length_0,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_substitute_token_exit_subst_src_dst_null_dst_length_0, EXIT_FAILURE);
-    int length_st_lt = sizeof substitute_token_lt /
+    int substitute_token_lt_items = sizeof substitute_token_lt /
         sizeof substitute_token_lt[0];
-    tcase_add_loop_test(tc_main, t_substitute_token, 0, length_st_lt);
+    tcase_add_loop_test(tc_main, t_substitute_token, 0, substitute_token_lt_items);
 
     /* create_ldap_search_filter() */
-    tcase_add_exit_test(tc_main, t_create_ldap_search_filter_exit_rdn_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_create_ldap_search_filter_exit_uid_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_create_ldap_search_filter_exit_dst_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_create_ldap_search_filter_exit_rdn_uid_dst_null, EXIT_FAILURE);
-    tcase_add_exit_test(tc_main, t_create_ldap_search_filter_exit_dst_length_0,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_create_ldap_search_filter_exit_rdn_uid_dst_null_dst_length_0,
-        EXIT_FAILURE);
-    int length_clsf_lt = sizeof create_ldap_search_filter_lt /
+    int clsf_lt_items = sizeof create_ldap_search_filter_lt /
         sizeof create_ldap_search_filter_lt[0];
-    tcase_add_loop_test(tc_main, t_create_ldap_search_filter, 0,
-        length_clsf_lt);
+    tcase_add_loop_test(tc_main, t_create_ldap_search_filter, 0, clsf_lt_items);
 
-    /* check_access_permission() */
-    tcase_add_exit_test(tc_main, t_check_access_permission_exit_group_dn_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_identifier_null, EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_pox509_info_null, EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_group_dn_identifier_pox509_info_null,
-        EXIT_FAILURE);
-    tcase_add_exit_test(tc_main,
-        t_check_access_permission_exit_group_dn_length_0, EXIT_FAILURE);
-    int length_cap_lt = sizeof check_access_permission_lt /
-        sizeof check_access_permission_lt[0];
-    tcase_add_loop_test(tc_main, t_check_access_permission, 0, length_cap_lt);
+    /* get_rdn_from_dn() */
+    int get_rdn_from_dn_lt_items = sizeof get_rdn_from_dn_lt /
+        sizeof get_rdn_from_dn_lt[0];
+    tcase_add_loop_test(tc_main, t_get_rdn_from_dn, 0, get_rdn_from_dn_lt_items);
 
     return s;
 }

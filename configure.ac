@@ -1,6 +1,6 @@
 # Prelude.
 AC_PREREQ([2.69])
-AC_INIT([pam-openssh-x509], [0.1.0], [seroland86@gmail.com], [],
+AC_INIT([pam-openssh-x509], [0.2.0], [seroland86@gmail.com], [],
     [https://github.com/flix-/pam-openssh-x509])
 AC_LANG([C])
 AC_CONFIG_SRCDIR([src/pox509-util.h])
@@ -12,6 +12,9 @@ LT_INIT([disable-static dlopen pic-only])
 
 # Checks for programs.
 AC_PROG_CC
+
+# define preprocessor symbols
+AC_DEFINE(DEBUG, 0)
 
 # Checks for libraries.
 PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],

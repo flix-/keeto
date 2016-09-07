@@ -32,10 +32,12 @@
 #include <regex.h>
 #include <syslog.h>
 
+#include "pox509-config.h"
+#include "pox509-error.h"
 #include "pox509-log.h"
+#include "pox509-x509.h"
 
 #define GROUP_DN_BUFFER_SIZE 1024
-#define REGEX_PATTERN_UID "^[a-z][-a-z0-9]\\{0,31\\}$"
 
 struct pox509_str_to_enum_entry {
     char *key;
@@ -86,51 +88,29 @@ static struct pox509_str_to_enum_entry *str_to_enum_lt[] = {
 };
 
 int
-str_to_enum(enum pox509_sections sec, const char *key)
+str_to_enum(enum pox509_section section, const char *key)
 {
     if (key == NULL) {
         fatal("key == NULL");
     }
 
-    if (sec != SYSLOG && sec != LIBLDAP) {
-        fatal("invalid section (%d)", sec);
+    if (section != POX509_SYSLOG && section != POX509_LIBLDAP) {
+        fatal("invalid section (%d)", section);
     }
 
-    struct pox509_str_to_enum_entry *str_to_enum_entry = NULL;
-    for (str_to_enum_entry = str_to_enum_lt[sec];
+    struct pox509_str_to_enum_entry *str_to_enum_entry;
+    for (str_to_enum_entry = str_to_enum_lt[section];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
-        if(strcmp(str_to_enum_entry->key, key) != 0) {
+        if (strcmp(str_to_enum_entry->key, key) != 0) {
             continue;
         }
         return str_to_enum_entry->value;
     }
-    return -EINVAL;
-}
-
-void
-init_data_transfer_object(struct pox509_info *pox509_info)
-{
-    if (pox509_info == NULL) {
-        fatal("pox509_info == NULL");
-    }
-
-    memset(pox509_info, 0, sizeof *pox509_info);
-    pox509_info->uid = NULL;
-    pox509_info->authorized_keys_file = NULL;
-    pox509_info->ssh_keytype = NULL;
-    pox509_info->ssh_key = NULL;
-    pox509_info->has_cert = 0x56;
-    pox509_info->has_valid_cert = 0x56;
-    pox509_info->serial = NULL;
-    pox509_info->issuer = NULL;
-    pox509_info->subject = NULL;
-    pox509_info->ldap_online = 0x56;
-    pox509_info->has_access = 0x56;
-    pox509_info->syslog_facility = NULL;
+    return POX509_NO_SUCH_VALUE;
 }
 
 bool
-is_readable_file(const char *file)
+file_readable(const char *file)
 {
     if (file == NULL) {
         fatal("file == NULL");
@@ -139,46 +119,46 @@ is_readable_file(const char *file)
     struct stat stat_buffer;
     int rc = stat(file, &stat_buffer);
     if (rc != 0) {
-        log_fail("stat(): '%s' (%d)", strerror(errno), errno);
-        goto ret_false;
+        log_error("failed to get file status: file '%s' (%s)", file,
+            strerror(errno));
+        return false;
     }
     /* check if we have a file */
     if (!S_ISREG(stat_buffer.st_mode)) {
-        log_fail("S_ISREG");
-        goto ret_false;
+        log_error("'%s' is not a regular file", file);
+        return false;
     }
     /* check if file is readable */
     rc = access(file, R_OK);
     if (rc != 0) {
-        log_fail("access(): '%s' (%d)", strerror(errno), errno);
-        goto ret_false;
+        log_error("'%s' is not readable", file);
+        return false;
     }
     return true;
-
-ret_false:
-    return false;
 }
 
-bool
-is_valid_uid(const char *uid)
+int
+check_uid(char *regex, const char *uid, bool *uid_valid)
 {
-    if (uid == NULL) {
-        fatal("uid == NULL");
+    if (regex == NULL || uid == NULL || uid_valid == NULL) {
+        fatal("regex, uid or uid_valid == NULL");
     }
 
     regex_t regex_uid;
-    int rc = regcomp(&regex_uid, REGEX_PATTERN_UID, REG_NOSUB);
+    int rc = regcomp(&regex_uid, regex, REG_EXTENDED | REG_NOSUB);
     if (rc != 0) {
-        fatal("regcomp(): could not compile regex");
+        log_error("failed to compile regex (%d)", rc);
+        return POX509_REGEX_ERR;
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
 
     if (rc == 0) {
-        return true;
+        *uid_valid = true;
     } else {
-        return false;
+        *uid_valid = false;
     }
+    return POX509_OK;
 }
 
 void
@@ -196,8 +176,7 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
     int cdt = 0;
     int j = 0;
     size_t strlen_subst = strlen(subst);
-    int i;
-    for (i = 0; (src[i] != '\0') && (j < dst_length - 1); i++) {
+    for (int i = 0; (src[i] != '\0') && (j < dst_length - 1); i++) {
         if (cdt) {
             cdt = 0;
             if (src[i] == token) {
@@ -219,59 +198,347 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
     dst[j] = '\0';
 }
 
-void
-create_ldap_search_filter(const char *rdn, const char *uid, char *dst,
+int
+create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length)
 {
-    if (rdn == NULL || uid == NULL || dst == NULL) {
-        fatal("rdn, uid or dst == NULL");
+    if (attr == NULL || value == NULL || dst == NULL) {
+        fatal("attr, value or dst == NULL");
     }
 
     if (dst_length == 0) {
         fatal("dst_length must be > 0");
     }
 
-    snprintf(dst, dst_length, "%s=%s", rdn, uid);
+    int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
+    if (rc < 0) {
+        log_error("failed to write to buffer");
+        return POX509_SYSTEM_ERR;
+    }
+    return POX509_OK;
+}
+
+int
+get_rdn_from_dn(const char *dn, char **buffer)
+{
+    if (dn == NULL || buffer == NULL) {
+        fatal("dn or buffer == NULL");
+    }
+
+    size_t dn_length = strlen(dn);
+    if (dn_length == 0) {
+        fatal("dn must be > 0");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+    LDAPDN ldap_dn = NULL;
+    int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
+    if (rc != LDAP_SUCCESS) {
+        log_error("failed to parse dn '%s' (%s)", dn, ldap_err2string(rc));
+        return POX509_LDAP_ERR;
+    }
+
+    LDAPRDN ldap_rdn = ldap_dn[0];
+    rc = ldap_rdn2str(ldap_rdn, buffer, LDAP_DN_FORMAT_UFN);
+    if (rc != LDAP_SUCCESS) {
+        log_error("failed to obtain rdn from dn '%s' (%s)", dn,
+            ldap_err2string(rc));
+        res = POX509_LDAP_ERR;
+        goto cleanup;
+    }
+    res = POX509_OK;
+
+cleanup:
+    ldap_dnfree(ldap_dn);
+    return res;
+}
+
+struct timeval
+get_ldap_search_timeout(cfg_t *cfg)
+{
+    if (cfg == NULL) {
+        fatal("cfg == NULL");
+    }
+
+    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
+    struct timeval search_timeout = {
+        .tv_sec = ldap_search_timeout,
+        .tv_usec = 0
+    };
+    return search_timeout;
+}
+
+/* constructors */
+struct pox509_info *
+new_info()
+{
+    struct pox509_info *info = malloc(sizeof *info);
+    if (info == NULL) {
+        return NULL;
+    }
+    memset(info, 0, sizeof *info);
+    info->ldap_online = POX509_UNDEF;
+    return info;
+}
+
+struct pox509_ssh_server *
+new_ssh_server()
+{
+    struct pox509_ssh_server *ssh_server = malloc(sizeof *ssh_server);
+    if (ssh_server == NULL) {
+        return NULL;
+    }
+    memset(ssh_server, 0, sizeof *ssh_server);
+    return ssh_server;
+}
+
+struct pox509_access_profiles *
+new_access_profiles()
+{
+    struct pox509_access_profiles *access_profiles =
+        malloc(sizeof *access_profiles);
+    if (access_profiles == NULL) {
+        return NULL;
+    }
+    TAILQ_INIT(access_profiles);
+    return access_profiles;
+}
+
+struct pox509_access_profile *
+new_access_profile()
+{
+    struct pox509_access_profile *access_profile =
+        malloc(sizeof *access_profile);
+    if (access_profile == NULL) {
+        return NULL;
+    }
+    memset(access_profile, 0, sizeof *access_profile);
+    access_profile->type = POX509_UNDEF;
+    return access_profile;
+}
+
+struct pox509_key_providers *
+new_key_providers()
+{
+    struct pox509_key_providers *key_providers = malloc(sizeof *key_providers);
+    if (key_providers == NULL) {
+        return NULL;
+    }
+    TAILQ_INIT(key_providers);
+    return key_providers;
+}
+
+struct pox509_key_provider *
+new_key_provider()
+{
+    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
+    if (key_provider == NULL) {
+        return NULL;
+    }
+    memset(key_provider, 0, sizeof *key_provider);
+    return key_provider;
+}
+
+struct pox509_keys *
+new_keys()
+{
+    struct pox509_keys *keys = malloc(sizeof *keys);
+    if (keys == NULL) {
+        return NULL;
+    }
+    TAILQ_INIT(keys);
+    return keys;
+}
+
+struct pox509_key *
+new_key()
+{
+    struct pox509_key *key = malloc(sizeof *key);
+    if (key == NULL) {
+        return NULL;
+    }
+    memset(key, 0, sizeof *key);
+    return key;
+}
+
+struct pox509_keystore_options *
+new_keystore_options() {
+
+    struct pox509_keystore_options *keystore_options =
+        malloc(sizeof *keystore_options);
+    if (keystore_options == NULL) {
+        return NULL;
+    }
+    memset(keystore_options, 0, sizeof *keystore_options);
+    return keystore_options;
+}
+
+struct pox509_keystore_records *
+new_keystore_records()
+{
+    struct pox509_keystore_records *keystore_records =
+        malloc(sizeof *keystore_records);
+    if (keystore_records == NULL) {
+        return NULL;
+    }
+    SIMPLEQ_INIT(keystore_records);
+    return keystore_records;
+}
+
+struct pox509_keystore_record *
+new_keystore_record()
+{
+    struct pox509_keystore_record *keystore_record =
+        malloc(sizeof *keystore_record);
+    if (keystore_record == NULL) {
+        return NULL;
+    }
+    memset(keystore_record, 0, sizeof *keystore_record);
+    return keystore_record;
+}
+/* destructors */
+void
+free_info(struct pox509_info *info)
+{
+    if (info == NULL) {
+        return;
+    }
+    free_config(info->cfg);
+    free(info->uid);
+    free(info->ssh_keystore_location);
+    free_ssh_server(info->ssh_server);
+    free_access_profiles(info->access_profiles);
+    free_keystore_records(info->keystore_records);
+    free(info);
 }
 
 void
-check_access_permission(const char *group_dn, const char *identifier,
-    struct pox509_info *pox509_info)
+free_ssh_server(struct pox509_ssh_server *ssh_server)
 {
-    if (group_dn == NULL || identifier == NULL || pox509_info == NULL) {
-        fatal("group_dn, identifier or pox509_info == NULL");
+    if (ssh_server == NULL) {
+        return;
     }
+    free(ssh_server->dn);
+    free(ssh_server->uid);
+    free(ssh_server);
+}
 
-    size_t group_dn_length = strlen(group_dn);
-    if (group_dn_length == 0) {
-        fatal("group_dn must be > 0");
+void
+free_access_profiles(struct pox509_access_profiles *access_profiles)
+{
+    if (access_profiles == NULL) {
+        return;
     }
-
-    LDAPDN dn = NULL;
-    int rc = ldap_str2dn(group_dn, &dn, LDAP_DN_FORMAT_LDAPV3);
-    if (rc != LDAP_SUCCESS) {
-        fatal("ldap_str2dn(): '%s' (%d)\n", ldap_err2string(rc), rc);
+    struct pox509_access_profile *access_profile = NULL;
+    while ((access_profile = TAILQ_FIRST(access_profiles))) {
+        TAILQ_REMOVE(access_profiles, access_profile, next);
+        free_access_profile(access_profile);
     }
+    free(access_profiles);
+}
 
-    if (dn == NULL) {
-        fatal("dn == NULL");
+void
+free_access_profile(struct pox509_access_profile *access_profile)
+{
+    if (access_profile == NULL) {
+        return;
     }
+    free(access_profile->dn);
+    free(access_profile->uid);
+    free_key_providers(access_profile->key_providers);
+    free_keystore_options(access_profile->keystore_options);
+    free(access_profile);
+}
 
-    LDAPRDN rdn = dn[0];
-    char *rdn_value = NULL;
-    rc = ldap_rdn2str(rdn, &rdn_value, LDAP_DN_FORMAT_UFN);
-    if (rc != LDAP_SUCCESS) {
-        fatal("ldap_rdn2str(): '%s' (%d)\n", ldap_err2string(rc), rc);
+void
+free_key_providers(struct pox509_key_providers *key_providers)
+{
+    if (key_providers == NULL) {
+        return;
     }
-
-    rc = strcmp(rdn_value, identifier);
-    if (rc == 0) {
-        pox509_info->has_access = 1;
-    } else {
-        pox509_info->has_access = 0;
+    struct pox509_key_provider *key_provider = NULL;
+    while ((key_provider = TAILQ_FIRST(key_providers))) {
+        TAILQ_REMOVE(key_providers, key_provider, next);
+        free_key_provider(key_provider);
     }
+    free(key_providers);
+}
 
-    ldap_memfree(rdn_value);
-    ldap_dnfree(dn);
+void
+free_key_provider(struct pox509_key_provider *key_provider)
+{
+    if (key_provider == NULL) {
+        return;
+    }
+    free(key_provider->dn);
+    free(key_provider->uid);
+    free_keys(key_provider->keys);
+    free(key_provider);
+}
+
+void
+free_keys(struct pox509_keys *keys)
+{
+    if (keys == NULL) {
+        return;
+    }
+    struct pox509_key *key = NULL;
+    while ((key = TAILQ_FIRST(keys))) {
+        TAILQ_REMOVE(keys, key, next);
+        free_key(key);
+    }
+    free(keys);
+}
+
+void
+free_key(struct pox509_key *key)
+{
+    if (key == NULL) {
+        return;
+    }
+    free_x509(key->x509);
+    free(key->ssh_keytype);
+    free(key->ssh_key);
+    free(key);
+}
+
+void
+free_keystore_options(struct pox509_keystore_options *keystore_options)
+{
+    if (keystore_options == NULL) {
+        return;
+    }
+    free(keystore_options->dn);
+    free(keystore_options->uid);
+    free(keystore_options->command_option);
+    free(keystore_options->from_option);
+    free(keystore_options);
+}
+
+void
+free_keystore_records(struct pox509_keystore_records *keystore_records)
+{
+    if (keystore_records == NULL) {
+        return;
+    }
+    struct pox509_keystore_record *keystore_record = NULL;
+    while ((keystore_record = SIMPLEQ_FIRST(keystore_records))) {
+        SIMPLEQ_REMOVE_HEAD(keystore_records, next);
+        free_keystore_record(keystore_record);
+    }
+    free(keystore_records);
+}
+
+void
+free_keystore_record(struct pox509_keystore_record *keystore_record)
+{
+    if (keystore_record == NULL) {
+        return;
+    }
+    /*
+     * do not free the members of the struct as they are all pointing
+     * to memory that is managed and freed in other structs.
+     */
+    free(keystore_record);
 }
 
