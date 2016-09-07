@@ -37,7 +37,7 @@ static char *config_neg_lt[] = {
 };
 
 /*
- * parsing test cases
+ * parse_config()
  */
 START_TEST
 (t_parse_config_file_not_found)
@@ -76,18 +76,20 @@ Suite *
 make_config_suite(void)
 {
     Suite *s = suite_create("config");
-    TCase *tc_parsing = tcase_create("parsing");
+    TCase *tc_main = tcase_create("main");
 
     /* add test cases to suite */
-    suite_add_tcase(s, tc_parsing);
+    suite_add_tcase(s, tc_main);
 
     /*
-     * parse_config()
+     * main test cases
      */
-    tcase_add_test(tc_parsing, t_parse_config_file_not_found);
-    tcase_add_test(tc_parsing, t_parse_config_pos);
+
+    /* parse_config() */
+    tcase_add_test(tc_main, t_parse_config_file_not_found);
+    tcase_add_test(tc_main, t_parse_config_pos);
     int config_neg_lt_items = sizeof config_neg_lt / sizeof config_neg_lt[0];
-    tcase_add_loop_test(tc_parsing, t_parse_config_neg, 0, config_neg_lt_items);
+    tcase_add_loop_test(tc_main, t_parse_config_neg, 0, config_neg_lt_items);
 
     return s;
 }

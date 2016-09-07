@@ -15,15 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Utility functions.
- *
- * @file pox509-util.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2016-03-26
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_UTIL_H
 #define POX509_UTIL_H
 
@@ -124,11 +115,6 @@ int create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length);
 int get_rdn_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
-int post_process_access_profiles(struct pox509_info *info);
-int write_keystore(char *keystore, struct pox509_keystore_records
-    *keystore_records);
-void remove_keystore(char *keystore);
-
 /* constructors */
 struct pox509_info *new_info();
 struct pox509_ssh_server *new_ssh_server();

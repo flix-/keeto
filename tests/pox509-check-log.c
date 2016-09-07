@@ -22,6 +22,9 @@
 #include "../src/pox509-error.h"
 #include "../src/pox509-log.h"
 
+/*
+ *set_syslog_facility
+ */
 START_TEST
 (t_set_syslog_facility)
 {
@@ -42,8 +45,10 @@ make_log_suite(void)
     suite_add_tcase(s, tc_main);
 
     /*
-     * set_syslog_facility()
+     * main test cases
      */
+
+     /* set_syslog_facility() */
     tcase_add_test(tc_main, t_set_syslog_facility);
 
     return s;
