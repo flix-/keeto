@@ -249,6 +249,7 @@ parse_config(const char *cfg_file)
             CFGF_NONE),
         CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
+        CFG_STR("ssh_server_uid", "pox509-test-server", CFGF_NONE),
 
         CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
@@ -258,7 +259,6 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_key_provider_cert_attr", "userCertificate;binary",
             CFGF_NONE),
 
-        CFG_STR("ssh_server_uid", "pox509-test-server", CFGF_NONE),
         CFG_STR("ssh_keystore_location",
             "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
         CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
