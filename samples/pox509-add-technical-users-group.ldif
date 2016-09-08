@@ -1,0 +1,24 @@
+dn: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: db2postgresmysql
+member: uid=db2admin,ou=technical-users,dc=ssh,dc=hq
+member: uid=postgres,ou=technical-users,dc=ssh,dc=hq
+member: uid=mysql,ou=technical-users,dc=ssh,dc=hq
+description: db2postgresmysql group
+
+dn: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: db2postgres
+member: uid=db2admin,ou=technical-users,dc=ssh,dc=hq
+member: uid=postgres,ou=technical-users,dc=ssh,dc=hq
+description: db2postgres group
+
+dn: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: db2
+member: uid=db2admin,ou=technical-users,dc=ssh,dc=hq
+description: db2 only group
+

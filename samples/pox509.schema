@@ -8,12 +8,14 @@ attributetype ( 1.0.86.86.86.86.2.1.1
 attributetype ( 1.0.86.86.86.86.2.1.2
 	NAME 'pox509KeyProvider'
 	DESC 'entry that provides key material'
-    SUP distinguishedName )
+    SUP distinguishedName
+    SINGLE-VALUE )
 
 attributetype ( 1.0.86.86.86.86.2.1.3
 	NAME 'pox509TargetKeystore'
 	DESC 'entry that receives keys'
-    SUP distinguishedName )
+    SUP distinguishedName
+    SINGLE-VALUE )
 
 attributetype ( 1.0.86.86.86.86.2.1.4
 	NAME 'pox509KeystoreOptions'

@@ -1,0 +1,11 @@
+dn: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: groupOfNames
+cn: all
+member: cn=foo,ou=people,dc=ssh,dc=hq
+member: cn=bar,ou=people,dc=ssh,dc=hq
+member: cn=tux,ou=people,dc=ssh,dc=hq
+member: cn=tux_legacy,ou=people,dc=ssh,dc=hq
+member: cn=pox509-test-user,ou=people,dc=ssh,dc=hq
+description: all group
+

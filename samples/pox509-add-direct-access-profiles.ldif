@@ -3,12 +3,28 @@ objectClass: top
 objectClass: pox509AccessProfile
 objectClass: pox509DirectAccessProfile
 cn: direct-access-1
-pox509KeyProvider: cn=foo,ou=people,dc=ssh,dc=hq
-pox509KeyProvider: cn=bar,ou=people,dc=ssh,dc=hq
-pox509KeyProvider: cn=tux,ou=people,dc=ssh,dc=hq
-pox509KeyProvider: cn=tux_legacy,ou=people,dc=ssh,dc=hq
-pox509KeyProvider: cn=pox509-test-user,ou=people,dc=ssh,dc=hq
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
 pox509KeystoreOptions: cn=command-from,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
 pox509Enabled: TRUE
 description: direct-access-1 profile
+
+dn: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509AccessProfile
+objectClass: pox509DirectAccessProfile
+cn: direct-access-2
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+pox509Enabled: FALSE
+description: direct-access-2 profile
+
+dn: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+objectClass: top
+objectClass: pox509AccessProfile
+objectClass: pox509DirectAccessProfile
+cn: direct-access-3
+pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
+pox509KeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
+pox509Enabled: TRUE
+description: direct-access-3 profile
 
