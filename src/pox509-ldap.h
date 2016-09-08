@@ -25,6 +25,9 @@
 
 #define LDAP_BOOL_TRUE "TRUE"
 
+#define POX509_SSH_SERVER_UID_ATTR "uid"
+#define POX509_SSH_SERVER_AP_ATTR "pox509AccessProfile"
+
 #define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
 #define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
 

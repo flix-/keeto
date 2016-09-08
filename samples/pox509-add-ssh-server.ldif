@@ -1,12 +1,13 @@
 dn: cn=pox509-test-server,ou=server,ou=ssh,dc=ssh,dc=hq
 objectClass: top
-objectClass: groupOfNames
+objectClass: pox509SSHServer
 cn: pox509-test-server
+uid: pox509-test-server
 description: pox509-test-server
-member: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
-member: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+pox509AccessProfile: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
 

@@ -992,11 +992,9 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
 
     int res = POX509_UNKNOWN_ERR;
     /* get access profile dns */
-    char *ssh_server_access_profile_attr = cfg_getstr(info->cfg,
-        "ldap_ssh_server_access_profile_attr");
     char **access_profile_dns = NULL;
     int rc = get_attr_values_as_string(ldap_handle, ssh_server_entry,
-        ssh_server_access_profile_attr, &access_profile_dns);
+        POX509_SSH_SERVER_AP_ATTR, &access_profile_dns);
     switch (rc) {
     case POX509_OK:
         break;
@@ -1004,7 +1002,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
         return rc;
     default:
         log_error("failed to obtain access profile dns: attribute '%s' (%s)",
-            ssh_server_access_profile_attr, pox509_strerror(rc));
+            POX509_SSH_SERVER_AP_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
 
@@ -1080,17 +1078,14 @@ add_ssh_server_entry(LDAP *ldap_handle, struct pox509_info *info,
         cfg_getint(info->cfg, "ldap_ssh_server_search_scope");
     /* construct search filter */
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
-    char *ssh_server_uid_attr = cfg_getstr(info->cfg, "ldap_ssh_server_uid_attr");
     char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
-    int rc = create_ldap_search_filter(ssh_server_uid_attr, ssh_server_uid,
+    int rc = create_ldap_search_filter(POX509_SSH_SERVER_UID_ATTR, ssh_server_uid,
         filter, sizeof filter);
     if (rc != POX509_OK) {
         log_error("failed to create ldap search filter (%s)", pox509_strerror(rc));
         return POX509_SYSTEM_ERR;
     }
-    char *ssh_server_access_profile_attr = cfg_getstr(info->cfg,
-        "ldap_ssh_server_access_profile_attr");
-    char *attrs[] = { ssh_server_access_profile_attr, NULL };
+    char *attrs[] = { POX509_SSH_SERVER_AP_ATTR, NULL };
     struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
 
     /* query ldap for ssh server entry */

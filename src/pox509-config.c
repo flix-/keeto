@@ -249,8 +249,6 @@ parse_config(const char *cfg_file)
             CFGF_NONE),
         CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
-        CFG_STR("ldap_ssh_server_uid_attr", "cn", CFGF_NONE),
-        CFG_STR("ldap_ssh_server_access_profile_attr", "member", CFGF_NONE),
 
         CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
