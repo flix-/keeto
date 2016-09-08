@@ -223,50 +223,19 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
     }
 
     int res = POX509_UNKNOWN_ERR;
-    /* get target keystore group dn */
-    char **target_keystore_group_dn = NULL;
+    /* get target keystore dns */
+    char **target_keystore_dns = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
+        POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_dns);
     switch (rc) {
     case POX509_OK:
         break;
     case POX509_NO_MEMORY:
         return rc;
     default:
-        log_error("failed to obtain target keystore group dn: attribute '%s' (%s)",
+        log_error("failed to obtain target keystore dns: attribute '%s' (%s)",
             POX509_AOBP_TARGET_KEYSTORE_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
-    }
-    log_info("processing target keystore group '%s'",
-        target_keystore_group_dn[0]);
-
-    /* get group member entry */
-    char *target_keystore_group_member_attr = cfg_getstr(info->cfg,
-        "ldap_target_keystore_group_member_attr");
-    LDAPMessage *group_member_entry = NULL;
-    rc = get_group_member_entry(ldap_handle, info, target_keystore_group_dn[0],
-        target_keystore_group_member_attr, &group_member_entry);
-    if (rc != POX509_OK) {
-        log_error("failed to obtain target keystore group member entry (%s)",
-            pox509_strerror(rc));
-        res = POX509_LDAP_NO_SUCH_ENTRY;
-        goto cleanup_a;
-    }
-    /* get target keystore dns */
-    char **target_keystore_dns = NULL;
-    rc = get_attr_values_as_string(ldap_handle, group_member_entry,
-        target_keystore_group_member_attr, &target_keystore_dns);
-    switch (rc) {
-    case POX509_OK:
-        break;
-    case POX509_NO_MEMORY:
-        res = rc;
-        goto cleanup_b;
-    default:
-        log_error("failed to obtain target keystore dns: attribute '%s' (%s)",
-            target_keystore_group_member_attr, pox509_strerror(rc));
-        res = POX509_LDAP_SCHEMA_ERR;
-        goto cleanup_b;
     }
 
     /* check target keystores */
@@ -299,7 +268,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         case POX509_NO_MEMORY:
             res = rc;
             ldap_msgfree(target_keystore_entry);
-            goto cleanup_c;
+            goto cleanup;
         default:
             log_error("failed to obtain target keystore uid: attribute '%s' (%s)",
                 target_keystore_uid_attr, pox509_strerror(rc));
@@ -317,12 +286,8 @@ cleanup_inner:
     *ret = relevant;
     res = POX509_OK;
 
-cleanup_c:
+cleanup:
     free_attr_values_as_string(target_keystore_dns);
-cleanup_b:
-    ldap_msgfree(group_member_entry);
-cleanup_a:
-    free_attr_values_as_string(target_keystore_group_dn);
     return res;
 }
 
@@ -670,22 +635,20 @@ cleanup_a:
 
 static int
 add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
-    LDAPMessage *group_member_entry,
+    LDAPMessage *access_profile_entry,
     struct pox509_access_profile *access_profile)
 {
-    if (ldap_handle == NULL || info == NULL || group_member_entry == NULL ||
+    if (ldap_handle == NULL || info == NULL || access_profile_entry == NULL ||
         access_profile == NULL) {
 
-        fatal("ldap_handle, info, group_member_entry or access_profile == NULL");
+        fatal("ldap_handle, info, access_profile_entry or access_profile == NULL");
     }
 
     int res = POX509_UNKNOWN_ERR;
     /* get key provider dns */
-    char *key_provider_group_member_attr = cfg_getstr(info->cfg,
-        "ldap_key_provider_group_member_attr");
     char **key_provider_dns = NULL;
-    int rc = get_attr_values_as_string(ldap_handle, group_member_entry,
-        key_provider_group_member_attr, &key_provider_dns);
+    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
+        POX509_AP_KEY_PROVIDER_ATTR, &key_provider_dns);
     switch (rc) {
     case POX509_OK:
         break;
@@ -693,7 +656,7 @@ add_key_providers(LDAP *ldap_handle, struct pox509_info *info,
         return rc;
     default:
         log_error("failed to obtain key provider dns: attribute '%s' (%s)",
-            key_provider_group_member_attr, pox509_strerror(rc));
+            POX509_AP_KEY_PROVIDER_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
 
@@ -773,36 +736,10 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
 
     int res = POX509_UNKNOWN_ERR;
     /* add key providers */
-    char **key_provider_group_dn = NULL;
-    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
-    switch (rc) {
-    case POX509_OK:
-        break;
-    case POX509_NO_MEMORY:
+    int rc = add_key_providers(ldap_handle, info, access_profile_entry,
+        access_profile);
+    if (rc != POX509_OK) {
         return rc;
-    default:
-        log_error("failed to obtain key provider group dn: attribute '%s' (%s)",
-            POX509_AP_KEY_PROVIDER_ATTR, pox509_strerror(rc));
-        return POX509_LDAP_SCHEMA_ERR;
-    }
-    log_info("processing key provider group '%s'", key_provider_group_dn[0]);
-
-    char *key_provider_group_member_attr = cfg_getstr(info->cfg,
-        "ldap_key_provider_group_member_attr");
-    LDAPMessage *group_member_entry = NULL;
-    rc = get_group_member_entry(ldap_handle, info, key_provider_group_dn[0],
-        key_provider_group_member_attr, &group_member_entry);
-    if (rc != POX509_OK) {
-        log_error("failed to obtain key provider group member entry (%s)",
-            pox509_strerror(rc));
-        res = POX509_LDAP_NO_SUCH_ENTRY;
-        goto cleanup_a;
-    }
-    rc = add_key_providers(ldap_handle, info, group_member_entry, access_profile);
-    if (rc != POX509_OK) {
-        res = rc;
-        goto cleanup_b;
     }
 
     /* add keystore options (optional) */
@@ -827,7 +764,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
                 keystore_options_dn[0], ldap_err2string(rc));
             res = POX509_LDAP_NO_SUCH_ENTRY;
             ldap_msgfree(keystore_options_entry);
-            goto cleanup_c;
+            goto cleanup;
         }
         rc = add_keystore_options(ldap_handle, keystore_options_entry,
             access_profile);
@@ -838,7 +775,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         case POX509_NO_MEMORY:
             res = rc;
             ldap_msgfree(keystore_options_entry);
-            goto cleanup_c;
+            goto cleanup;
         case POX509_NO_KEYSTORE_OPTION:
             log_info("keystore options entry has no option set - remove "
                 "keystore options from access profile?!");
@@ -847,31 +784,24 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
             log_error("failed to add keystore options (%s)", pox509_strerror(rc));
             res = rc;
             ldap_msgfree(keystore_options_entry);
-            goto cleanup_c;
+            goto cleanup;
         }
         ldap_msgfree(keystore_options_entry);
         break;
     case POX509_NO_MEMORY:
-        res = rc;
-        goto cleanup_b;
+        return rc;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore options (%s)", pox509_strerror(rc));
-        res = POX509_OK;
-        goto cleanup_b;
+        return POX509_OK;
     default:
         log_error("failed to obtain keystore options dn: attribute '%s' (%s)",
             POX509_AP_KEYSTORE_OPTIONS_ATTR, pox509_strerror(rc));
-        res = rc;
-        goto cleanup_b;
+        return rc;
     }
     res = POX509_OK;
 
-cleanup_c:
+cleanup:
     free_attr_values_as_string(keystore_options_dn);
-cleanup_b:
-    ldap_msgfree(group_member_entry);
-cleanup_a:
-    free_attr_values_as_string(key_provider_group_dn);
     return res;
 }
 

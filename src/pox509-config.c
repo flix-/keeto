@@ -252,10 +252,7 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_ssh_server_uid_attr", "cn", CFGF_NONE),
         CFG_STR("ldap_ssh_server_access_profile_attr", "member", CFGF_NONE),
 
-        CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
-
-        CFG_STR("ldap_key_provider_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_key_provider_uid_attr", "uid", CFGF_NONE),
         CFG_STR("ldap_key_provider_cert_attr", "userCertificate;binary",
             CFGF_NONE),
