@@ -1,7 +1,7 @@
 # Prelude.
 AC_PREREQ([2.69])
-AC_INIT([pam-openssh-x509], [0.2.0], [seroland86@gmail.com], [],
-    [https://github.com/flix-/pam-openssh-x509])
+AC_INIT([keeto], [0.2.0-beta], [seroland86@gmail.com], [],
+    [https://github.com/flix-/keeto])
 AC_LANG([C])
 AC_CONFIG_SRCDIR([src/pox509-util.h])
 AC_CONFIG_AUX_DIR([build-aux])
