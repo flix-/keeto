@@ -4,7 +4,7 @@ sudo: true
 
 notifications:
   email: false
-  irc: "chat.freenode.net#pam-openssh-x509"
+  irc: "chat.freenode.net#keeto"
 
 before_install:
   - sudo add-apt-repository "deb http://de.archive.ubuntu.com/ubuntu trusty main
