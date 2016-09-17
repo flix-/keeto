@@ -13,7 +13,7 @@
 ### BEGIN CONFIG ###
 
 # path to root directory of testing env
-ROOT='/home/sebastian/development/certs'
+ROOT='/home/sebastian/documents/programming/ca'
 # path to openssl
 OPENSSL='/usr/bin/openssl'
 # postfix for subject dn

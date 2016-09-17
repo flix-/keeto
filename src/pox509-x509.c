@@ -269,6 +269,12 @@ validate_x509(X509 *x509, const char *cacerts_dir, bool *valid)
         res = POX509_OPENSSL_ERR;
         goto cleanup_c;
     }
+    rc = X509_STORE_CTX_set_purpose(ctx_store, X509_PURPOSE_SSL_CLIENT);
+    if (rc == 0) {
+        log_error("failed to set purpose for ctx store");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_c;
+    }
     rc = X509_verify_cert(ctx_store);
     if (rc <= 0) {
         *valid = false;
@@ -278,7 +284,6 @@ validate_x509(X509 *x509, const char *cacerts_dir, bool *valid)
     } else {
         *valid = true;
     }
-
     res = POX509_OK;
 
 cleanup_c:
