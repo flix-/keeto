@@ -159,6 +159,7 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
         }
         fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
             keystore_record->ssh_key, keystore_record->uid);
+        fprintf(tmp_keystore_file, "\n");
     }
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {

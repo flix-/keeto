@@ -39,10 +39,13 @@ static struct pox509_validate_x509_entry validate_x509_lt[] = {
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku-non-critical.pem", false },
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/valid1.pem", true },
     { X509CERTSDIR "/valid2.pem", true },
-    { X509CERTSDIR "/valid3.pem", true }
+    { X509CERTSDIR "/valid3.pem", true },
+    { X509CERTSDIR "/valid4.pem", true }
 };
 
 /*
