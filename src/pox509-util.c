@@ -396,6 +396,7 @@ new_keystore_record()
     memset(keystore_record, 0, sizeof *keystore_record);
     return keystore_record;
 }
+
 /* destructors */
 void
 free_info(struct pox509_info *info)
