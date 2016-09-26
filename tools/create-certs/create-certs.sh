@@ -5,8 +5,12 @@
 # create multi-level ca and end user
 # certificates...
 #
+# never use this script to create a
+# serious ca. its for testing purposes
+# only.
+#
 # author: sebastian roland
-# date: 16.06.2015
+# date: 25.09.2016
 #
 ########################################
 
@@ -199,8 +203,8 @@ create new? [y/n]: " overwrite_root
             echo "creating directory structure and files"
             mkdir -p ${ROOT}/ca/csr ${ROOT}/ca/res ${ROOT}/etc ${ROOT}/tmp
             touch ${ROOT}/ca/res/ca-database
-            touch ${ROOT}/ca/res/ca-serial
             echo "01" > ${ROOT}/ca/res/ca-serial
+            echo "01" > ${ROOT}/ca/res/crl-number
 
             # copy openssl config
             echo "copying openssl config"

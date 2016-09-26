@@ -38,7 +38,7 @@
 #define SSH_KEYSTORE_LOCATION_BUFFER_SIZE 1024
 
 static void
-cleanup_info(pam_handle_t *pamh, void *data, int error_status)
+cleanup(pam_handle_t *pamh, void *data, int error_status)
 {
     /*
      * this function should normally be called through pam_end() for
@@ -68,8 +68,9 @@ cleanup_info(pam_handle_t *pamh, void *data, int error_status)
     }
 
     struct pox509_info *info = data;
-    log_info("freeing info");
+    log_info("cleaning up");
     free_info(info);
+    cleanup_openssl();
     closelog();
 }
 
@@ -215,16 +216,15 @@ add_keystore_record(struct pox509_key_provider *key_provider,
 }
 
 static int
-post_process_key(struct pox509_info *info, struct pox509_key *key)
+post_process_key(struct pox509_key *key)
 {
-    if (info == NULL || key == NULL) {
-        fatal("info or key == NULL");
+    if (key == NULL) {
+        fatal("key == NULL");
     }
 
     /* check certificate */
     bool valid = false;
-    char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
-    int rc = validate_x509(key->x509, cacerts_dir, &valid);
+    int rc = validate_x509(key->x509, &valid);
     if (rc != POX509_OK) {
         log_error("failed to validate certificate (%s)", pox509_strerror(rc));
         return POX509_CERT_VALIDATION_ERR;
@@ -248,13 +248,12 @@ post_process_key(struct pox509_info *info, struct pox509_key *key)
 }
 
 static int
-post_process_key_provider(struct pox509_info *info,
-    struct pox509_key_provider *key_provider,
+post_process_key_provider(struct pox509_key_provider *key_provider,
     struct pox509_keystore_options *keystore_options,
     struct pox509_keystore_records *keystore_records)
 {
-    if (info == NULL || key_provider == NULL || keystore_records == NULL) {
-        fatal("info, key_provider or keystore_records == NULL");
+    if (key_provider == NULL || keystore_records == NULL) {
+        fatal("key_provider or keystore_records == NULL");
     }
 
     if (key_provider->keys == NULL) {
@@ -265,7 +264,7 @@ post_process_key_provider(struct pox509_info *info,
     struct pox509_key *key_tmp = NULL;
     TAILQ_FOREACH_SAFE(key, key_provider->keys, next, key_tmp) {
         log_info("processing key");
-        int rc = post_process_key(info, key);
+        int rc = post_process_key(key);
         switch (rc) {
         case POX509_OK:
             /* add key to keystore records */
@@ -297,12 +296,11 @@ post_process_key_provider(struct pox509_info *info,
 }
 
 static int
-post_process_access_profile(struct pox509_info *info,
-    struct pox509_access_profile *access_profile,
+post_process_access_profile(struct pox509_access_profile *access_profile,
     struct pox509_keystore_records *keystore_records)
 {
-    if (info == NULL || access_profile == NULL || keystore_records == NULL) {
-        fatal("info, access_profile or keystore_records == NULL");
+    if (access_profile == NULL || keystore_records == NULL) {
+        fatal("access_profile or keystore_records == NULL");
     }
 
     if (access_profile->key_providers == NULL) {
@@ -315,7 +313,7 @@ post_process_access_profile(struct pox509_info *info,
         key_provider_tmp) {
 
         log_info("processing key provider '%s'", key_provider->uid);
-        int rc = post_process_key_provider(info, key_provider,
+        int rc = post_process_key_provider(key_provider,
             access_profile->keystore_options, keystore_records);
         switch (rc) {
         case POX509_OK:
@@ -346,10 +344,21 @@ post_process_access_profiles(struct pox509_info *info)
     }
 
     int res = POX509_UNKNOWN_ERR;
+
+    /* init trusted ca store for subsequent x509 validation */
+    char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
+    int rc = init_trusted_ca_store(cacerts_dir);
+    if (rc != POX509_OK) {
+        log_error("failed to initialize trusted ca store (%s)",
+            pox509_strerror(rc));
+        return rc;
+    }
+
     struct pox509_keystore_records *keystore_records = new_keystore_records();
     if (keystore_records == NULL) {
         log_error("failed to allocate memory for keystore records");
-        return POX509_NO_MEMORY;
+        res = POX509_NO_MEMORY;
+        goto cleanup_a;
     }
 
     struct pox509_access_profile *access_profile = NULL;
@@ -358,14 +367,13 @@ post_process_access_profiles(struct pox509_info *info)
         access_profile_tmp) {
 
         log_info("processing access profile '%s'", access_profile->uid);
-        int rc = post_process_access_profile(info, access_profile,
-            keystore_records);
+        int rc = post_process_access_profile(access_profile, keystore_records);
         switch (rc) {
         case POX509_OK:
             break;
         case POX509_NO_MEMORY:
             res = rc;
-            goto cleanup;
+            goto cleanup_b;
         default:
             log_error("removing access profile (%s)", pox509_strerror(rc));
             TAILQ_REMOVE(info->access_profiles, access_profile, next);
@@ -376,16 +384,18 @@ post_process_access_profiles(struct pox509_info *info)
         free_access_profiles(info->access_profiles);
         info->access_profiles = NULL;
         res = POX509_NO_ACCESS_PROFILE;
-        goto cleanup;
+        goto cleanup_b;
     }
     info->keystore_records = keystore_records;
     keystore_records = NULL;
     res = POX509_OK;
 
-cleanup:
+cleanup_b:
     if (keystore_records != NULL) {
         free_keystore_records(keystore_records);
     }
+cleanup_a:
+    free_trusted_ca_store();
     return res;
 }
 
@@ -415,7 +425,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* make info object available to module stack */
-    int rc = pam_set_data(pamh, "pox509_info", info, &cleanup_info);
+    int rc = pam_set_data(pamh, "pox509_info", info, &cleanup);
     if (rc != PAM_SUCCESS) {
         log_error("failed to set pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
@@ -483,6 +493,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         cfg_getstr(info->cfg, "ssh_keystore_location");
     substitute_token('u', info->uid, ssh_keystore_location,
         info->ssh_keystore_location, SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
+
+    /* init openssl */
+    init_openssl();
 
     /* get access profiles from ldap */
     rc = get_access_profiles_from_ldap(info);

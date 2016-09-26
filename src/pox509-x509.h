@@ -39,8 +39,12 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value) )
 
+void init_openssl();
+void cleanup_openssl();
+int init_trusted_ca_store(char *cacerts_dir);
+void free_trusted_ca_store();
 int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
-int validate_x509(X509 *x509, const char *cacerts_dir, bool *valid);
+int validate_x509(X509 *x509, bool *valid);
 char *get_serial_from_x509(X509 *x509);
 char *get_issuer_from_x509(X509 *x509);
 char *get_subject_from_x509(X509 *x509);

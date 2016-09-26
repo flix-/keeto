@@ -33,6 +33,20 @@
 #include "pox509-error.h"
 #include "pox509-log.h"
 
+static X509_STORE *trusted_ca_store = NULL;
+
+void
+init_openssl()
+{
+    /* add algorithms */
+    OpenSSL_add_all_algorithms();
+}
+
+void cleanup_openssl()
+{
+    EVP_cleanup();
+}
+
 static bool
 msb_set(unsigned char byte)
 {
@@ -225,73 +239,103 @@ cleanup_a:
 }
 
 int
-validate_x509(X509 *x509, const char *cacerts_dir, bool *valid)
+init_trusted_ca_store(char *cacerts_dir)
 {
-    if (x509 == NULL || cacerts_dir == NULL) {
-        fatal("x509 or cacerts_dir == NULL");
+    if (cacerts_dir == NULL) {
+        fatal("cacerts_dir == NULL");
+    }
+
+    if (trusted_ca_store != NULL) {
+        return POX509_OK;
     }
 
     int res = POX509_UNKNOWN_ERR;
-    /* add algorithms */
-    OpenSSL_add_all_algorithms();
     /* create a new x509 store with trusted ca certificates */
-    X509_STORE *trusted_ca_store = X509_STORE_new();
-    if (trusted_ca_store == NULL) {
+    X509_STORE *trusted_ca_store_tmp = X509_STORE_new();
+    if (trusted_ca_store_tmp == NULL) {
         log_error("failed to create trusted ca store");
-        res = POX509_OPENSSL_ERR;
-        goto cleanup_a;
+        return POX509_OPENSSL_ERR;
     }
-    X509_LOOKUP *trusted_ca_store_lookup = X509_STORE_add_lookup(trusted_ca_store,
-        X509_LOOKUP_hash_dir());
+    X509_LOOKUP *trusted_ca_store_lookup = X509_STORE_add_lookup(
+        trusted_ca_store_tmp, X509_LOOKUP_hash_dir());
     if (trusted_ca_store_lookup == NULL) {
         log_error("failed to create lookup object for ca store");
         res = POX509_X509_ERR;
-        goto cleanup_b;
+        goto cleanup;
     }
     int rc = X509_LOOKUP_add_dir(trusted_ca_store_lookup, cacerts_dir,
         X509_FILETYPE_PEM);
     if (rc == 0) {
         log_error("failed to read trusted ca's from '%s'", cacerts_dir);
         res = POX509_OPENSSL_ERR;
-        goto cleanup_b;
+        goto cleanup;
+    }
+    /* TODO: register callbacks */
+
+
+    trusted_ca_store = trusted_ca_store_tmp;
+    trusted_ca_store_tmp = NULL;
+    res = POX509_OK;
+
+cleanup:
+    if (trusted_ca_store_tmp != NULL) {
+        X509_STORE_free(trusted_ca_store_tmp);
+    }
+    return res;
+}
+
+void
+free_trusted_ca_store()
+{
+    if (trusted_ca_store == NULL) {
+        return;
+    }
+    X509_STORE_free(trusted_ca_store);
+}
+
+int
+validate_x509(X509 *x509, bool *ret)
+{
+    if (x509 == NULL || ret == NULL) {
+        fatal("x509 or ret == NULL");
     }
 
+    if (trusted_ca_store == NULL) {
+        fatal("trusted_ca_store == NULL");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
     /* validate the user certificate against the trusted ca store */
     X509_STORE_CTX *ctx_store = X509_STORE_CTX_new();
     if (ctx_store == NULL) {
         log_error("failed to create ctx store");
-        res = POX509_OPENSSL_ERR;
-        goto cleanup_b;
+        return POX509_OPENSSL_ERR;
     }
-    rc = X509_STORE_CTX_init(ctx_store, trusted_ca_store, x509, NULL);
+    int rc = X509_STORE_CTX_init(ctx_store, trusted_ca_store, x509, NULL);
     if (rc == 0) {
         log_error("failed to initialize ctx store");
         res = POX509_OPENSSL_ERR;
-        goto cleanup_c;
+        goto cleanup;
     }
     rc = X509_STORE_CTX_set_purpose(ctx_store, X509_PURPOSE_SSL_CLIENT);
     if (rc == 0) {
         log_error("failed to set purpose for ctx store");
         res = POX509_OPENSSL_ERR;
-        goto cleanup_c;
+        goto cleanup;
     }
     rc = X509_verify_cert(ctx_store);
     if (rc <= 0) {
-        *valid = false;
+        *ret = false;
         int cert_err = X509_STORE_CTX_get_error(ctx_store);
         log_error("certificate not valid (%s)",
             X509_verify_cert_error_string(cert_err));
     } else {
-        *valid = true;
+        *ret = true;
     }
     res = POX509_OK;
 
-cleanup_c:
+cleanup:
     X509_STORE_CTX_free(ctx_store);
-cleanup_b:
-    X509_STORE_free(trusted_ca_store);
-cleanup_a:
-    EVP_cleanup();
     return res;
 }
 
