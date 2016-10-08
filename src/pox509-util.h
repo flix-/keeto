@@ -1,18 +1,20 @@
 /*
  * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
+ * This file is part of Keeto.
+ *
+ * Keeto is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * Keeto is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef POX509_UTIL_H
@@ -140,3 +142,4 @@ void free_keystore_options(struct pox509_keystore_options *keystore_options);
 void free_keystore_records(struct pox509_keystore_records *keystore_records);
 void free_keystore_record(struct pox509_keystore_record *keystore_record);
 #endif
+
