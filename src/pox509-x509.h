@@ -15,15 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Processing of x509 certificates.
- *
- * @file pox509-x509.h
- * @author Sebastian Roland <seroland86@gmail.com>
- * @date 2015-06-22
- * @see https://github.com/flix-/pam-openssh-x509
- */
-
 #ifndef POX509_X509_H
 #define POX509_X509_H
 
@@ -41,12 +32,12 @@
 
 void init_openssl();
 void cleanup_openssl();
-int init_trusted_ca_store(char *cacerts_dir);
-void free_trusted_ca_store();
+int init_cert_store(char *cert_store_dir, bool check_crl);
+void free_cert_store();
 int add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key);
 int validate_x509(X509 *x509, bool *valid);
 char *get_serial_from_x509(X509 *x509);
-char *get_issuer_from_x509(X509 *x509);
-char *get_subject_from_x509(X509 *x509);
+int get_issuer_from_x509(X509 *x509, char **ret);
+int get_subject_from_x509(X509 *x509, char **ret);
 void free_x509(X509 *x509);
 #endif

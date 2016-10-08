@@ -1184,7 +1184,7 @@ connect_to_ldap(LDAP *ldap_handle, struct pox509_info *info)
     }
 
     int rc;
-    int ldap_starttls = cfg_getint(info->cfg, "ldap_starttls");
+    bool ldap_starttls = cfg_getint(info->cfg, "ldap_starttls");
     if (ldap_starttls) {
         rc = init_starttls(ldap_handle);
         if (rc != POX509_OK) {
@@ -1235,12 +1235,12 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
         return POX509_LDAP_ERR;
     }
 
-    /* set trusted ca path */
-    char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
-    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cacerts_dir);
+    /* set path to trusted ca's */
+    char *cert_store_dir = cfg_getstr(info->cfg, "cert_store_dir");
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cert_store_dir);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CACERTDIR', "
-                "value '%s'", cacerts_dir);
+                "value '%s'", cert_store_dir);
         return POX509_LDAP_ERR;
     }
 
@@ -1319,7 +1319,7 @@ get_access_profiles_from_ldap(struct pox509_info *info)
 
     /* add ssh server entry */
     LDAPMessage *ssh_server_entry = NULL;
-    rc = add_ssh_server_entry(ldap_handle, info, &ssh_server_entry); 
+    rc = add_ssh_server_entry(ldap_handle, info, &ssh_server_entry);
     switch (rc) {
     case POX509_OK:
         break;

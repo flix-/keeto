@@ -49,12 +49,43 @@ log_int(char *attr, int value)
 }
 
 static void
-log_hex(char *attr, int value)
+log_bool(char *attr, int value)
 {
     if (attr == NULL) {
         fatal("attr == NULL");
     }
-    log_info("%s: 0x%02x", attr, value);
+    char *output = NULL;
+    switch (value) {
+    case 0:
+        output = "false";
+        break;
+    case 1:
+        output = "true";
+        break;
+    default:
+        output = "unset";
+    }
+    log_info("%s: %s", attr, output);
+}
+
+static void
+log_profile_type(char *attr, int value)
+{
+    if (attr == NULL) {
+        fatal("attr == NULL");
+    }
+    char *output = NULL;
+    switch (value) {
+    case 0:
+        output = "direct_access_profile";
+        break;
+    case 1:
+        output = "access_on_behalf_profile";
+        break;
+    default:
+        output = "unset";
+    }
+    log_info("%s: %s", attr, output);
 }
 
 static void
@@ -108,28 +139,36 @@ print_x509(X509 *x509)
         return;
     }
 
-    char *issuer = get_issuer_from_x509(x509);
-    if (issuer == NULL) {
-        log_error("failed to obtain issuer from x509");
-    } else {
+    char *issuer = NULL;
+    int rc = get_issuer_from_x509(x509, &issuer);
+    switch (rc) {
+    case POX509_OK:
         log_string("x509->issuer", issuer);
         free(issuer);
+        break;
+    default:
+        log_error("failed to obtain issuer from certificate (%s)",
+            pox509_strerror(rc));
     }
 
     char *serial = get_serial_from_x509(x509);
     if (serial == NULL) {
-        log_error("failed to obtain serial from x509");
+        log_error("failed to obtain serial from certificate");
     } else {
         log_string("x509->serial", serial);
         free(serial);
     }
 
-    char *subject = get_subject_from_x509(x509);
-    if (subject == NULL) {
-        log_error("failed to obtain subject from x509");
-    } else {
+    char *subject = NULL;
+    rc = get_subject_from_x509(x509, &subject);
+    switch (rc) {
+    case POX509_OK:
         log_string("x509->subject", subject);
         free(subject);
+        break;
+    default:
+        log_error("failed to obtain subject from certificate (%s)",
+            pox509_strerror(rc));
     }
 }
 
@@ -195,7 +234,7 @@ print_access_profile(struct pox509_access_profile *access_profile)
         return;
     }
 
-    log_hex("access_profile->type", access_profile->type);
+    log_profile_type("access_profile->type", access_profile->type);
     log_string("access_profile->dn", access_profile->dn);
     log_string("access_profile->uid", access_profile->uid);
     print_key_providers(access_profile->key_providers);
@@ -240,11 +279,11 @@ print_config(cfg_t *cfg)
     log_string("cfg->syslog_facility", cfg_getstr(cfg, "syslog_facility"));
 
     log_string("cfg->ldap_uri", cfg_getstr(cfg, "ldap_uri"));
-    log_int("cfg->ldap_starttls", cfg_getint(cfg, "ldap_starttls"));
+    log_bool("cfg->ldap_starttls", cfg_getint(cfg, "ldap_starttls"));
     log_string("cfg->ldap_bind_dn", cfg_getstr(cfg, "ldap_bind_dn"));
     log_string("cfg->ldap_bind_pwd", cfg_getstr(cfg, "ldap_bind_pwd"));
     log_int("cfg->ldap_search_timeout", cfg_getint(cfg, "ldap_search_timeout"));
-    log_int("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
+    log_bool("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 
     log_string("cfg->ldap_ssh_server_base_dn", cfg_getstr(cfg,
         "ldap_ssh_server_base_dn"));
@@ -266,7 +305,8 @@ print_config(cfg_t *cfg)
 
     log_string("cfg->ssh_keystore_location", cfg_getstr(cfg,
         "ssh_keystore_location"));
-    log_string("cfg->cacerts_dir", cfg_getstr(cfg, "cacerts_dir"));
+    log_string("cfg->cert_store_dir", cfg_getstr(cfg, "cert_store_dir"));
+    log_bool("cfg->check_crl", cfg_getint(cfg, "check_crl"));
 
     log_string("cfg->uid_regex", cfg_getstr(cfg, "uid_regex"));
 }
@@ -288,7 +328,7 @@ print_info(struct pox509_info *info)
     print_ssh_server(info->ssh_server);
     log_info(" ");
     print_access_profiles(info->access_profiles);
-    log_int("info->ldap_online", info->ldap_online);
+    log_bool("info->ldap_online", info->ldap_online);
     log_info(" ");
     print_keystore_records(info->keystore_records);
 }

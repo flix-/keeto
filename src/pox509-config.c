@@ -63,7 +63,7 @@ cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *syslog_facility = cfg_opt_getnstr(opt, 0);
     if (syslog_facility == NULL) {
-        log_error("failed to obtain syslog facility option");
+        log_error("failed to obtain syslog_facility option");
         return -1;
     }
 
@@ -85,7 +85,7 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *ldap_uri = cfg_opt_getnstr(opt, 0);
     if (ldap_uri == NULL) {
-        log_error("failed to obtain ldap uri option");
+        log_error("failed to obtain ldap_uri option");
         return -1;
     }
 
@@ -181,25 +181,25 @@ cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
 }
 
 static int
-cfg_validate_cacerts_dir(cfg_t *cfg, cfg_opt_t *opt)
+cfg_validate_cert_store_dir(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
         fatal("cfg or opt == NULL");
     }
 
-    const char *cacerts_dir = cfg_opt_getnstr(opt, 0);
-    if (cacerts_dir == NULL) {
-        log_error("failed to obtain cacerts dir option");
+    const char *cert_store_dir = cfg_opt_getnstr(opt, 0);
+    if (cert_store_dir == NULL) {
+        log_error("failed to obtain cert_store_dir option");
         return -1;
     }
     /* check if directory exists */
-    DIR *cacerts_dir_stream = opendir(cacerts_dir);
-    if (cacerts_dir_stream == NULL) {
-        log_error("failed to validate cacerts dir: option '%s', value '%s' (%s)",
-            cfg_opt_name(opt), cacerts_dir, strerror(errno));
+    DIR *cert_store_dir_stream = opendir(cert_store_dir);
+    if (cert_store_dir_stream == NULL) {
+        log_error("failed to validate cert store dir: option '%s', value '%s' "
+            "(%s)", cfg_opt_name(opt), cert_store_dir, strerror(errno));
         return -1;
     }
-    closedir(cacerts_dir_stream);
+    closedir(cert_store_dir_stream);
     return 0;
 }
 
@@ -212,7 +212,7 @@ cfg_validate_regex(cfg_t *cfg, cfg_opt_t *opt)
 
     const char *regex = cfg_opt_getnstr(opt, 0);
     if (regex == NULL) {
-        log_error("failed to obtain uid regex option");
+        log_error("failed to obtain uid_regex option");
         return -1;
     }
     /* check if regex compiles */
@@ -261,7 +261,9 @@ parse_config(const char *cfg_file)
 
         CFG_STR("ssh_keystore_location",
             "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
-        CFG_STR("cacerts_dir", "/usr/local/etc/ssh/cacerts", CFGF_NONE),
+        CFG_STR("cert_store_dir", "/usr/local/etc/ssh/cert_store", CFGF_NONE),
+        CFG_INT("check_crl", 1, CFGF_NONE),
+
         CFG_STR("uid_regex", "^[a-z][-a-z0-9]{0,31}$", CFGF_NONE),
         CFG_END()
     };
@@ -285,7 +287,8 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "ldap_ssh_server_base_dn",
         &cfg_validate_ldap_dn);
-    cfg_set_validate_func(cfg, "cacerts_dir", &cfg_validate_cacerts_dir);
+    cfg_set_validate_func(cfg, "cert_store_dir", &cfg_validate_cert_store_dir);
+    cfg_set_validate_func(cfg, "check_crl", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "uid_regex", &cfg_validate_regex);
 
     /* parse config */

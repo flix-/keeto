@@ -19,7 +19,7 @@ before_script:
   - ./autogen.sh
 
 script:
-  - ./configure --libdir=/lib/security --disable-dependency-tracking
+  - ./configure
   - make
   - make check
   - cat tests/test-suite.log

@@ -20,8 +20,10 @@ PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
     [AC_MSG_ERROR([cannot find libcheck (>= 0.9.9)])])
 PKG_CHECK_MODULES([libconfuse], [libconfuse >= 2.7], [],
     [AC_MSG_ERROR([cannot find libconfuse (>= 2.7)])])
-PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0.1e], [],
-    [AC_MSG_ERROR([cannot find libcrypto (>= 1.0.1e)])])
+PKG_CHECK_MODULES([libssl], [libssl >= 1.0, libssl < 1.1], [],
+    [AC_MSG_ERROR([cannot find libssl (>= 1.0, < 1.1)])])
+PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0, libcrypto < 1.1], [],
+    [AC_MSG_ERROR([cannot find libcrypto (>= 1.0, < 1.1)])])
 AC_CHECK_LIB([ldap], [ldap_sasl_bind_s], [],
     [AC_MSG_ERROR([cannot find libldap])])
 AC_CHECK_LIB([lber], [ber_free], [], [AC_MSG_ERROR([cannot find liblber])])
@@ -29,11 +31,11 @@ AC_CHECK_LIB([pam], [pam_start], [], [AC_MSG_ERROR([cannot find libpam])])
 AC_SUBST([LIBS], [ ])
 
 AC_SUBST([LIBADD_BASE], ["-lpam ${libconfuse_LIBS} -lldap -llber \
-    ${libcrypto_LIBS}"])
+    ${libssl_LIBS} ${libcrypto_LIBS}"])
 AC_SUBST([LIBADD_AUDIT], ["-lpam ${libconfuse_LIBS} -lldap -llber \
-    ${libcrypto_LIBS}"])
+    ${libssl_LIBS} ${libcrypto_LIBS}"])
 AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
-    -llber ${libcrypto_LIBS}"])
+    -llber ${libssl_LIBS} ${libcrypto_LIBS}"])
 
 # set compiler flags
 AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])

@@ -72,6 +72,7 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
     free_info(info);
     cleanup_openssl();
     closelog();
+    //CRYPTO_mem_leaks_fp(stderr);
 }
 
 static void
@@ -263,8 +264,20 @@ post_process_key_provider(struct pox509_key_provider *key_provider,
     struct pox509_key *key = NULL;
     struct pox509_key *key_tmp = NULL;
     TAILQ_FOREACH_SAFE(key, key_provider->keys, next, key_tmp) {
-        log_info("processing key");
-        int rc = post_process_key(key);
+        char *subject = NULL;
+        int rc = get_subject_from_x509(key->x509, &subject);
+        switch (rc) {
+        case POX509_OK:
+            log_info("processing key '%s'", subject);
+            free(subject);
+            break;
+        case POX509_NO_MEMORY:
+            return rc;
+        default:
+            log_error("failed to obtain subject from certificate (%s)",
+                pox509_strerror(rc));
+        }
+        rc = post_process_key(key);
         switch (rc) {
         case POX509_OK:
             /* add key to keystore records */
@@ -345,12 +358,12 @@ post_process_access_profiles(struct pox509_info *info)
 
     int res = POX509_UNKNOWN_ERR;
 
-    /* init trusted ca store for subsequent x509 validation */
-    char *cacerts_dir = cfg_getstr(info->cfg, "cacerts_dir");
-    int rc = init_trusted_ca_store(cacerts_dir);
+    /* init cert store for subsequent x509 validation */
+    char *cert_store_dir = cfg_getstr(info->cfg, "cert_store_dir");
+    bool check_crl = cfg_getint(info->cfg, "check_crl");
+    int rc = init_cert_store(cert_store_dir, check_crl);
     if (rc != POX509_OK) {
-        log_error("failed to initialize trusted ca store (%s)",
-            pox509_strerror(rc));
+        log_error("failed to initialize cert store (%s)", pox509_strerror(rc));
         return rc;
     }
 
@@ -395,7 +408,7 @@ cleanup_b:
         free_keystore_records(keystore_records);
     }
 cleanup_a:
-    free_trusted_ca_store();
+    free_cert_store();
     return res;
 }
 
@@ -508,7 +521,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case POX509_LDAP_CONNECTION_ERR:
         log_error("failed to connect to ldap");
         info->ldap_online = 0;
-        int ldap_strict = cfg_getint(info->cfg, "ldap_strict");
+        bool ldap_strict = cfg_getint(info->cfg, "ldap_strict");
         if (ldap_strict) {
             log_info("ldap strict mode active - refusing access");
             return PAM_AUTH_ERR;
@@ -547,7 +560,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* write keystore records to keystore file */
-    log_info("writing keystore file");
+    log_info("writing keystore file '%s'", info->ssh_keystore_location);
     rc = write_keystore(info->ssh_keystore_location, info->keystore_records);
     switch (rc) {
     case POX509_OK:
@@ -556,7 +569,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to write keystore file (%s)", pox509_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-    log_info("done");
 
     return PAM_SUCCESS;
 }

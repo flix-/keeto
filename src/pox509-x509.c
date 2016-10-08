@@ -24,8 +24,10 @@
 
 #include <openssl/bio.h>
 #include <openssl/bn.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
@@ -33,18 +35,26 @@
 #include "pox509-error.h"
 #include "pox509-log.h"
 
-static X509_STORE *trusted_ca_store = NULL;
+static X509_STORE *cert_store;
 
 void
 init_openssl()
 {
-    /* add algorithms */
+    SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
+    /*
+    CRYPTO_malloc_debug_init();
+    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+    */
 }
 
-void cleanup_openssl()
+void
+cleanup_openssl()
 {
+    ERR_free_strings();
+    CRYPTO_cleanup_all_ex_data();
     EVP_cleanup();
+    ERR_remove_thread_state(NULL);
 }
 
 static bool
@@ -70,7 +80,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
         log_error("failed to obtain rsa key");
         return POX509_OPENSSL_ERR;
     }
-    /* length of keytype WITHOUT the terminating null byte */
+    /* length of keytype WITHOUT terminating null byte */
     size_t length_keytype = strlen(ssh_keytype);
     size_t length_exponent = BN_num_bytes(rsa->e);
     size_t length_modulus = BN_num_bytes(rsa->n);
@@ -239,58 +249,64 @@ cleanup_a:
 }
 
 int
-init_trusted_ca_store(char *cacerts_dir)
+init_cert_store(char *cert_store_dir, bool check_crl)
 {
-    if (cacerts_dir == NULL) {
-        fatal("cacerts_dir == NULL");
+    if (cert_store_dir == NULL) {
+        fatal("cert_store_dir == NULL");
     }
 
-    if (trusted_ca_store != NULL) {
+    if (cert_store != NULL) {
         return POX509_OK;
     }
 
     int res = POX509_UNKNOWN_ERR;
-    /* create a new x509 store with trusted ca certificates */
-    X509_STORE *trusted_ca_store_tmp = X509_STORE_new();
-    if (trusted_ca_store_tmp == NULL) {
-        log_error("failed to create trusted ca store");
+    /* create a new x509 store with trusted ca certs / crls */
+    X509_STORE *cert_store_tmp = X509_STORE_new();
+    if (cert_store_tmp == NULL) {
+        log_error("failed to create cert store");
         return POX509_OPENSSL_ERR;
     }
-    X509_LOOKUP *trusted_ca_store_lookup = X509_STORE_add_lookup(
-        trusted_ca_store_tmp, X509_LOOKUP_hash_dir());
-    if (trusted_ca_store_lookup == NULL) {
-        log_error("failed to create lookup object for ca store");
+    X509_LOOKUP *cert_store_lookup = X509_STORE_add_lookup(cert_store_tmp,
+        X509_LOOKUP_hash_dir());
+    if (cert_store_lookup == NULL) {
+        log_error("failed to create cert store lookup object");
         res = POX509_X509_ERR;
         goto cleanup;
     }
-    int rc = X509_LOOKUP_add_dir(trusted_ca_store_lookup, cacerts_dir,
+    int rc = X509_LOOKUP_add_dir(cert_store_lookup, cert_store_dir,
         X509_FILETYPE_PEM);
     if (rc == 0) {
-        log_error("failed to read trusted ca's from '%s'", cacerts_dir);
+        log_error("failed to read certs from '%s'", cert_store_dir);
         res = POX509_OPENSSL_ERR;
         goto cleanup;
     }
-    /* TODO: register callbacks */
-
-
-    trusted_ca_store = trusted_ca_store_tmp;
-    trusted_ca_store_tmp = NULL;
+    if (check_crl) {
+        rc = X509_STORE_set_flags(cert_store_tmp, X509_V_FLAG_CRL_CHECK |
+            X509_V_FLAG_CRL_CHECK_ALL);
+        if (rc == 0) {
+            log_error("failed to set cert store flags");
+            res = POX509_OPENSSL_ERR;
+            goto cleanup;
+        }
+    }
+    cert_store = cert_store_tmp;
+    cert_store_tmp = NULL;
     res = POX509_OK;
 
 cleanup:
-    if (trusted_ca_store_tmp != NULL) {
-        X509_STORE_free(trusted_ca_store_tmp);
+    if (cert_store_tmp != NULL) {
+        X509_STORE_free(cert_store_tmp);
     }
     return res;
 }
 
 void
-free_trusted_ca_store()
+free_cert_store()
 {
-    if (trusted_ca_store == NULL) {
+    if (cert_store == NULL) {
         return;
     }
-    X509_STORE_free(trusted_ca_store);
+    X509_STORE_free(cert_store);
 }
 
 int
@@ -300,18 +316,18 @@ validate_x509(X509 *x509, bool *ret)
         fatal("x509 or ret == NULL");
     }
 
-    if (trusted_ca_store == NULL) {
-        fatal("trusted_ca_store == NULL");
+    if (cert_store == NULL) {
+        fatal("cert_store == NULL");
     }
 
     int res = POX509_UNKNOWN_ERR;
-    /* validate the user certificate against the trusted ca store */
+    /* validate the user certificate against the cert store */
     X509_STORE_CTX *ctx_store = X509_STORE_CTX_new();
     if (ctx_store == NULL) {
         log_error("failed to create ctx store");
         return POX509_OPENSSL_ERR;
     }
-    int rc = X509_STORE_CTX_init(ctx_store, trusted_ca_store, x509, NULL);
+    int rc = X509_STORE_CTX_init(ctx_store, cert_store, x509, NULL);
     if (rc == 0) {
         log_error("failed to initialize ctx store");
         res = POX509_OPENSSL_ERR;
@@ -319,7 +335,7 @@ validate_x509(X509 *x509, bool *ret)
     }
     rc = X509_STORE_CTX_set_purpose(ctx_store, X509_PURPOSE_SSL_CLIENT);
     if (rc == 0) {
-        log_error("failed to set purpose for ctx store");
+        log_error("failed to set ctx store purpose");
         res = POX509_OPENSSL_ERR;
         goto cleanup;
     }
@@ -358,7 +374,7 @@ get_serial_from_x509(X509 *x509)
     }
     char *serial = BN_bn2hex(serial_bn);
     if (serial == NULL) {
-        log_error("failed to obtain serial from big number");
+        log_error("failed to obtain serial number from big number");
         goto cleanup;
     }
 
@@ -367,34 +383,80 @@ cleanup:
     return serial;
 }
 
-char *
-get_issuer_from_x509(X509 *x509)
+static int
+get_x509_name_as_string(X509_NAME *x509_name, char **ret)
 {
-    if (x509 == NULL) {
-        fatal("x509 == NULL");
+    if (x509_name == NULL || ret == NULL) {
+        fatal("x509_name or ret == NULL");
+    }
+
+    int res = POX509_UNKNOWN_ERR;
+
+    BIO *bio_mem = BIO_new(BIO_s_mem());
+    if (bio_mem == NULL) {
+        log_error("failed to create mem bio");
+        return POX509_OPENSSL_ERR;
+    }
+    int length = X509_NAME_print_ex(bio_mem, x509_name, 0, XN_FLAG_RFC2253 &
+        ~XN_FLAG_DN_REV);
+    if (length < 0) {
+        log_error("failed to write x509 name to bio");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_a;
+    }
+    char *name = malloc(length + 1);
+    if (name == NULL) {
+        log_error("failed to allocate memory for x509 name");
+        res = POX509_NO_MEMORY;
+        goto cleanup_a;
+    }
+    int rc = BIO_read(bio_mem, name, length);
+    if (rc <= 0) {
+        log_error("failed to read from bio");
+        res = POX509_OPENSSL_ERR;
+        goto cleanup_b;
+    }
+    name[length] = '\0';
+
+    *ret = name;
+    name = NULL;
+    res = POX509_OK;
+
+cleanup_b:
+    if (name != NULL) {
+        free(name);
+    }
+cleanup_a:
+    BIO_vfree(bio_mem);
+    return res;
+}
+
+int
+get_issuer_from_x509(X509 *x509, char **ret)
+{
+    if (x509 == NULL || ret == NULL) {
+        fatal("x509 or ret == NULL");
     }
 
     X509_NAME *issuer = X509_get_issuer_name(x509);
     if (issuer == NULL) {
-        log_error("failed to obtain issuer from certificate");
-        return NULL;
+        return POX509_OPENSSL_ERR;
     }
-    return X509_NAME_oneline(issuer, NULL, 0);
+    return get_x509_name_as_string(issuer, ret);
 }
 
-char *
-get_subject_from_x509(X509 *x509)
+int
+get_subject_from_x509(X509 *x509, char **ret)
 {
-    if (x509 == NULL) {
-        fatal("x509 == NULL");
+    if (x509 == NULL || ret == NULL) {
+        fatal("x509 or ret == NULL");
     }
 
     X509_NAME *subject = X509_get_subject_name(x509);
     if (subject == NULL) {
-        log_error("failed to obtain subject from certificate");
-        return NULL;
+        return POX509_OPENSSL_ERR;
     }
-    return X509_NAME_oneline(subject, NULL, 0);
+    return get_x509_name_as_string(subject, ret);
 }
 
 void

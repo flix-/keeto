@@ -1,8 +1,5 @@
 lib_LTLIBRARIES = pam_pox509.la \
                   pam_pox509_audit.la
-include_HEADERS = pox509-error.h \
-                  pox509-log.h \
-                  pox509-util.h
 
 pam_pox509_la_SOURCES = pox509.c \
                         pox509-config.h \

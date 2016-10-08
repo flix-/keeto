@@ -20,9 +20,9 @@
 
 #include <security/pam_appl.h>
 
-int
-pam_conversation(int num_msg, struct pam_message **msg,
-    struct pam_response **resp, void *app_data)
+static int
+pam_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp,
+    void *app_data)
 {
     return PAM_SUCCESS;
 }
@@ -38,11 +38,10 @@ main(int argc, char **argv)
     char *service_name = "sshd";
     char *user = argv[1];
     user = argv[1];
-    int end_status = 1;
 
-    struct pam_conv *pam_conversation = { pam_conversation, NULL };
     pam_handle_t *pamh = NULL;
-    int rc = pam_start(service_name, user, pam_conversation, &pamh);
+    struct pam_conv pam_conversation = { pam_conv, NULL };
+    int rc = pam_start(service_name, user, &pam_conversation, &pamh);
     if (rc != PAM_SUCCESS) {
         printf("failed to initialize pam (%s)\n", pam_strerror(pamh, rc));
         return -1;
@@ -56,7 +55,8 @@ main(int argc, char **argv)
     default:
         printf("authentication error (%s)\n", pam_strerror(pamh,rc));
     }
-    rc = pam_end(pamh, end_status);
+    /* cleanup */
+    rc = pam_end(pamh, 1);
     if (rc != PAM_SUCCESS) {
         printf("failed to destroy pam (%s)\n", pam_strerror(pamh,rc));
         return -1;

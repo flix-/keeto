@@ -34,7 +34,7 @@
 
 #define BUFFER_SIZE 4096
 
-static struct pox509_validate_x509_entry validate_x509_lt[] = {
+static struct pox509_validate_x509_entry validate_x509_no_crl_check_lt[] = {
     { X509CERTSDIR "/untrusted-ca.pem", false },
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
@@ -47,6 +47,54 @@ static struct pox509_validate_x509_entry validate_x509_lt[] = {
     { X509CERTSDIR "/valid3.pem", true },
     { X509CERTSDIR "/valid4.pem", true }
 };
+
+static struct pox509_validate_x509_entry validate_x509_crl_check_lt[] = {
+    { X509CERTSDIR "/untrusted-ca.pem", false },
+    { X509CERTSDIR "/trusted-ca-expired.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-expired.pem", false },
+    { X509CERTSDIR "/revoked.pem", false },
+    { X509CERTSDIR "/valid1.pem", true },
+    { X509CERTSDIR "/valid2.pem", true },
+    { X509CERTSDIR "/valid3.pem", true },
+    { X509CERTSDIR "/valid4.pem", true }
+};
+
+/*
+ * setup / teardown
+ */
+void
+setup_validate_x509_no_crl_check()
+{
+    init_openssl();
+    int rc = init_cert_store(CERTSTOREDIR, false);
+    if (rc != POX509_OK) {
+        ck_abort_msg("failed to initialize cert store (%s)",
+            pox509_strerror(rc));
+    }
+}
+
+void
+setup_validate_x509_crl_check()
+{
+    init_openssl();
+    int rc = init_cert_store(CERTSTOREDIR, true);
+    if (rc != POX509_OK) {
+        ck_abort_msg("failed to initialize cert store (%s)",
+            pox509_strerror(rc));
+    }
+}
+
+void
+teardown()
+{
+    free_cert_store();
+    cert_store = NULL;
+    cleanup_openssl();
+}
 
 /*
  * get_ssh_key_from_rsa()
@@ -80,7 +128,8 @@ START_TEST
         FILE *pem_file = fopen(pem_file_abs, "r");
         if (pem_file == NULL) {
             fclose(keystore_records_file);
-            ck_abort_msg("failed to open '%s' (%s)", pem_file_abs, strerror(errno));
+            ck_abort_msg("failed to open '%s' (%s)", pem_file_abs,
+                strerror(errno));
         }
 
         EVP_PKEY *pkey = PEM_read_PUBKEY(pem_file, NULL, NULL, NULL);
@@ -110,12 +159,11 @@ END_TEST
  * validate_x509()
  */
 START_TEST
-(t_validate_x509)
+(t_validate_x509_no_crl_check)
 {
-    char *x509_path = validate_x509_lt[_i].file;
-    bool exp_result = validate_x509_lt[_i].exp_result;
+    char *x509_path = validate_x509_no_crl_check_lt[_i].file;
+    bool exp_result = validate_x509_no_crl_check_lt[_i].exp_result;
 
-    char *cacerts_dir = CACERTSDIR;
     bool valid = false;
 
     FILE *x509_file = fopen(x509_path, "r");
@@ -130,7 +178,38 @@ START_TEST
     }
     fclose(x509_file);
 
-    int rc = validate_x509(x509, cacerts_dir, &valid);
+    int rc = validate_x509(x509, &valid);
+    if (rc != POX509_OK) {
+        free_x509(x509);
+        ck_abort_msg("failed to validate certificate (%s)", pox509_strerror(rc));
+    }
+    free_x509(x509);
+
+    ck_assert_int_eq(exp_result, valid);
+}
+END_TEST
+
+START_TEST
+(t_validate_x509_crl_check)
+{
+    char *x509_path = validate_x509_crl_check_lt[_i].file;
+    bool exp_result = validate_x509_crl_check_lt[_i].exp_result;
+
+    bool valid = false;
+
+    FILE *x509_file = fopen(x509_path, "r");
+    if (x509_file == NULL) {
+        ck_abort_msg("failed to open '%s' (%s)", x509_path, strerror(errno));
+    }
+
+    X509 *x509 = PEM_read_X509(x509_file, NULL, NULL, NULL);
+    if (x509 == NULL) {
+        fclose(x509_file);
+        ck_abort_msg("failed to read x509 from pem file '%s'", x509_path);
+    }
+    fclose(x509_file);
+
+    int rc = validate_x509(x509, &valid);
     if (rc != POX509_OK) {
         free_x509(x509);
         ck_abort_msg("failed to validate certificate (%s)", pox509_strerror(rc));
@@ -145,22 +224,49 @@ Suite *
 make_x509_suite(void)
 {
     Suite *s = suite_create("x509");
-    TCase *tc_main = tcase_create("main");
+    TCase *tc_ssh_key_from_rsa = tcase_create("ssh_key_from_rsa");
+    TCase *tc_validate_x509_no_crl_check =
+        tcase_create("validate_x509_no_crl_check");
+    TCase *tc_validate_x509_crl_check = tcase_create("validate_x509_crl_check");
 
     /* add test cases to suite */
-    suite_add_tcase(s, tc_main);
+    suite_add_tcase(s, tc_ssh_key_from_rsa);
+    suite_add_tcase(s, tc_validate_x509_no_crl_check);
+    suite_add_tcase(s, tc_validate_x509_crl_check);
 
     /*
-     * main test cases
+     * ssh key from rsa test cases
      */
-    
-    /* get_ssh_key_from_rsa() */
-    tcase_add_test(tc_main, t_get_ssh_key_from_rsa);
 
+    /* get_ssh_key_from_rsa() */
+    tcase_add_test(tc_ssh_key_from_rsa, t_get_ssh_key_from_rsa);
+
+    /*
+     * validate x509 - no crl check test cases
+     */
+
+    /* setup / teardown */
+    tcase_add_unchecked_fixture(tc_validate_x509_no_crl_check,
+        setup_validate_x509_no_crl_check, teardown);
     /* validate_x509() */
-    int validate_x509_lt_items = sizeof validate_x509_lt /
-        sizeof validate_x509_lt[0];
-    tcase_add_loop_test(tc_main, t_validate_x509, 0, validate_x509_lt_items);
+    int validate_x509_no_crl_check_lt_items =
+        sizeof validate_x509_no_crl_check_lt /
+        sizeof validate_x509_no_crl_check_lt[0];
+    tcase_add_loop_test(tc_validate_x509_no_crl_check,
+        t_validate_x509_no_crl_check, 0, validate_x509_no_crl_check_lt_items);
+
+    /*
+     * validate x509 - crl check test cases
+     */
+
+    /* setup / teardown */
+    tcase_add_unchecked_fixture(tc_validate_x509_crl_check,
+        setup_validate_x509_crl_check, teardown);
+    /* validate_x509() */
+    int validate_x509_crl_check_lt_items = sizeof validate_x509_crl_check_lt /
+        sizeof validate_x509_crl_check_lt[0];
+    tcase_add_loop_test(tc_validate_x509_crl_check, t_validate_x509_crl_check,
+        0, validate_x509_crl_check_lt_items);
 
     return s;
 }
