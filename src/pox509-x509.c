@@ -397,8 +397,7 @@ get_x509_name_as_string(X509_NAME *x509_name, char **ret)
         log_error("failed to create mem bio");
         return POX509_OPENSSL_ERR;
     }
-    int length = X509_NAME_print_ex(bio_mem, x509_name, 0, XN_FLAG_RFC2253 &
-        ~XN_FLAG_DN_REV);
+    int length = X509_NAME_print_ex(bio_mem, x509_name, 0, XN_FLAG_RFC2253);
     if (length < 0) {
         log_error("failed to write x509 name to bio");
         res = POX509_OPENSSL_ERR;
