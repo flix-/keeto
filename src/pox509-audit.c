@@ -56,7 +56,7 @@ log_bool(char *attr, int value)
     if (attr == NULL) {
         fatal("attr == NULL");
     }
-    char *output = NULL;
+    char *output = "unset";
     switch (value) {
     case 0:
         output = "false";
@@ -64,8 +64,6 @@ log_bool(char *attr, int value)
     case 1:
         output = "true";
         break;
-    default:
-        output = "unset";
     }
     log_info("%s: %s", attr, output);
 }
@@ -76,7 +74,7 @@ log_profile_type(char *attr, int value)
     if (attr == NULL) {
         fatal("attr == NULL");
     }
-    char *output = NULL;
+    char *output = "unset";
     switch (value) {
     case 0:
         output = "direct_access_profile";
@@ -84,8 +82,6 @@ log_profile_type(char *attr, int value)
     case 1:
         output = "access_on_behalf_profile";
         break;
-    default:
-        output = "unset";
     }
     log_info("%s: %s", attr, output);
 }
