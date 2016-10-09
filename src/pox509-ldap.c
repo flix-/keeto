@@ -336,7 +336,10 @@ check_access_profile_enabled(LDAP *ldap_handle,
         fatal("ldap_handle, access_profile_entry or ret == NULL");
     }
 
-    /* determine state of access profile from POX509_AP_ENABLED attribute */
+    /*
+     * determine state of access profile from POX509_AP_ENABLED
+     * attribute.
+     */
     char **access_profile_state = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         POX509_AP_ENABLED, &access_profile_state);
@@ -618,8 +621,8 @@ add_key_provider(LDAP *ldap_handle, struct pox509_info *info,
         return POX509_LDAP_SCHEMA_ERR;
     }
     /*
-     * for direct access profiles a key provider is only relevant
-     * if the uid of the key provider matches the uid of the user
+     * for direct access profiles a key provider is only relevant if
+     * the uid of the key provider matches the uid of the user
      * currently logging in.
      */
     if (access_profile->type == DIRECT_ACCESS_PROFILE) {
@@ -922,9 +925,9 @@ add_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         return rc;
     }
     /*
-     * an access on behalf profile is only relevant if there
-     * is a target keystore with a uid matching the uid of
-     * the user currently logging in.
+     * an access on behalf profile is only relevant if there is a
+     * target keystore with a uid matching the uid of the user
+     * currently logging in.
      */
     if (access_profile_type == ACCESS_ON_BEHALF_PROFILE) {
         bool aobp_relevant = false;
@@ -1247,8 +1250,8 @@ set_ldap_options(LDAP *ldap_handle, struct pox509_info *info)
     }
 
     /*
-     * new context has to be set in order to apply options set above regarding
-     * tls.
+     * new context has to be set in order to apply options set above
+     * regarding tls.
      */
     int new_ctx = POX509_UNDEF;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);

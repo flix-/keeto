@@ -44,7 +44,7 @@ enum {
 
 enum pox509_access_profile_type {
     DIRECT_ACCESS_PROFILE = 0,
-    ACCESS_ON_BEHALF_PROFILE,
+    ACCESS_ON_BEHALF_PROFILE
 };
 
 enum pox509_section {

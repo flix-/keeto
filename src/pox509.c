@@ -113,8 +113,8 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
     strcpy(tmp_keystore, keystore);
     strcat(tmp_keystore, template_suffix);
     /*
-     * in older versions of glibc mkstemp sets permission of
-     * temp file to 0666. being on the safe side...
+     * in older versions of glibc mkstemp sets permission of temp file
+     * to 0666. being on the safe side...
      */
     mode_t mask = umask(S_IXUSR | S_IRWXG | S_IRWXO);
     int tmp_keystore_fd = mkstemp(tmp_keystore);
@@ -541,7 +541,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 
     /*
      * validate certificates, convert public key to OpenSSH
-     * authorized_keys format and create keystore records
+     * authorized_keys format and create keystore records.
      */
     log_info("post processing access profiles");
     rc = post_process_access_profiles(info);
