@@ -16,8 +16,8 @@ AC_PROG_CC
 AC_DEFINE(DEBUG, 0)
 
 # Checks for libraries.
-PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
-    [AC_MSG_ERROR([cannot find libcheck (>= 0.9.9)])])
+PKG_CHECK_MODULES([libcheck], [check >= 0.9.10], [],
+    [AC_MSG_ERROR([cannot find libcheck (>= 0.9.10)])])
 PKG_CHECK_MODULES([libconfuse], [libconfuse >= 2.7], [],
     [AC_MSG_ERROR([cannot find libconfuse (>= 2.7)])])
 PKG_CHECK_MODULES([libssl], [libssl >= 1.0, libssl < 1.1], [],
