@@ -242,7 +242,7 @@ START_TEST
         ck_assert_str_eq(exp_result, buffer);
         break;
     default:
-        ck_assert_ptr_eq(NULL, buffer);
+        ck_assert(NULL == buffer);
     }
     free(buffer);
 }

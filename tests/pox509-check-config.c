@@ -47,7 +47,7 @@ START_TEST
 {
     char *config_file = CONFIGSDIR "/not-existent";
     cfg_t *cfg = parse_config(config_file);
-    ck_assert_ptr_eq(NULL, cfg);
+    ck_assert(NULL == cfg);
 }
 END_TEST
 
@@ -59,7 +59,7 @@ START_TEST
         ck_abort_msg("config (%s) not readable", config_file);
     }
     cfg_t *cfg = parse_config(config_file);
-    ck_assert_ptr_ne(NULL, cfg);
+    ck_assert(NULL != cfg);
 }
 END_TEST
 
@@ -71,7 +71,7 @@ START_TEST
         ck_abort_msg("config (%s) not readable", config_file);
     }
     cfg_t *cfg = parse_config(config_file);
-    ck_assert_ptr_eq(NULL, cfg);
+    ck_assert(NULL == cfg);
 }
 END_TEST
 
