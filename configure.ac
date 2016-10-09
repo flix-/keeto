@@ -21,9 +21,9 @@ PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
 PKG_CHECK_MODULES([libconfuse], [libconfuse >= 2.7], [],
     [AC_MSG_ERROR([cannot find libconfuse (>= 2.7)])])
 PKG_CHECK_MODULES([libssl], [libssl >= 1.0, libssl < 1.1], [],
-    [AC_MSG_ERROR([cannot find libssl (>= 1.0, < 1.1)])])
+    [AC_MSG_ERROR([cannot find libssl (1.0.x)])])
 PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0, libcrypto < 1.1], [],
-    [AC_MSG_ERROR([cannot find libcrypto (>= 1.0, < 1.1)])])
+    [AC_MSG_ERROR([cannot find libcrypto (1.0.x)])])
 AC_CHECK_LIB([ldap], [ldap_sasl_bind_s], [],
     [AC_MSG_ERROR([cannot find libldap])])
 AC_CHECK_LIB([lber], [ber_free], [], [AC_MSG_ERROR([cannot find liblber])])
