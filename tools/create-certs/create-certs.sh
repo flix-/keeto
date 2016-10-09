@@ -80,7 +80,7 @@ create_keystore_openssl()
 
     # determine next available number for cert type
     index=$(get_next_free_index ${cert_type})
-    
+
     # create csr
     ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee-${cert_type}-${index}-key.pem \
         -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
@@ -337,3 +337,4 @@ first with ${0} init"
             ;;
 esac
 #EOF
+

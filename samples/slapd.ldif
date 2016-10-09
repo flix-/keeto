@@ -48,7 +48,7 @@ dn: olcDatabase=config,cn=config
 objectClass: olcDatabaseConfig
 olcDatabase: config
 olcRootDN: cn=directory-manager,cn=config
-olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4 
+olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
 
 # olcDatabase=hdb
 dn: olcDatabase=hdb,cn=config

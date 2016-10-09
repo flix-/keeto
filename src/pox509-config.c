@@ -237,7 +237,7 @@ parse_config(const char *cfg_file)
     }
 
     /* setup config options */
-    cfg_opt_t opts[] = { 
+    cfg_opt_t opts[] = {
         CFG_STR("syslog_facility", "LOG_LOCAL1", CFGF_NONE),
 
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
