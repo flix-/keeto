@@ -7,7 +7,7 @@ cn: config
 olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
-#olcTLSCACertificatePath: /usr/local/etc/ssh/cert_store/
+#olcTLSCACertificatePath: /etc/ssh/cert_store
 #olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
 #olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
 
@@ -58,7 +58,7 @@ olcDatabase: hdb
 olcSuffix: dc=ssh,dc=hq
 olcRootDN: cn=directory-manager,dc=ssh,dc=hq
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
-olcDbDirectory:	/var/lib/openldap/dc=ssh,dc=hq
+olcDbDirectory: /var/lib/openldap/dc=ssh,dc=hq
 olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq

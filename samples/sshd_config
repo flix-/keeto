@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.93 2014/01/10 05:59:19 djm Exp $
+# $OpenBSD: sshd_config,v 1.93 2014/01/10 05:59:19 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -10,7 +10,7 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-Port 5580
+Port 22
 AddressFamily inet
 #ListenAddress 0.0.0.0
 #ListenAddress ::
@@ -21,10 +21,10 @@ AddressFamily inet
 # HostKey for protocol version 1
 #HostKey /etc/ssh/ssh_host_key
 # HostKeys for protocol version 2
-HostKey /usr/local/etc/ssh/ssh_host_rsa_key
-HostKey /usr/local/etc/ssh/ssh_host_dsa_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_dsa_key
 #HostKey /etc/ssh/ssh_host_ecdsa_key
-HostKey /usr/local/etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_ed25519_key
 
 # Lifetime and size of ephemeral version 1 server key
 #KeyRegenerationInterval 1h
@@ -51,7 +51,7 @@ PermitRootLogin no
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile /usr/local/etc/ssh/authorized_keys/%u
+AuthorizedKeysFile /etc/ssh/authorized_keys/%u
 
 #AuthorizedPrincipalsFile none
 
@@ -97,24 +97,24 @@ ChallengeResponseAuthentication yes
 UsePAM yes
 AuthenticationMethods keyboard-interactive:pam,publickey
 
-AllowAgentForwarding yes
+#AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
 #X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
-PrintMotd no # pam does that
+#PrintMotd no # pam does that
 #PrintLastLog yes
 #TCPKeepAlive yes
 #UseLogin no
-UsePrivilegeSeparation yes	# Default for new installations.
+UsePrivilegeSeparation yes # Default for new installations.
 #PermitUserEnvironment no
 #Compression delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS yes
-PidFile /run/sshd/sshd_5580.pid
+PidFile /run/sshd/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
@@ -124,7 +124,7 @@ PidFile /run/sshd/sshd_5580.pid
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/lib/ssh/sftp-server
+Subsystem sftp /usr/lib/ssh/sftp-server
 
 # Exclude users from keeto processing
 Match User foo,bar

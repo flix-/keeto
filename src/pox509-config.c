@@ -261,9 +261,9 @@ parse_config(const char *cfg_file)
         CFG_STR("ldap_key_provider_cert_attr", "userCertificate;binary",
             CFGF_NONE),
 
-        CFG_STR("ssh_keystore_location",
-            "/usr/local/etc/ssh/authorized_keys/%u", CFGF_NONE),
-        CFG_STR("cert_store_dir", "/usr/local/etc/ssh/cert_store", CFGF_NONE),
+        CFG_STR("ssh_keystore_location", "/etc/ssh/authorized_keys/%u",
+            CFGF_NONE),
+        CFG_STR("cert_store_dir", "/etc/ssh/cert_store", CFGF_NONE),
         CFG_INT("check_crl", 1, CFGF_NONE),
 
         CFG_STR("uid_regex", "^[a-z][-a-z0-9]{0,31}$", CFGF_NONE),
