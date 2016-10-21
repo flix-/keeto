@@ -24,10 +24,10 @@
 
 #include "queue.h"
 
-#include "pox509-error.h"
-#include "pox509-log.h"
-#include "pox509-util.h"
-#include "pox509-x509.h"
+#include "keeto-error.h"
+#include "keeto-log.h"
+#include "keeto-util.h"
+#include "keeto-x509.h"
 
 static void
 log_string(char *attr, char *value)

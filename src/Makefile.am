@@ -1,33 +1,33 @@
-lib_LTLIBRARIES = pam_pox509.la \
-                  pam_pox509_audit.la
+lib_LTLIBRARIES = pam_keeto.la \
+                  pam_keeto_audit.la
 
-pam_pox509_la_SOURCES = pox509.c \
-                        pox509-config.h \
-                        pox509-config.c \
-                        pox509-error.h \
-                        pox509-error.c \
-                        pox509-ldap.h \
-                        pox509-ldap.c \
-                        pox509-log.h \
-                        pox509-log.c \
-                        pox509-util.h \
-                        pox509-util.c \
-                        pox509-x509.h \
-                        pox509-x509.c
-pam_pox509_la_LDFLAGS = -avoid-version -module -export-dynamic -shared
-pam_pox509_la_LIBADD = ${LIBADD_BASE}
+pam_keeto_la_SOURCES = keeto.c \
+                       keeto-config.h \
+                       keeto-config.c \
+                       keeto-error.h \
+                       keeto-error.c \
+                       keeto-ldap.h \
+                       keeto-ldap.c \
+                       keeto-log.h \
+                       keeto-log.c \
+                       keeto-util.h \
+                       keeto-util.c \
+                       keeto-x509.h \
+                       keeto-x509.c
+pam_keeto_la_LDFLAGS = -avoid-version -module -export-dynamic -shared
+pam_keeto_la_LIBADD = ${LIBADD_BASE}
 
-pam_pox509_audit_la_SOURCES = pox509-audit.c \
-                              pox509-config.h \
-                              pox509-config.c \
-                              pox509-error.h \
-                              pox509-error.c \
-                              pox509-log.h \
-                              pox509-log.c \
-                              pox509-util.h \
-                              pox509-util.c \
-                              pox509-x509.h \
-                              pox509-x509.c
-pam_pox509_audit_la_LDFLAGS = -avoid-version -module -export-dynamic -shared
-pam_pox509_audit_la_LIBADD = ${LIBADD_AUDIT}
+pam_keeto_audit_la_SOURCES = keeto-audit.c \
+                             keeto-config.h \
+                             keeto-config.c \
+                             keeto-error.h \
+                             keeto-error.c \
+                             keeto-log.h \
+                             keeto-log.c \
+                             keeto-util.h \
+                             keeto-util.c \
+                             keeto-x509.h \
+                             keeto-x509.c
+pam_keeto_audit_la_LDFLAGS = -avoid-version -module -export-dynamic -shared
+pam_keeto_audit_la_LIBADD = ${LIBADD_AUDIT}
 

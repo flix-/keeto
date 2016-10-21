@@ -28,7 +28,7 @@ include: file:///etc/openldap/schema/inetorgperson.ldif
 include: file:///etc/openldap/schema/openldap.ldif
 include: file:///etc/openldap/schema/nis.ldif
 include: file:///etc/openldap/schema/misc.ldif
-include: file:///etc/openldap/schema/pox509.ldif
+include: file:///etc/openldap/schema/keeto.ldif
 
 ################
 # olcBackend=x #

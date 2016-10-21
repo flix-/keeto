@@ -17,14 +17,14 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_X509_H
-#define POX509_X509_H
+#ifndef KEETO_X509_H
+#define KEETO_X509_H
 
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/x509.h>
 
-#include "pox509-util.h"
+#include "keeto-util.h"
 
 #define PUT_32BIT(cp, value)( \
     (cp)[0] = (unsigned char)((value) >> 24), \

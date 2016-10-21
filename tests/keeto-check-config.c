@@ -17,13 +17,13 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check-config.h"
+#include "keeto-check-config.h"
 
 #include <check.h>
 #include <confuse.h>
 
-#include "../src/pox509-config.h"
-#include "../src/pox509-util.h"
+#include "../src/keeto-config.h"
+#include "../src/keeto-util.h"
 
 static char *config_neg_lt[] = {
     CONFIGSDIR "/syslog_facility_neg.conf",

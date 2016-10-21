@@ -17,11 +17,48 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_CHECK_LOG_H
-#define POX509_CHECK_LOG_H
+#ifndef KEETO_CHECK_UTIL_H
+#define KEETO_CHECK_UTIL_H
+
+#include <stdbool.h>
+
+#include <bits/types.h>
+#include <sys/stat.h>
 
 #include <check.h>
 
-Suite *make_log_suite(void);
+struct pox509_file_readable_entry {
+    char *file;
+    mode_t mode;
+    bool exp_result;
+};
+
+struct pox509_check_uid_entry {
+    char *uid;
+    bool exp_result;
+};
+
+struct pox509_substitute_token_entry {
+    char token;
+    char *subst;
+    char *src;
+    size_t dst_length;
+    char *exp_result;
+};
+
+struct pox509_create_ldap_search_filter_entry {
+    char *rdn;
+    char *uid;
+    size_t dst_length;
+    char *exp_result;
+};
+
+struct pox509_get_rdn_from_dn_entry {
+    char *dn;
+    int exp_res;
+    char *exp_result;
+};
+
+Suite *make_util_suite(void);
 #endif
 

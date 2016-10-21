@@ -17,13 +17,13 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_LDAP_H
-#define POX509_LDAP_H
+#ifndef KEETO_LDAP_H
+#define KEETO_LDAP_H
 
 #include "queue.h"
 #include <confuse.h>
 
-#include "pox509-util.h"
+#include "keeto-util.h"
 
 #define LDAP_BOOL_TRUE "TRUE"
 

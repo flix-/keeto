@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-x509.h"
+#include "keeto-x509.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -34,8 +34,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
 
-#include "pox509-error.h"
-#include "pox509-log.h"
+#include "keeto-error.h"
+#include "keeto-log.h"
 
 static X509_STORE *cert_store;
 

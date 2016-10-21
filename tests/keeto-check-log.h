@@ -17,12 +17,11 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_CONFIG_H
-#define POX509_CONFIG_H
+#ifndef KEETO_CHECK_LOG_H
+#define KEETO_CHECK_LOG_H
 
-#include <confuse.h>
+#include <check.h>
 
-cfg_t *parse_config(const char *cfg_file);
-void free_config(cfg_t *cfg);
+Suite *make_log_suite(void);
 #endif
 

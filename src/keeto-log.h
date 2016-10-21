@@ -17,8 +17,8 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_LOG_H
-#define POX509_LOG_H
+#ifndef KEETO_LOG_H
+#define KEETO_LOG_H
 
 #define log_debug(...) \
 do { \

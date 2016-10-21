@@ -17,8 +17,8 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_ERROR_H
-#define POX509_ERROR_H
+#ifndef KEETO_ERROR_H
+#define KEETO_ERROR_H
 
 #include <limits.h>
 

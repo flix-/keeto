@@ -2,7 +2,7 @@
 AC_PREREQ([2.69])
 AC_INIT([keeto], [0.2.0-beta], [seroland86@gmail.com], [], [https://keeto.io])
 AC_LANG([C])
-AC_CONFIG_SRCDIR([src/pox509.c])
+AC_CONFIG_SRCDIR([src/keeto.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([gnu subdir-objects -Wall -Werror])

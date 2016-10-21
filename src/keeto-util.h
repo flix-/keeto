@@ -17,8 +17,8 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef POX509_UTIL_H
-#define POX509_UTIL_H
+#ifndef KEETO_UTIL_H
+#define KEETO_UTIL_H
 
 #include "queue.h"
 
@@ -30,7 +30,7 @@
 #include <confuse.h>
 #include <openssl/x509.h>
 
-#include "pox509-log.h"
+#include "keeto-log.h"
 
 #define POX509_DEBUG \
 int sleepy = 1; \

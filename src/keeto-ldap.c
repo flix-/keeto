@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-ldap.h"
+#include "keeto-ldap.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -30,9 +30,9 @@
 #include <ldap.h>
 #include <openssl/x509.h>
 
-#include "pox509-error.h"
-#include "pox509-log.h"
-#include "pox509-util.h"
+#include "keeto-error.h"
+#include "keeto-log.h"
+#include "keeto-util.h"
 
 #define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
 

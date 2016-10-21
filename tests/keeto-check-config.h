@@ -17,28 +17,11 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
+#ifndef KEETO_CHECK_CONFIG_H
+#define KEETO_CHECK_CONFIG_H
 
 #include <check.h>
 
-#include "pox509-check-config.h"
-#include "pox509-check-log.h"
-#include "pox509-check-util.h"
-#include "pox509-check-x509.h"
-
-int
-main(int argc, char **argv)
-{
-    SRunner *sr = srunner_create(NULL);
-    srunner_add_suite(sr, make_config_suite());
-    srunner_add_suite(sr, make_log_suite());
-    srunner_add_suite(sr, make_util_suite());
-    srunner_add_suite(sr, make_x509_suite());
-
-    srunner_run_all(sr, CK_VERBOSE);
-    int number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-
-    return(number_failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
-}
+Suite *make_config_suite(void);
+#endif
 

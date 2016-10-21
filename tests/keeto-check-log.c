@@ -17,12 +17,12 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check-log.h"
+#include "keeto-check-log.h"
 
 #include <check.h>
 
-#include "../src/pox509-error.h"
-#include "../src/pox509-log.h"
+#include "../src/keeto-error.h"
+#include "../src/keeto-log.h"
 
 /*
  *set_syslog_facility

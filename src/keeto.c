@@ -29,12 +29,12 @@
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
 
-#include "pox509-config.h"
-#include "pox509-error.h"
-#include "pox509-ldap.h"
-#include "pox509-log.h"
-#include "pox509-util.h"
-#include "pox509-x509.h"
+#include "keeto-config.h"
+#include "keeto-error.h"
+#include "keeto-ldap.h"
+#include "keeto-log.h"
+#include "keeto-util.h"
+#include "keeto-x509.h"
 
 #define MAX_UID_LENGTH 32
 #define SSH_KEYSTORE_LOCATION_BUFFER_SIZE 1024

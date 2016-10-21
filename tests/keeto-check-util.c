@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check-util.h"
+#include "keeto-check-util.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -31,8 +31,8 @@
 #include <bits/types.h>
 #include <sys/stat.h>
 
-#include "../src/pox509-error.h"
-#include "../src/pox509-util.h"
+#include "../src/keeto-error.h"
+#include "../src/keeto-util.h"
 
 static struct pox509_file_readable_entry file_readable_lt[] = {
     { FILEREADABLEDIR "/file-none", 0, false },

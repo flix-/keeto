@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-error.h"
+#include "keeto-error.h"
 
 const char *
 pox509_strerror(int errnum)

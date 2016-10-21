@@ -12,8 +12,8 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get install -y autotools-dev autoconf automake check doxygen
-    libconfuse-dev libpam0g-dev libssl-dev libtool
+  - sudo apt-get install -y autotools-dev autoconf automake check libconfuse-dev
+    libpam0g-dev libssl-dev libtool
 
 before_script:
   - ./autogen.sh

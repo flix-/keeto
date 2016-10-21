@@ -1,27 +1,27 @@
-TESTS = pox509-check
-check_PROGRAMS = pox509-check
-pox509_check_SOURCES = pox509-check.c \
-                       pox509-check-config.h \
-                       pox509-check-config.c \
-                       pox509-check-log.h \
-                       pox509-check-log.c \
-                       pox509-check-util.h \
-                       pox509-check-util.c \
-                       pox509-check-x509.h \
-                       pox509-check-x509.c \
-                       ../src/pox509-config.h \
-                       ../src/pox509-config.c \
-                       ../src/pox509-error.h \
-                       ../src/pox509-error.c \
-                       ../src/pox509-log.h \
-                       ../src/pox509-log.c \
-                       ../src/pox509-util.h \
-                       ../src/pox509-util.c \
-                       ../src/pox509-x509.h
-pox509_check_LDADD = ${LDADD_CHECK}
-pox509_check_CPPFLAGS = -DCONFIGSDIR="\"${srcdir}/configs\"" \
-                        -DFILEREADABLEDIR="\"${srcdir}/file_readable\"" \
-                        -DKEYSTORERECORDSDIR="\"${srcdir}/keystore_records\"" \
-                        -DX509CERTSDIR="\"${srcdir}/certificates\"" \
-                        -DCERTSTOREDIR="\"${srcdir}/cert_store\""
+TESTS = keeto-check
+check_PROGRAMS = keeto-check
+keeto_check_SOURCES = keeto-check.c \
+                      keeto-check-config.h \
+                      keeto-check-config.c \
+                      keeto-check-log.h \
+                      keeto-check-log.c \
+                      keeto-check-util.h \
+                      keeto-check-util.c \
+                      keeto-check-x509.h \
+                      keeto-check-x509.c \
+                      ../src/keeto-config.h \
+                      ../src/keeto-config.c \
+                      ../src/keeto-error.h \
+                      ../src/keeto-error.c \
+                      ../src/keeto-log.h \
+                      ../src/keeto-log.c \
+                      ../src/keeto-util.h \
+                      ../src/keeto-util.c \
+                      ../src/keeto-x509.h
+keeto_check_LDADD = ${LDADD_CHECK}
+keeto_check_CPPFLAGS = -DCONFIGSDIR="\"${srcdir}/configs\"" \
+                       -DFILEREADABLEDIR="\"${srcdir}/file_readable\"" \
+                       -DKEYSTORERECORDSDIR="\"${srcdir}/keystore_records\"" \
+                       -DX509CERTSDIR="\"${srcdir}/certificates\"" \
+                       -DCERTSTOREDIR="\"${srcdir}/cert_store\""
 

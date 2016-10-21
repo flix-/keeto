@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-check-x509.h"
+#include "keeto-check-x509.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -32,7 +32,7 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
-#include "../src/pox509-x509.c"
+#include "../src/keeto-x509.c"
 
 #define BUFFER_SIZE 4096
 

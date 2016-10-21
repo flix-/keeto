@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-config.h"
+#include "keeto-config.h"
 
 #include <errno.h>
 #include <dirent.h>
@@ -29,9 +29,9 @@
 #include <ldap.h>
 #include <regex.h>
 
-#include "pox509-error.h"
-#include "pox509-log.h"
-#include "pox509-util.h"
+#include "keeto-error.h"
+#include "keeto-log.h"
+#include "keeto-util.h"
 
 #define ERROR_MSG_BUFFER_SIZE 4096
 

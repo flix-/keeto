@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-util.h"
+#include "keeto-util.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -34,10 +34,10 @@
 #include <regex.h>
 #include <syslog.h>
 
-#include "pox509-config.h"
-#include "pox509-error.h"
-#include "pox509-log.h"
-#include "pox509-x509.h"
+#include "keeto-config.h"
+#include "keeto-error.h"
+#include "keeto-log.h"
+#include "keeto-x509.h"
 
 #define GROUP_DN_BUFFER_SIZE 1024
 

@@ -17,7 +17,7 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pox509-log.h"
+#include "keeto-log.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -26,8 +26,8 @@
 
 #include <syslog.h>
 
-#include "pox509-error.h"
-#include "pox509-util.h"
+#include "keeto-error.h"
+#include "keeto-util.h"
 
 #define LOG_BUFFER_SIZE 4096
 #define LOG_PREFIX_BUFFER_SIZE 1024
@@ -43,7 +43,7 @@ pox509_log(char *prefix, const char *fmt, va_list ap)
 
     static bool initialized = false;
     if (!initialized) {
-        openlog("pox509", LOG_PID, pox509_syslog_facility);
+        openlog("keeto", LOG_PID, pox509_syslog_facility);
         initialized = true;
     }
     char buffer[LOG_BUFFER_SIZE];
