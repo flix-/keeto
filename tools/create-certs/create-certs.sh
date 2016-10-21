@@ -21,7 +21,7 @@ ROOT='/home/sebastian/documents/programming/ca'
 # path to openssl
 OPENSSL='/usr/bin/openssl'
 # postfix for subject dn
-SUBJECT_POSTFIX='/DC=ssh/DC=hq'
+SUBJECT_POSTFIX='/DC=keeto/DC=io'
 
 # validity in days for root ca
 ROOT_CA_VALIDITY=36500

@@ -12,7 +12,7 @@ LT_INIT([disable-static dlopen pic-only])
 # Checks for programs.
 AC_PROG_CC
 
-# define preprocessor symbols
+# define preprocessor symbols.
 AC_DEFINE(DEBUG, 0)
 
 # Checks for libraries.
