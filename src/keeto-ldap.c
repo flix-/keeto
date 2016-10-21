@@ -167,11 +167,11 @@ get_access_profile_type(LDAP *ldap_handle, LDAPMessage *access_profile_entry,
     /* search for access profile type */
     for (int i = 0; objectclasses[i] != NULL; i++) {
         char *objectclass = objectclasses[i];
-        if (strcmp(objectclass, POX509_DAP_OBJCLASS) == 0) {
+        if (strcmp(objectclass, KEETO_DAP_OBJCLASS) == 0) {
             *ret = DIRECT_ACCESS_PROFILE;
             res = POX509_OK;
             break;
-        } else if (strcmp(objectclass, POX509_AOBP_OBJCLASS) == 0) {
+        } else if (strcmp(objectclass, KEETO_AOBP_OBJCLASS) == 0) {
             *ret = ACCESS_ON_BEHALF_PROFILE;
             res = POX509_OK;
             break;
@@ -228,7 +228,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
     /* get target keystore group dn */
     char **target_keystore_group_dn = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
+        KEETO_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_group_dn);
     switch (rc) {
     case POX509_OK:
         break;
@@ -236,7 +236,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct pox509_info *info,
         return rc;
     default:
         log_error("failed to obtain target keystore group dn: attribute '%s' (%s)",
-            POX509_AOBP_TARGET_KEYSTORE_ATTR, pox509_strerror(rc));
+            KEETO_AOBP_TARGET_KEYSTORE_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
     log_info("processing target keystore group '%s'",
@@ -337,12 +337,12 @@ check_access_profile_enabled(LDAP *ldap_handle,
     }
 
     /*
-     * determine state of access profile from POX509_AP_ENABLED
+     * determine state of access profile from KEETO_AP_ENABLED
      * attribute.
      */
     char **access_profile_state = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AP_ENABLED, &access_profile_state);
+        KEETO_AP_ENABLED, &access_profile_state);
     switch (rc) {
     case POX509_OK:
         break;
@@ -350,7 +350,7 @@ check_access_profile_enabled(LDAP *ldap_handle,
         return rc;
     default:
         log_error("failed to obtain access profile state: attribute '%s' (%s)",
-            POX509_AP_ENABLED, pox509_strerror(rc));
+            KEETO_AP_ENABLED, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
     *ret = strcmp(access_profile_state[0], LDAP_BOOL_TRUE) == 0 ? true : false;
@@ -423,7 +423,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     /* get attribute values (optional) */
     char **keystore_options_command = NULL;
     rc = get_attr_values_as_string(ldap_handle, keystore_options_entry,
-        POX509_KEYSTORE_OPTIONS_CMD_ATTR, &keystore_options_command);
+        KEETO_KEYSTORE_OPTIONS_CMD_ATTR, &keystore_options_command);
     switch (rc) {
     case POX509_OK:
         keystore_options->command_option = strdup(keystore_options_command[0]);
@@ -439,18 +439,18 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         goto cleanup_a;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore option 'command' (%s)",
-            POX509_KEYSTORE_OPTIONS_CMD_ATTR);
+            KEETO_KEYSTORE_OPTIONS_CMD_ATTR);
         break;
     default:
         log_error("failed to obtain keystore option 'command': attribute '%s' (%s)",
-            POX509_KEYSTORE_OPTIONS_CMD_ATTR, pox509_strerror(rc));
+            KEETO_KEYSTORE_OPTIONS_CMD_ATTR, pox509_strerror(rc));
         res = rc;
         goto cleanup_a;
     }
 
     char **keystore_options_from = NULL;
     rc = get_attr_values_as_string(ldap_handle, keystore_options_entry,
-        POX509_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
+        KEETO_KEYSTORE_OPTIONS_FROM_ATTR, &keystore_options_from);
     switch (rc) {
     case POX509_OK:
         keystore_options->from_option = strdup(keystore_options_from[0]);
@@ -466,11 +466,11 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         goto cleanup_b;
     case POX509_LDAP_NO_SUCH_ATTR:
         log_info("skipped keystore option 'from' (%s)",
-            POX509_KEYSTORE_OPTIONS_FROM_ATTR);
+            KEETO_KEYSTORE_OPTIONS_FROM_ATTR);
         break;
     default:
         log_error("failed to obtain keystore option 'from': attribute '%s' (%s)",
-            POX509_KEYSTORE_OPTIONS_FROM_ATTR, pox509_strerror(rc));
+            KEETO_KEYSTORE_OPTIONS_FROM_ATTR, pox509_strerror(rc));
         res = rc;
         goto cleanup_b;
     }
@@ -780,7 +780,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     /* add key providers */
     char **key_provider_group_dn = NULL;
     int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
+        KEETO_AP_KEY_PROVIDER_ATTR, &key_provider_group_dn);
     switch (rc) {
     case POX509_OK:
         break;
@@ -788,7 +788,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         return rc;
     default:
         log_error("failed to obtain key provider group dn: attribute '%s' (%s)",
-            POX509_AP_KEY_PROVIDER_ATTR, pox509_strerror(rc));
+            KEETO_AP_KEY_PROVIDER_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
     log_info("processing key provider group '%s'", key_provider_group_dn[0]);
@@ -813,14 +813,14 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
     /* add keystore options (optional) */
     char **keystore_options_dn = NULL;
     rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        POX509_AP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
+        KEETO_AP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
     switch (rc) {
     case POX509_OK:
         log_info("processing keystore options '%s'", keystore_options_dn[0]);
         struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
         char *attrs[] = {
-            POX509_KEYSTORE_OPTIONS_FROM_ATTR,
-            POX509_KEYSTORE_OPTIONS_CMD_ATTR,
+            KEETO_KEYSTORE_OPTIONS_FROM_ATTR,
+            KEETO_KEYSTORE_OPTIONS_CMD_ATTR,
             NULL
         };
         LDAPMessage *keystore_options_entry = NULL;
@@ -865,7 +865,7 @@ process_access_profile(LDAP *ldap_handle, struct pox509_info *info,
         goto cleanup_b;
     default:
         log_error("failed to obtain keystore options dn: attribute '%s' (%s)",
-            POX509_AP_KEYSTORE_OPTIONS_ATTR, pox509_strerror(rc));
+            KEETO_AP_KEYSTORE_OPTIONS_ATTR, pox509_strerror(rc));
         res = rc;
         goto cleanup_b;
     }
@@ -999,7 +999,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
     /* get access profile dns */
     char **access_profile_dns = NULL;
     int rc = get_attr_values_as_string(ldap_handle, ssh_server_entry,
-        POX509_SSH_SERVER_AP_ATTR, &access_profile_dns);
+        KEETO_SSH_SERVER_AP_ATTR, &access_profile_dns);
     switch (rc) {
     case POX509_OK:
         break;
@@ -1007,7 +1007,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
         return rc;
     default:
         log_error("failed to obtain access profile dns: attribute '%s' (%s)",
-            POX509_SSH_SERVER_AP_ATTR, pox509_strerror(rc));
+            KEETO_SSH_SERVER_AP_ATTR, pox509_strerror(rc));
         return POX509_LDAP_SCHEMA_ERR;
     }
 
@@ -1084,13 +1084,13 @@ add_ssh_server_entry(LDAP *ldap_handle, struct pox509_info *info,
     /* construct search filter */
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
-    int rc = create_ldap_search_filter(POX509_SSH_SERVER_UID_ATTR, ssh_server_uid,
+    int rc = create_ldap_search_filter(KEETO_SSH_SERVER_UID_ATTR, ssh_server_uid,
         filter, sizeof filter);
     if (rc != POX509_OK) {
         log_error("failed to create ldap search filter (%s)", pox509_strerror(rc));
         return POX509_SYSTEM_ERR;
     }
-    char *attrs[] = { POX509_SSH_SERVER_AP_ATTR, NULL };
+    char *attrs[] = { KEETO_SSH_SERVER_AP_ATTR, NULL };
     struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
 
     /* query ldap for ssh server entry */

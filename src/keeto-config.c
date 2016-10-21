@@ -242,16 +242,16 @@ parse_config(const char *cfg_file)
 
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
         CFG_INT("ldap_starttls", 1, CFGF_NONE),
-        CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=ssh,dc=hq", CFGF_NONE),
+        CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=keeto,dc=io", CFGF_NONE),
         CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
         CFG_INT("ldap_strict", 0, CFGF_NONE),
 
-        CFG_STR("ldap_ssh_server_base_dn", "ou=server,ou=ssh,dc=ssh,dc=hq",
+        CFG_STR("ldap_ssh_server_base_dn", "ou=server,ou=ssh,dc=keeto,dc=io",
             CFGF_NONE),
         CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
-        CFG_STR("ssh_server_uid", "pox509-test-server", CFGF_NONE),
+        CFG_STR("ssh_server_uid", "keeto-test-server", CFGF_NONE),
 
         CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),

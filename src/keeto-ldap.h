@@ -27,19 +27,19 @@
 
 #define LDAP_BOOL_TRUE "TRUE"
 
-#define POX509_SSH_SERVER_UID_ATTR "uid"
-#define POX509_SSH_SERVER_AP_ATTR "pox509AccessProfile"
+#define KEETO_SSH_SERVER_UID_ATTR "uid"
+#define KEETO_SSH_SERVER_AP_ATTR "keetoAccessProfile"
 
-#define POX509_DAP_OBJCLASS "pox509DirectAccessProfile"
-#define POX509_AOBP_OBJCLASS "pox509AccessOnBehalfProfile"
+#define KEETO_DAP_OBJCLASS "keetoDirectAccessProfile"
+#define KEETO_AOBP_OBJCLASS "keetoAccessOnBehalfProfile"
 
-#define POX509_AP_KEY_PROVIDER_ATTR "pox509KeyProvider"
-#define POX509_AP_KEYSTORE_OPTIONS_ATTR "pox509KeystoreOptions"
-#define POX509_AP_ENABLED "pox509Enabled"
-#define POX509_AOBP_TARGET_KEYSTORE_ATTR "pox509TargetKeystore"
+#define KEETO_AP_KEY_PROVIDER_ATTR "keetoKeyProvider"
+#define KEETO_AP_KEYSTORE_OPTIONS_ATTR "keetoKeystoreOptions"
+#define KEETO_AP_ENABLED "keetoEnabled"
+#define KEETO_AOBP_TARGET_KEYSTORE_ATTR "keetoTargetKeystore"
 
-#define POX509_KEYSTORE_OPTIONS_FROM_ATTR "pox509KeystoreOptionFrom"
-#define POX509_KEYSTORE_OPTIONS_CMD_ATTR "pox509KeystoreOptionCommand"
+#define KEETO_KEYSTORE_OPTIONS_FROM_ATTR "keetoKeystoreOptionFrom"
+#define KEETO_KEYSTORE_OPTIONS_CMD_ATTR "keetoKeystoreOptionCommand"
 
 int get_access_profiles_from_ldap(struct pox509_info *info);
 #endif
