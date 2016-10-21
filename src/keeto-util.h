@@ -32,83 +32,83 @@
 
 #include "keeto-log.h"
 
-#define POX509_DEBUG \
+#define KEETO_DEBUG \
 int sleepy = 1; \
 while (sleepy) { \
     sleep(5); \
 }
 
 enum {
-    POX509_UNDEF = 0x56
+    KEETO_UNDEF = 0x56
 };
 
-enum pox509_access_profile_type {
+enum keeto_access_profile_type {
     DIRECT_ACCESS_PROFILE = 0,
     ACCESS_ON_BEHALF_PROFILE
 };
 
-enum pox509_section {
-    POX509_SYSLOG = 0,
-    POX509_LIBLDAP
+enum keeto_section {
+    KEETO_SYSLOG = 0,
+    KEETO_LIBLDAP
 };
 
-struct pox509_keystore_record {
+struct keeto_keystore_record {
     char *uid;
     char *ssh_keytype;
     char *ssh_key;
     char *command_option;
     char *from_option;
-    SIMPLEQ_ENTRY(pox509_keystore_record) next;
+    SIMPLEQ_ENTRY(keeto_keystore_record) next;
 };
 
-struct pox509_keystore_options {
+struct keeto_keystore_options {
     char *dn;
     char *uid;
     char *command_option;
     char *from_option;
 };
 
-struct pox509_key {
+struct keeto_key {
     X509 *x509;
     char *ssh_keytype;
     char *ssh_key;
-    TAILQ_ENTRY(pox509_key) next;
+    TAILQ_ENTRY(keeto_key) next;
 };
 
-struct pox509_key_provider {
+struct keeto_key_provider {
     char *dn;
     char *uid;
-    TAILQ_HEAD(pox509_keys, pox509_key) *keys;
-    TAILQ_ENTRY(pox509_key_provider) next;
+    TAILQ_HEAD(keeto_keys, keeto_key) *keys;
+    TAILQ_ENTRY(keeto_key_provider) next;
 };
 
-struct pox509_access_profile {
-    enum pox509_access_profile_type type;
+struct keeto_access_profile {
+    enum keeto_access_profile_type type;
     char *dn;
     char *uid;
-    TAILQ_HEAD(pox509_key_providers, pox509_key_provider) *key_providers;
-    struct pox509_keystore_options *keystore_options;
-    TAILQ_ENTRY(pox509_access_profile) next;
+    TAILQ_HEAD(keeto_key_providers, keeto_key_provider) *key_providers;
+    struct keeto_keystore_options *keystore_options;
+    TAILQ_ENTRY(keeto_access_profile) next;
 };
 
-struct pox509_ssh_server {
+struct keeto_ssh_server {
     char *dn;
     char *uid;
 };
 
-struct pox509_info {
+struct keeto_info {
     cfg_t *cfg;
     char *uid;
     char *ssh_keystore_location;
-    struct pox509_ssh_server *ssh_server;
-    TAILQ_HEAD(pox509_access_profiles, pox509_access_profile)
+    struct keeto_ssh_server *ssh_server;
+    TAILQ_HEAD(keeto_access_profiles, keeto_access_profile)
         *access_profiles;
     char ldap_online;
-    SIMPLEQ_HEAD(pox509_keystore_records, pox509_keystore_record)
+    SIMPLEQ_HEAD(keeto_keystore_records, keeto_keystore_record)
         *keystore_records;
 };
 
-int str_to_enum(enum pox509_section section, const char *key);
+int str_to_enum(enum keeto_section section, const char *key);
 bool file_readable(const char *file);
 int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
@@ -118,28 +118,28 @@ int create_ldap_search_filter(const char *attr, const char *value, char *dst,
 int get_rdn_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);
 /* constructors */
-struct pox509_info *new_info();
-struct pox509_ssh_server *new_ssh_server();
-struct pox509_access_profiles *new_access_profiles();
-struct pox509_access_profile *new_access_profile();
-struct pox509_key_providers *new_key_providers();
-struct pox509_key_provider *new_key_provider();
-struct pox509_keys *new_keys();
-struct pox509_key *new_key();
-struct pox509_keystore_options *new_keystore_options();
-struct pox509_keystore_records *new_keystore_records();
-struct pox509_keystore_record *new_keystore_record();
+struct keeto_info *new_info();
+struct keeto_ssh_server *new_ssh_server();
+struct keeto_access_profiles *new_access_profiles();
+struct keeto_access_profile *new_access_profile();
+struct keeto_key_providers *new_key_providers();
+struct keeto_key_provider *new_key_provider();
+struct keeto_keys *new_keys();
+struct keeto_key *new_key();
+struct keeto_keystore_options *new_keystore_options();
+struct keeto_keystore_records *new_keystore_records();
+struct keeto_keystore_record *new_keystore_record();
 /* destructors */
-void free_info(struct pox509_info *info);
-void free_ssh_server(struct pox509_ssh_server *ssh_server);
-void free_access_profiles(struct pox509_access_profiles *access_profiles);
-void free_access_profile(struct pox509_access_profile *access_profile);
-void free_key_providers(struct pox509_key_providers *key_providers);
-void free_key_provider(struct pox509_key_provider *key_provider);
-void free_keys(struct pox509_keys *keys);
-void free_key(struct pox509_key *key);
-void free_keystore_options(struct pox509_keystore_options *keystore_options);
-void free_keystore_records(struct pox509_keystore_records *keystore_records);
-void free_keystore_record(struct pox509_keystore_record *keystore_record);
+void free_info(struct keeto_info *info);
+void free_ssh_server(struct keeto_ssh_server *ssh_server);
+void free_access_profiles(struct keeto_access_profiles *access_profiles);
+void free_access_profile(struct keeto_access_profile *access_profile);
+void free_key_providers(struct keeto_key_providers *key_providers);
+void free_key_provider(struct keeto_key_provider *key_provider);
+void free_keys(struct keeto_keys *keys);
+void free_key(struct keeto_key *key);
+void free_keystore_options(struct keeto_keystore_options *keystore_options);
+void free_keystore_records(struct keeto_keystore_records *keystore_records);
+void free_keystore_record(struct keeto_keystore_record *keystore_record);
 #endif
 

@@ -69,8 +69,8 @@ cfg_validate_syslog_facility(cfg_t *cfg, cfg_opt_t *opt)
         return -1;
     }
 
-    int rc = str_to_enum(POX509_SYSLOG, syslog_facility);
-    if (rc == POX509_NO_SUCH_VALUE) {
+    int rc = str_to_enum(KEETO_SYSLOG, syslog_facility);
+    if (rc == KEETO_NO_SUCH_VALUE) {
         log_error("failed to validate syslog facility: option '%s', value '%s' "
             "(invalid syslog facility)", cfg_opt_name(opt), syslog_facility);
         return -1;
@@ -171,8 +171,8 @@ cfg_str_to_int_cb_libldap(cfg_t *cfg, cfg_opt_t *opt, const char *value,
         fatal("cfg, opt, value or result == NULL");
     }
 
-    int ldap_option = str_to_enum(POX509_LIBLDAP, value);
-    if (ldap_option == POX509_NO_SUCH_VALUE) {
+    int ldap_option = str_to_enum(KEETO_LIBLDAP, value);
+    if (ldap_option == KEETO_NO_SUCH_VALUE) {
         log_error("failed to convert value: option '%s', value '%s' "
             "(invalid value)", cfg_opt_name(opt), value);
         return -1;

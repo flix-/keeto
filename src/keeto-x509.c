@@ -76,11 +76,11 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
         fatal("pkey, ssh_keytype or ret == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     RSA *rsa = EVP_PKEY_get1_RSA(pkey);
     if (rsa == NULL) {
         log_error("failed to obtain rsa key");
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     /* length of keytype WITHOUT terminating null byte */
     size_t length_keytype = strlen(ssh_keytype);
@@ -145,7 +145,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     BIO *bio_base64 = BIO_new(BIO_f_base64());
     if (bio_base64 == NULL) {
         log_error("failed to create base64 bio");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup_a;
     }
     BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
@@ -154,7 +154,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     BIO *bio_mem = BIO_new(BIO_s_mem());
     if (bio_mem == NULL) {
         log_error("failed to create mem bio");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup_b;
     }
     /* create bio chain base64->mem */
@@ -166,7 +166,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     int rc = BIO_flush(bio_base64_mem);
     if (rc != 1) {
         log_error("failed to flush bio");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup_c;
     }
 
@@ -176,14 +176,14 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     char *ssh_key = malloc(data_out + 1);
     if (ssh_key == NULL) {
         log_error("failed to allocate memory for ssh key");
-        res = POX509_NO_MEMORY;
+        res = KEETO_NO_MEMORY;
         goto cleanup_c;
     }
     memcpy(ssh_key, tmp_result, data_out);
     ssh_key[data_out] = '\0';
 
     *ret = ssh_key;
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup_c:
     BIO_vfree(bio_mem);
@@ -195,17 +195,17 @@ cleanup_a:
 }
 
 int
-add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
+add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
 {
     if (x509 == NULL || key == NULL) {
         fatal("x509 or key == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     EVP_PKEY *pkey = X509_get_pubkey(x509);
     if (pkey == NULL) {
         log_error("failed to extract public key from certificate");
-        return POX509_X509_ERR;
+        return KEETO_X509_ERR;
     }
     char *ssh_keytype = NULL;
 
@@ -215,31 +215,31 @@ add_ssh_key_data_from_x509(X509 *x509, struct pox509_key *key)
         ssh_keytype = strdup("ssh-rsa");
         if (ssh_keytype == NULL) {
             log_error("failed to duplicate ssh keytype");
-            res = POX509_NO_MEMORY;
+            res = KEETO_NO_MEMORY;
             goto cleanup_a;
         }
         int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &key->ssh_key);
         switch (rc) {
-        case POX509_OK:
+        case KEETO_OK:
             break;
-        case POX509_NO_MEMORY:
+        case KEETO_NO_MEMORY:
             res = rc;
             goto cleanup_b;
         default:
             log_error("failed to obtain ssh key from rsa (%s)",
-                pox509_strerror(rc));
+                keeto_strerror(rc));
             res = rc;
             goto cleanup_b;
         }
         break;
     default:
         log_error("unsupported key type (%d)", pkey_type);
-        res = POX509_UNSUPPORTED_KEY_TYPE;
+        res = KEETO_UNSUPPORTED_KEY_TYPE;
         goto cleanup_a;
     }
     key->ssh_keytype = ssh_keytype;
     ssh_keytype = NULL;
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup_b:
     if (ssh_keytype != NULL) {
@@ -258,28 +258,28 @@ init_cert_store(char *cert_store_dir, bool check_crl)
     }
 
     if (cert_store != NULL) {
-        return POX509_OK;
+        return KEETO_OK;
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     /* create a new x509 store with trusted ca certs / crls */
     X509_STORE *cert_store_tmp = X509_STORE_new();
     if (cert_store_tmp == NULL) {
         log_error("failed to create cert store");
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     X509_LOOKUP *cert_store_lookup = X509_STORE_add_lookup(cert_store_tmp,
         X509_LOOKUP_hash_dir());
     if (cert_store_lookup == NULL) {
         log_error("failed to create cert store lookup object");
-        res = POX509_X509_ERR;
+        res = KEETO_X509_ERR;
         goto cleanup;
     }
     int rc = X509_LOOKUP_add_dir(cert_store_lookup, cert_store_dir,
         X509_FILETYPE_PEM);
     if (rc == 0) {
         log_error("failed to read certs from '%s'", cert_store_dir);
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup;
     }
     if (check_crl) {
@@ -287,13 +287,13 @@ init_cert_store(char *cert_store_dir, bool check_crl)
             X509_V_FLAG_CRL_CHECK_ALL);
         if (rc == 0) {
             log_error("failed to set cert store flags");
-            res = POX509_OPENSSL_ERR;
+            res = KEETO_OPENSSL_ERR;
             goto cleanup;
         }
     }
     cert_store = cert_store_tmp;
     cert_store_tmp = NULL;
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup:
     if (cert_store_tmp != NULL) {
@@ -322,23 +322,23 @@ validate_x509(X509 *x509, bool *ret)
         fatal("cert_store == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     /* validate the user certificate against the cert store */
     X509_STORE_CTX *ctx_store = X509_STORE_CTX_new();
     if (ctx_store == NULL) {
         log_error("failed to create ctx store");
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     int rc = X509_STORE_CTX_init(ctx_store, cert_store, x509, NULL);
     if (rc == 0) {
         log_error("failed to initialize ctx store");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup;
     }
     rc = X509_STORE_CTX_set_purpose(ctx_store, X509_PURPOSE_SSL_CLIENT);
     if (rc == 0) {
         log_error("failed to set ctx store purpose");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup;
     }
     rc = X509_verify_cert(ctx_store);
@@ -350,7 +350,7 @@ validate_x509(X509 *x509, bool *ret)
     } else {
         *ret = true;
     }
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup:
     X509_STORE_CTX_free(ctx_store);
@@ -392,36 +392,36 @@ get_x509_name_as_string(X509_NAME *x509_name, char **ret)
         fatal("x509_name or ret == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
 
     BIO *bio_mem = BIO_new(BIO_s_mem());
     if (bio_mem == NULL) {
         log_error("failed to create mem bio");
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     int length = X509_NAME_print_ex(bio_mem, x509_name, 0, XN_FLAG_RFC2253);
     if (length < 0) {
         log_error("failed to write x509 name to bio");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup_a;
     }
     char *name = malloc(length + 1);
     if (name == NULL) {
         log_error("failed to allocate memory for x509 name");
-        res = POX509_NO_MEMORY;
+        res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
     int rc = BIO_read(bio_mem, name, length);
     if (rc <= 0) {
         log_error("failed to read from bio");
-        res = POX509_OPENSSL_ERR;
+        res = KEETO_OPENSSL_ERR;
         goto cleanup_b;
     }
     name[length] = '\0';
 
     *ret = name;
     name = NULL;
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup_b:
     if (name != NULL) {
@@ -441,7 +441,7 @@ get_issuer_from_x509(X509 *x509, char **ret)
 
     X509_NAME *issuer = X509_get_issuer_name(x509);
     if (issuer == NULL) {
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     return get_x509_name_as_string(issuer, ret);
 }
@@ -455,7 +455,7 @@ get_subject_from_x509(X509 *x509, char **ret)
 
     X509_NAME *subject = X509_get_subject_name(x509);
     if (subject == NULL) {
-        return POX509_OPENSSL_ERR;
+        return KEETO_OPENSSL_ERR;
     }
     return get_x509_name_as_string(subject, ret);
 }

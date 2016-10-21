@@ -34,7 +34,7 @@
 #include "../src/keeto-error.h"
 #include "../src/keeto-util.h"
 
-static struct pox509_file_readable_entry file_readable_lt[] = {
+static struct keeto_file_readable_entry file_readable_lt[] = {
     { FILEREADABLEDIR "/file-none", 0, false },
     { FILEREADABLEDIR "/file-read", S_IRUSR, true },
     { FILEREADABLEDIR "/file-read-write", S_IRUSR|S_IWUSR, true },
@@ -53,12 +53,12 @@ static struct pox509_file_readable_entry file_readable_lt[] = {
     { FILEREADABLEDIR "/dir-execute", S_IXUSR, false }
 };
 
-static struct pox509_check_uid_entry check_uid_lt[] = {
-    { "pox509-test-user", true },
-    { "Pox509-test-user", false },
-    { "pox509-Test-user", false },
-    { "pox509_test-user", false },
-    { "1pox509", false },
+static struct keeto_check_uid_entry check_uid_lt[] = {
+    { "keeto-test-user", true },
+    { "Keeto-test-user", false },
+    { "keeto-Test-user", false },
+    { "keeto_test-user", false },
+    { "1keeto", false },
     { "abcdefghijklmnopqrstuvwxyzaabbcc", true },
     { "abcdefghijklmnopqrstuvwxyzaabbccd", false },
     { "../authorized_keys/root", false },
@@ -67,7 +67,7 @@ static struct pox509_check_uid_entry check_uid_lt[] = {
     { "_foo", false }
 };
 
-static struct pox509_substitute_token_entry substitute_token_lt[] = {
+static struct keeto_substitute_token_entry substitute_token_lt[] = {
     { 'u', "foo", "/home/%u/", 1024, "/home/foo/" },
     { 'u', "foo", "/home/%u/", 3, "/h" },
     { 'u', "foo", "/home/%u%u%u/", 512, "/home/foofoofoo/" },
@@ -87,7 +87,7 @@ static struct pox509_substitute_token_entry substitute_token_lt[] = {
     { 'u', "foo", "/home/%u/", 2, "/" }
 };
 
-static struct pox509_create_ldap_search_filter_entry
+static struct keeto_create_ldap_search_filter_entry
     create_ldap_search_filter_lt[] = {
     { "uid", "foo", 8, "uid=foo" },
     { "uid", "foo", 7, "uid=fo" },
@@ -98,10 +98,10 @@ static struct pox509_create_ldap_search_filter_entry
     { "uid", "foo", 6, "uid=f" }
 };
 
-static struct pox509_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
-    { "cn=foo,dc=ssh,dc=hq", POX509_OK, "foo" },
-    { "xyzcn=bar,dc=ssh,dc=hq", POX509_OK, "bar" },
-    { "www.xy.z", POX509_LDAP_ERR, NULL }
+static struct keeto_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
+    { "cn=foo,dc=keeto,dc=io", KEETO_OK, "foo" },
+    { "xyzcn=bar,dc=keeto,dc=io", KEETO_OK, "bar" },
+    { "www.xy.z", KEETO_LDAP_ERR, NULL }
 };
 
 /*
@@ -110,14 +110,14 @@ static struct pox509_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
 START_TEST
 (t_str_to_enum)
 {
-    int rc = str_to_enum(POX509_SYSLOG, "LOG_LOCAL1");
+    int rc = str_to_enum(KEETO_SYSLOG, "LOG_LOCAL1");
     ck_assert_int_eq(LOG_LOCAL1, rc);
-    rc = str_to_enum(POX509_LIBLDAP, "LDAP_SCOPE_BASE");
+    rc = str_to_enum(KEETO_LIBLDAP, "LDAP_SCOPE_BASE");
     ck_assert_int_eq(LDAP_SCOPE_BASE, rc);
-    rc = str_to_enum(POX509_SYSLOG, "LOG_FOO");
-    ck_assert_int_eq(POX509_NO_SUCH_VALUE, rc);
-    rc = str_to_enum(POX509_LIBLDAP, "LDAP_BAR");
-    ck_assert_int_eq(POX509_NO_SUCH_VALUE, rc);
+    rc = str_to_enum(KEETO_SYSLOG, "LOG_FOO");
+    ck_assert_int_eq(KEETO_NO_SUCH_VALUE, rc);
+    rc = str_to_enum(KEETO_LIBLDAP, "LDAP_BAR");
+    ck_assert_int_eq(KEETO_NO_SUCH_VALUE, rc);
 }
 END_TEST
 
@@ -180,7 +180,7 @@ START_TEST
 
     bool uid_valid = false;
     int rc = check_uid(regex, uid, &uid_valid);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         ck_abort_msg("failed to check uid");
     }
     ck_assert_int_eq(exp_result, uid_valid);
@@ -238,7 +238,7 @@ START_TEST
     int rc = get_rdn_from_dn(dn, &buffer);
     ck_assert_int_eq(exp_res, rc);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         ck_assert_str_eq(exp_result, buffer);
         break;
     default:

@@ -31,9 +31,9 @@ START_TEST
 (t_set_syslog_facility)
 {
     int rc = set_syslog_facility("LOG_KERN");
-    ck_assert_int_eq(POX509_OK, rc);
+    ck_assert_int_eq(KEETO_OK, rc);
     rc = set_syslog_facility("LOG_FOO");
-    ck_assert_int_eq(POX509_NO_SUCH_VALUE, rc);
+    ck_assert_int_eq(KEETO_NO_SUCH_VALUE, rc);
 }
 END_TEST
 

@@ -23,7 +23,7 @@
 #include <stdbool.h>
 #include <check.h>
 
-struct pox509_validate_x509_entry {
+struct keeto_validate_x509_entry {
     char *file;
     bool exp_result;
 };

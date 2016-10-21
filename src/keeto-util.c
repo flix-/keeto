@@ -41,12 +41,12 @@
 
 #define GROUP_DN_BUFFER_SIZE 1024
 
-struct pox509_str_to_enum_entry {
+struct keeto_str_to_enum_entry {
     char *key;
     int value;
 };
 
-static struct pox509_str_to_enum_entry syslog_facility_lt[] = {
+static struct keeto_str_to_enum_entry syslog_facility_lt[] = {
     { "LOG_KERN", LOG_KERN },
     { "LOG_USER", LOG_USER },
     { "LOG_MAIL", LOG_MAIL },
@@ -71,7 +71,7 @@ static struct pox509_str_to_enum_entry syslog_facility_lt[] = {
     { NULL, 0 }
 };
 
-static struct pox509_str_to_enum_entry libldap_lt[] = {
+static struct keeto_str_to_enum_entry libldap_lt[] = {
     { "LDAP_SCOPE_BASE", LDAP_SCOPE_BASE },
     { "LDAP_SCOPE_BASEOBJECT", LDAP_SCOPE_BASEOBJECT },
     { "LDAP_SCOPE_ONELEVEL", LDAP_SCOPE_ONELEVEL },
@@ -84,23 +84,23 @@ static struct pox509_str_to_enum_entry libldap_lt[] = {
     { NULL, 0 }
 };
 
-static struct pox509_str_to_enum_entry *str_to_enum_lt[] = {
+static struct keeto_str_to_enum_entry *str_to_enum_lt[] = {
     syslog_facility_lt,
     libldap_lt
 };
 
 int
-str_to_enum(enum pox509_section section, const char *key)
+str_to_enum(enum keeto_section section, const char *key)
 {
     if (key == NULL) {
         fatal("key == NULL");
     }
 
-    if (section != POX509_SYSLOG && section != POX509_LIBLDAP) {
+    if (section != KEETO_SYSLOG && section != KEETO_LIBLDAP) {
         fatal("invalid section (%d)", section);
     }
 
-    struct pox509_str_to_enum_entry *str_to_enum_entry;
+    struct keeto_str_to_enum_entry *str_to_enum_entry;
     for (str_to_enum_entry = str_to_enum_lt[section];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
         if (strcmp(str_to_enum_entry->key, key) != 0) {
@@ -108,7 +108,7 @@ str_to_enum(enum pox509_section section, const char *key)
         }
         return str_to_enum_entry->value;
     }
-    return POX509_NO_SUCH_VALUE;
+    return KEETO_NO_SUCH_VALUE;
 }
 
 bool
@@ -150,7 +150,7 @@ check_uid(char *regex, const char *uid, bool *uid_valid)
     int rc = regcomp(&regex_uid, regex, REG_EXTENDED | REG_NOSUB);
     if (rc != 0) {
         log_error("failed to compile regex (%d)", rc);
-        return POX509_REGEX_ERR;
+        return KEETO_REGEX_ERR;
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
@@ -160,7 +160,7 @@ check_uid(char *regex, const char *uid, bool *uid_valid)
     } else {
         *uid_valid = false;
     }
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 void
@@ -215,9 +215,9 @@ create_ldap_search_filter(const char *attr, const char *value, char *dst,
     int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
     if (rc < 0) {
         log_error("failed to write to buffer");
-        return POX509_SYSTEM_ERR;
+        return KEETO_SYSTEM_ERR;
     }
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 int
@@ -232,12 +232,12 @@ get_rdn_from_dn(const char *dn, char **buffer)
         fatal("dn must be > 0");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     LDAPDN ldap_dn = NULL;
     int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
         log_error("failed to parse dn '%s' (%s)", dn, ldap_err2string(rc));
-        return POX509_LDAP_ERR;
+        return KEETO_LDAP_ERR;
     }
 
     LDAPRDN ldap_rdn = ldap_dn[0];
@@ -245,10 +245,10 @@ get_rdn_from_dn(const char *dn, char **buffer)
     if (rc != LDAP_SUCCESS) {
         log_error("failed to obtain rdn from dn '%s' (%s)", dn,
             ldap_err2string(rc));
-        res = POX509_LDAP_ERR;
+        res = KEETO_LDAP_ERR;
         goto cleanup;
     }
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup:
     ldap_dnfree(ldap_dn);
@@ -271,22 +271,22 @@ get_ldap_search_timeout(cfg_t *cfg)
 }
 
 /* constructors */
-struct pox509_info *
+struct keeto_info *
 new_info()
 {
-    struct pox509_info *info = malloc(sizeof *info);
+    struct keeto_info *info = malloc(sizeof *info);
     if (info == NULL) {
         return NULL;
     }
     memset(info, 0, sizeof *info);
-    info->ldap_online = POX509_UNDEF;
+    info->ldap_online = KEETO_UNDEF;
     return info;
 }
 
-struct pox509_ssh_server *
+struct keeto_ssh_server *
 new_ssh_server()
 {
-    struct pox509_ssh_server *ssh_server = malloc(sizeof *ssh_server);
+    struct keeto_ssh_server *ssh_server = malloc(sizeof *ssh_server);
     if (ssh_server == NULL) {
         return NULL;
     }
@@ -294,10 +294,10 @@ new_ssh_server()
     return ssh_server;
 }
 
-struct pox509_access_profiles *
+struct keeto_access_profiles *
 new_access_profiles()
 {
-    struct pox509_access_profiles *access_profiles =
+    struct keeto_access_profiles *access_profiles =
         malloc(sizeof *access_profiles);
     if (access_profiles == NULL) {
         return NULL;
@@ -306,23 +306,23 @@ new_access_profiles()
     return access_profiles;
 }
 
-struct pox509_access_profile *
+struct keeto_access_profile *
 new_access_profile()
 {
-    struct pox509_access_profile *access_profile =
+    struct keeto_access_profile *access_profile =
         malloc(sizeof *access_profile);
     if (access_profile == NULL) {
         return NULL;
     }
     memset(access_profile, 0, sizeof *access_profile);
-    access_profile->type = POX509_UNDEF;
+    access_profile->type = KEETO_UNDEF;
     return access_profile;
 }
 
-struct pox509_key_providers *
+struct keeto_key_providers *
 new_key_providers()
 {
-    struct pox509_key_providers *key_providers = malloc(sizeof *key_providers);
+    struct keeto_key_providers *key_providers = malloc(sizeof *key_providers);
     if (key_providers == NULL) {
         return NULL;
     }
@@ -330,10 +330,10 @@ new_key_providers()
     return key_providers;
 }
 
-struct pox509_key_provider *
+struct keeto_key_provider *
 new_key_provider()
 {
-    struct pox509_key_provider *key_provider = malloc(sizeof *key_provider);
+    struct keeto_key_provider *key_provider = malloc(sizeof *key_provider);
     if (key_provider == NULL) {
         return NULL;
     }
@@ -341,10 +341,10 @@ new_key_provider()
     return key_provider;
 }
 
-struct pox509_keys *
+struct keeto_keys *
 new_keys()
 {
-    struct pox509_keys *keys = malloc(sizeof *keys);
+    struct keeto_keys *keys = malloc(sizeof *keys);
     if (keys == NULL) {
         return NULL;
     }
@@ -352,10 +352,10 @@ new_keys()
     return keys;
 }
 
-struct pox509_key *
+struct keeto_key *
 new_key()
 {
-    struct pox509_key *key = malloc(sizeof *key);
+    struct keeto_key *key = malloc(sizeof *key);
     if (key == NULL) {
         return NULL;
     }
@@ -363,10 +363,10 @@ new_key()
     return key;
 }
 
-struct pox509_keystore_options *
+struct keeto_keystore_options *
 new_keystore_options() {
 
-    struct pox509_keystore_options *keystore_options =
+    struct keeto_keystore_options *keystore_options =
         malloc(sizeof *keystore_options);
     if (keystore_options == NULL) {
         return NULL;
@@ -375,10 +375,10 @@ new_keystore_options() {
     return keystore_options;
 }
 
-struct pox509_keystore_records *
+struct keeto_keystore_records *
 new_keystore_records()
 {
-    struct pox509_keystore_records *keystore_records =
+    struct keeto_keystore_records *keystore_records =
         malloc(sizeof *keystore_records);
     if (keystore_records == NULL) {
         return NULL;
@@ -387,10 +387,10 @@ new_keystore_records()
     return keystore_records;
 }
 
-struct pox509_keystore_record *
+struct keeto_keystore_record *
 new_keystore_record()
 {
-    struct pox509_keystore_record *keystore_record =
+    struct keeto_keystore_record *keystore_record =
         malloc(sizeof *keystore_record);
     if (keystore_record == NULL) {
         return NULL;
@@ -401,7 +401,7 @@ new_keystore_record()
 
 /* destructors */
 void
-free_info(struct pox509_info *info)
+free_info(struct keeto_info *info)
 {
     if (info == NULL) {
         return;
@@ -416,7 +416,7 @@ free_info(struct pox509_info *info)
 }
 
 void
-free_ssh_server(struct pox509_ssh_server *ssh_server)
+free_ssh_server(struct keeto_ssh_server *ssh_server)
 {
     if (ssh_server == NULL) {
         return;
@@ -427,12 +427,12 @@ free_ssh_server(struct pox509_ssh_server *ssh_server)
 }
 
 void
-free_access_profiles(struct pox509_access_profiles *access_profiles)
+free_access_profiles(struct keeto_access_profiles *access_profiles)
 {
     if (access_profiles == NULL) {
         return;
     }
-    struct pox509_access_profile *access_profile = NULL;
+    struct keeto_access_profile *access_profile = NULL;
     while ((access_profile = TAILQ_FIRST(access_profiles))) {
         TAILQ_REMOVE(access_profiles, access_profile, next);
         free_access_profile(access_profile);
@@ -441,7 +441,7 @@ free_access_profiles(struct pox509_access_profiles *access_profiles)
 }
 
 void
-free_access_profile(struct pox509_access_profile *access_profile)
+free_access_profile(struct keeto_access_profile *access_profile)
 {
     if (access_profile == NULL) {
         return;
@@ -454,12 +454,12 @@ free_access_profile(struct pox509_access_profile *access_profile)
 }
 
 void
-free_key_providers(struct pox509_key_providers *key_providers)
+free_key_providers(struct keeto_key_providers *key_providers)
 {
     if (key_providers == NULL) {
         return;
     }
-    struct pox509_key_provider *key_provider = NULL;
+    struct keeto_key_provider *key_provider = NULL;
     while ((key_provider = TAILQ_FIRST(key_providers))) {
         TAILQ_REMOVE(key_providers, key_provider, next);
         free_key_provider(key_provider);
@@ -468,7 +468,7 @@ free_key_providers(struct pox509_key_providers *key_providers)
 }
 
 void
-free_key_provider(struct pox509_key_provider *key_provider)
+free_key_provider(struct keeto_key_provider *key_provider)
 {
     if (key_provider == NULL) {
         return;
@@ -480,12 +480,12 @@ free_key_provider(struct pox509_key_provider *key_provider)
 }
 
 void
-free_keys(struct pox509_keys *keys)
+free_keys(struct keeto_keys *keys)
 {
     if (keys == NULL) {
         return;
     }
-    struct pox509_key *key = NULL;
+    struct keeto_key *key = NULL;
     while ((key = TAILQ_FIRST(keys))) {
         TAILQ_REMOVE(keys, key, next);
         free_key(key);
@@ -494,7 +494,7 @@ free_keys(struct pox509_keys *keys)
 }
 
 void
-free_key(struct pox509_key *key)
+free_key(struct keeto_key *key)
 {
     if (key == NULL) {
         return;
@@ -506,7 +506,7 @@ free_key(struct pox509_key *key)
 }
 
 void
-free_keystore_options(struct pox509_keystore_options *keystore_options)
+free_keystore_options(struct keeto_keystore_options *keystore_options)
 {
     if (keystore_options == NULL) {
         return;
@@ -519,12 +519,12 @@ free_keystore_options(struct pox509_keystore_options *keystore_options)
 }
 
 void
-free_keystore_records(struct pox509_keystore_records *keystore_records)
+free_keystore_records(struct keeto_keystore_records *keystore_records)
 {
     if (keystore_records == NULL) {
         return;
     }
-    struct pox509_keystore_record *keystore_record = NULL;
+    struct keeto_keystore_record *keystore_record = NULL;
     while ((keystore_record = SIMPLEQ_FIRST(keystore_records))) {
         SIMPLEQ_REMOVE_HEAD(keystore_records, next);
         free_keystore_record(keystore_record);
@@ -533,7 +533,7 @@ free_keystore_records(struct pox509_keystore_records *keystore_records)
 }
 
 void
-free_keystore_record(struct pox509_keystore_record *keystore_record)
+free_keystore_record(struct keeto_keystore_record *keystore_record)
 {
     if (keystore_record == NULL) {
         return;

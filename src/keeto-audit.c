@@ -87,7 +87,7 @@ log_profile_type(char *attr, int value)
 }
 
 static void
-print_keystore_record(struct pox509_keystore_record *keystore_record)
+print_keystore_record(struct keeto_keystore_record *keystore_record)
 {
     if (keystore_record == NULL) {
         log_info("keystore_record empty");
@@ -102,20 +102,20 @@ print_keystore_record(struct pox509_keystore_record *keystore_record)
 }
 
 static void
-print_keystore_records(struct pox509_keystore_records *keystore_records)
+print_keystore_records(struct keeto_keystore_records *keystore_records)
 {
     if (keystore_records == NULL) {
         log_info("keystore_records empty");
         return;
     }
 
-    struct pox509_keystore_record *keystore_record = NULL;
+    struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
         print_keystore_record(keystore_record);
     }
 }
 static void
-print_keystore_options(struct pox509_keystore_options *keystore_options)
+print_keystore_options(struct keeto_keystore_options *keystore_options)
 {
     if (keystore_options == NULL) {
         log_info("keystore_options empty");
@@ -140,13 +140,13 @@ print_x509(X509 *x509)
     char *issuer = NULL;
     int rc = get_issuer_from_x509(x509, &issuer);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         log_string("x509->issuer", issuer);
         free(issuer);
         break;
     default:
         log_error("failed to obtain issuer from certificate (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
     }
 
     char *serial = get_serial_from_x509(x509);
@@ -160,18 +160,18 @@ print_x509(X509 *x509)
     char *subject = NULL;
     rc = get_subject_from_x509(x509, &subject);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         log_string("x509->subject", subject);
         free(subject);
         break;
     default:
         log_error("failed to obtain subject from certificate (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
     }
 }
 
 static void
-print_key(struct pox509_key *key)
+print_key(struct keeto_key *key)
 {
     if (key == NULL) {
         log_info("key empty");
@@ -184,21 +184,21 @@ print_key(struct pox509_key *key)
 }
 
 static void
-print_keys(struct pox509_keys *keys)
+print_keys(struct keeto_keys *keys)
 {
     if (keys == NULL) {
         log_info("keys empty");
         return;
     }
 
-    struct pox509_key *key = NULL;
+    struct keeto_key *key = NULL;
     TAILQ_FOREACH(key, keys, next) {
         print_key(key);
     }
 }
 
 static void
-print_key_provider(struct pox509_key_provider *key_provider)
+print_key_provider(struct keeto_key_provider *key_provider)
 {
     if (key_provider == NULL) {
         log_info("key_provider empty");
@@ -211,21 +211,21 @@ print_key_provider(struct pox509_key_provider *key_provider)
 }
 
 static void
-print_key_providers(struct pox509_key_providers *key_providers)
+print_key_providers(struct keeto_key_providers *key_providers)
 {
     if (key_providers == NULL) {
         log_info("key_providers empty");
         return;
     }
 
-    struct pox509_key_provider *key_provider = NULL;
+    struct keeto_key_provider *key_provider = NULL;
     TAILQ_FOREACH(key_provider, key_providers, next) {
         print_key_provider(key_provider);
     }
 }
 
 static void
-print_access_profile(struct pox509_access_profile *access_profile)
+print_access_profile(struct keeto_access_profile *access_profile)
 {
     if (access_profile == NULL) {
         log_info("access_profile empty");
@@ -240,14 +240,14 @@ print_access_profile(struct pox509_access_profile *access_profile)
 }
 
 static void
-print_access_profiles(struct pox509_access_profiles *access_profiles)
+print_access_profiles(struct keeto_access_profiles *access_profiles)
 {
     if (access_profiles == NULL) {
         log_info("access_profiles empty");
         return;
     }
 
-    struct pox509_access_profile *access_profile = NULL;
+    struct keeto_access_profile *access_profile = NULL;
     TAILQ_FOREACH(access_profile, access_profiles, next) {
         print_access_profile(access_profile);
         log_info(" ");
@@ -255,7 +255,7 @@ print_access_profiles(struct pox509_access_profiles *access_profiles)
 }
 
 static void
-print_ssh_server(struct pox509_ssh_server *ssh_server)
+print_ssh_server(struct keeto_ssh_server *ssh_server)
 {
     if (ssh_server == NULL) {
         log_info("ssh_server empty");
@@ -310,7 +310,7 @@ print_config(cfg_t *cfg)
 }
 
 static void
-print_info(struct pox509_info *info)
+print_info(struct keeto_info *info)
 {
     if (info == NULL) {
         log_info("info empty");
@@ -339,8 +339,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh == NULL");
     }
 
-    struct pox509_info *info = NULL;
-    int rc = pam_get_data(pamh, "pox509_info", (const void **) &info);
+    struct keeto_info *info = NULL;
+    int rc = pam_get_data(pamh, "keeto_info", (const void **) &info);
     if (rc != PAM_SUCCESS) {
         log_error("failed to get pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
@@ -350,9 +350,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     if (syslog_facility != NULL) {
         rc = set_syslog_facility(syslog_facility);
-        if (rc != POX509_OK) {
+        if (rc != KEETO_OK) {
             log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
-                pox509_strerror(rc));
+                keeto_strerror(rc));
         }
     }
     print_info(info);

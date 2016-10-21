@@ -36,7 +36,7 @@
 
 #define BUFFER_SIZE 4096
 
-static struct pox509_validate_x509_entry validate_x509_no_crl_check_lt[] = {
+static struct keeto_validate_x509_entry validate_x509_no_crl_check_lt[] = {
     { X509CERTSDIR "/untrusted-ca.pem", false },
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
@@ -50,7 +50,7 @@ static struct pox509_validate_x509_entry validate_x509_no_crl_check_lt[] = {
     { X509CERTSDIR "/valid4.pem", true }
 };
 
-static struct pox509_validate_x509_entry validate_x509_crl_check_lt[] = {
+static struct keeto_validate_x509_entry validate_x509_crl_check_lt[] = {
     { X509CERTSDIR "/untrusted-ca.pem", false },
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
@@ -73,9 +73,9 @@ setup_validate_x509_no_crl_check()
 {
     init_openssl();
     int rc = init_cert_store(CERTSTOREDIR, false);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         ck_abort_msg("failed to initialize cert store (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
     }
 }
 
@@ -84,9 +84,9 @@ setup_validate_x509_crl_check()
 {
     init_openssl();
     int rc = init_cert_store(CERTSTOREDIR, true);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         ck_abort_msg("failed to initialize cert store (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
     }
 }
 
@@ -143,9 +143,9 @@ START_TEST
         fclose(pem_file);
         char *ssh_key = NULL;
         int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &ssh_key);
-        if (rc != POX509_OK) {
+        if (rc != KEETO_OK) {
             fclose(keystore_records_file);
-            ck_abort_msg("failed to add key data (%s)", pox509_strerror(rc));
+            ck_abort_msg("failed to add key data (%s)", keeto_strerror(rc));
         }
         char keystore_record[BUFFER_SIZE];
         snprintf(keystore_record, sizeof keystore_record, "%s %s", ssh_keytype,
@@ -181,9 +181,9 @@ START_TEST
     fclose(x509_file);
 
     int rc = validate_x509(x509, &valid);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         free_x509(x509);
-        ck_abort_msg("failed to validate certificate (%s)", pox509_strerror(rc));
+        ck_abort_msg("failed to validate certificate (%s)", keeto_strerror(rc));
     }
     free_x509(x509);
 
@@ -212,9 +212,9 @@ START_TEST
     fclose(x509_file);
 
     int rc = validate_x509(x509, &valid);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         free_x509(x509);
-        ck_abort_msg("failed to validate certificate (%s)", pox509_strerror(rc));
+        ck_abort_msg("failed to validate certificate (%s)", keeto_strerror(rc));
     }
     free_x509(x509);
 

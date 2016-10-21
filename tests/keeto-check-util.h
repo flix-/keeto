@@ -27,18 +27,18 @@
 
 #include <check.h>
 
-struct pox509_file_readable_entry {
+struct keeto_file_readable_entry {
     char *file;
     mode_t mode;
     bool exp_result;
 };
 
-struct pox509_check_uid_entry {
+struct keeto_check_uid_entry {
     char *uid;
     bool exp_result;
 };
 
-struct pox509_substitute_token_entry {
+struct keeto_substitute_token_entry {
     char token;
     char *subst;
     char *src;
@@ -46,14 +46,14 @@ struct pox509_substitute_token_entry {
     char *exp_result;
 };
 
-struct pox509_create_ldap_search_filter_entry {
+struct keeto_create_ldap_search_filter_entry {
     char *rdn;
     char *uid;
     size_t dst_length;
     char *exp_result;
 };
 
-struct pox509_get_rdn_from_dn_entry {
+struct keeto_get_rdn_from_dn_entry {
     char *dn;
     int exp_res;
     char *exp_result;

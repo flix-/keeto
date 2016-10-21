@@ -69,7 +69,7 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
         fatal("pamh or data == NULL");
     }
 
-    struct pox509_info *info = data;
+    struct keeto_info *info = data;
     log_info("cleaning up");
     free_info(info);
     cleanup_openssl();
@@ -99,13 +99,13 @@ remove_keystore(char *keystore)
 }
 
 static int
-write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
+write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
 {
     if (keystore == NULL || keystore_records == NULL) {
         fatal("keystore or keystore_records == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
     /* create temporary file */
     char *template_suffix = "-XXXXXXX";
     size_t tmp_keystore_size = strlen(keystore) + strlen(template_suffix) + 1;
@@ -122,7 +122,7 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
     if (tmp_keystore_fd == -1) {
         log_error("failed to create temporary keystore file '%s' (%s)",
             tmp_keystore, strerror(errno));
-        return POX509_SYSTEM_ERR;
+        return KEETO_SYSTEM_ERR;
     }
 
     FILE *tmp_keystore_file = fdopen(tmp_keystore_fd, "w");
@@ -134,10 +134,10 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
             log_error("failed to close file descriptor of temporary keystore "
                 "file '%s' (%s)", tmp_keystore, strerror(errno));
         }
-        return POX509_SYSTEM_ERR;
+        return KEETO_SYSTEM_ERR;
     }
 
-    struct pox509_keystore_record *keystore_record = NULL;
+    struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
         bool command_option_set = keystore_record->command_option != NULL ?
             true : false;
@@ -169,41 +169,41 @@ write_keystore(char *keystore, struct pox509_keystore_records *keystore_records)
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",
             tmp_keystore, strerror(errno));
-        res = POX509_SYSTEM_ERR;
+        res = KEETO_SYSTEM_ERR;
         goto cleanup;
     }
     rc = rename(tmp_keystore, keystore);
     if (rc == -1) {
         log_error("failed to move temp keystore file from '%s' to '%s' (%s)",
             tmp_keystore, keystore, strerror(errno));
-        res = POX509_SYSTEM_ERR;
+        res = KEETO_SYSTEM_ERR;
         goto cleanup;
     }
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup:
     rc = fclose(tmp_keystore_file);
     if (rc != 0) {
         log_error("failed to flush stream and close file descriptor of "
             "temporary keystore file '%s' (%s)", tmp_keystore, strerror(errno));
-        return POX509_SYSTEM_ERR;
+        return KEETO_SYSTEM_ERR;
     }
     return res;
 }
 
 static int
-add_keystore_record(struct pox509_key_provider *key_provider,
-    struct pox509_keystore_options *keystore_options, struct pox509_key *key,
-    struct pox509_keystore_records *keystore_records)
+add_keystore_record(struct keeto_key_provider *key_provider,
+    struct keeto_keystore_options *keystore_options, struct keeto_key *key,
+    struct keeto_keystore_records *keystore_records)
 {
     if (key_provider == NULL || key == NULL || keystore_records == NULL) {
         fatal("key_provider, key or keystore_records == NULL");
     }
 
-    struct pox509_keystore_record *keystore_record = new_keystore_record();
+    struct keeto_keystore_record *keystore_record = new_keystore_record();
     if (keystore_record == NULL) {
         log_error("failed to allocate memory for keystore record");
-        return POX509_NO_MEMORY;
+        return KEETO_NO_MEMORY;
     }
 
     keystore_record->uid = key_provider->uid;
@@ -215,11 +215,11 @@ add_keystore_record(struct pox509_key_provider *key_provider,
     }
     SIMPLEQ_INSERT_TAIL(keystore_records, keystore_record, next);
 
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 static int
-post_process_key(struct pox509_key *key)
+post_process_key(struct keeto_key *key)
 {
     if (key == NULL) {
         fatal("key == NULL");
@@ -228,32 +228,32 @@ post_process_key(struct pox509_key *key)
     /* check certificate */
     bool valid = false;
     int rc = validate_x509(key->x509, &valid);
-    if (rc != POX509_OK) {
-        log_error("failed to validate certificate (%s)", pox509_strerror(rc));
-        return POX509_CERT_VALIDATION_ERR;
+    if (rc != KEETO_OK) {
+        log_error("failed to validate certificate (%s)", keeto_strerror(rc));
+        return KEETO_CERT_VALIDATION_ERR;
     }
     if (!valid) {
-        return POX509_INVALID_CERT;
+        return KEETO_INVALID_CERT;
     }
 
     /* add ssh key data */
     rc = add_ssh_key_data_from_x509(key->x509, key);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         break;
-    case POX509_NO_MEMORY:
+    case KEETO_NO_MEMORY:
         return rc;
     default:
-        log_error("failed to add key data (%s)", pox509_strerror(rc));
-        return POX509_KEY_TRANSFORM_ERR;
+        log_error("failed to add key data (%s)", keeto_strerror(rc));
+        return KEETO_KEY_TRANSFORM_ERR;
     }
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 static int
-post_process_key_provider(struct pox509_key_provider *key_provider,
-    struct pox509_keystore_options *keystore_options,
-    struct pox509_keystore_records *keystore_records)
+post_process_key_provider(struct keeto_key_provider *key_provider,
+    struct keeto_keystore_options *keystore_options,
+    struct keeto_keystore_records *keystore_records)
 {
     if (key_provider == NULL || keystore_records == NULL) {
         fatal("key_provider or keystore_records == NULL");
@@ -263,56 +263,56 @@ post_process_key_provider(struct pox509_key_provider *key_provider,
         fatal("key_provider->keys == NULL");
     }
 
-    struct pox509_key *key = NULL;
-    struct pox509_key *key_tmp = NULL;
+    struct keeto_key *key = NULL;
+    struct keeto_key *key_tmp = NULL;
     TAILQ_FOREACH_SAFE(key, key_provider->keys, next, key_tmp) {
         char *subject = NULL;
         int rc = get_subject_from_x509(key->x509, &subject);
         switch (rc) {
-        case POX509_OK:
+        case KEETO_OK:
             log_info("processing key '%s'", subject);
             free(subject);
             break;
-        case POX509_NO_MEMORY:
+        case KEETO_NO_MEMORY:
             return rc;
         default:
             log_error("failed to obtain subject from certificate (%s)",
-                pox509_strerror(rc));
+                keeto_strerror(rc));
         }
         rc = post_process_key(key);
         switch (rc) {
-        case POX509_OK:
+        case KEETO_OK:
             /* add key to keystore records */
             log_info("adding keystore record");
             rc = add_keystore_record(key_provider, keystore_options, key,
                 keystore_records);
             switch (rc) {
-            case POX509_OK:
+            case KEETO_OK:
                 break;
-            case POX509_NO_MEMORY:
+            case KEETO_NO_MEMORY:
                 return rc;
             default:
                 log_error("failed to add keystore record");
             }
             break;
-        case POX509_NO_MEMORY:
+        case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key (%s)", pox509_strerror(rc));
+            log_error("removing key (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(key_provider->keys, key, next);
             free_key(key);
         }
     }
     if (TAILQ_EMPTY(key_provider->keys)) {
-        return POX509_NO_KEY;
+        return KEETO_NO_KEY;
     }
 
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 static int
-post_process_access_profile(struct pox509_access_profile *access_profile,
-    struct pox509_keystore_records *keystore_records)
+post_process_access_profile(struct keeto_access_profile *access_profile,
+    struct keeto_keystore_records *keystore_records)
 {
     if (access_profile == NULL || keystore_records == NULL) {
         fatal("access_profile or keystore_records == NULL");
@@ -322,8 +322,8 @@ post_process_access_profile(struct pox509_access_profile *access_profile,
         fatal("access_profile->key_providers == NULL");
     }
 
-    struct pox509_key_provider *key_provider = NULL;
-    struct pox509_key_provider *key_provider_tmp = NULL;
+    struct keeto_key_provider *key_provider = NULL;
+    struct keeto_key_provider *key_provider_tmp = NULL;
     TAILQ_FOREACH_SAFE(key_provider, access_profile->key_providers, next,
         key_provider_tmp) {
 
@@ -331,24 +331,24 @@ post_process_access_profile(struct pox509_access_profile *access_profile,
         int rc = post_process_key_provider(key_provider,
             access_profile->keystore_options, keystore_records);
         switch (rc) {
-        case POX509_OK:
+        case KEETO_OK:
             break;
-        case POX509_NO_MEMORY:
+        case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key provider (%s)", pox509_strerror(rc));
+            log_error("removing key provider (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(access_profile->key_providers, key_provider, next);
             free_key_provider(key_provider);
         }
     }
     if (TAILQ_EMPTY(access_profile->key_providers)) {
-        return POX509_NO_KEY_PROVIDER;
+        return KEETO_NO_KEY_PROVIDER;
     }
-    return POX509_OK;
+    return KEETO_OK;
 }
 
 static int
-post_process_access_profiles(struct pox509_info *info)
+post_process_access_profiles(struct keeto_info *info)
 {
     if (info == NULL) {
         fatal("info == NULL");
@@ -358,39 +358,39 @@ post_process_access_profiles(struct pox509_info *info)
         fatal("info->access_profiles == NULL");
     }
 
-    int res = POX509_UNKNOWN_ERR;
+    int res = KEETO_UNKNOWN_ERR;
 
     /* init cert store for subsequent x509 validation */
     char *cert_store_dir = cfg_getstr(info->cfg, "cert_store_dir");
     bool check_crl = cfg_getint(info->cfg, "check_crl");
     int rc = init_cert_store(cert_store_dir, check_crl);
-    if (rc != POX509_OK) {
-        log_error("failed to initialize cert store (%s)", pox509_strerror(rc));
+    if (rc != KEETO_OK) {
+        log_error("failed to initialize cert store (%s)", keeto_strerror(rc));
         return rc;
     }
 
-    struct pox509_keystore_records *keystore_records = new_keystore_records();
+    struct keeto_keystore_records *keystore_records = new_keystore_records();
     if (keystore_records == NULL) {
         log_error("failed to allocate memory for keystore records");
-        res = POX509_NO_MEMORY;
+        res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
 
-    struct pox509_access_profile *access_profile = NULL;
-    struct pox509_access_profile *access_profile_tmp = NULL;
+    struct keeto_access_profile *access_profile = NULL;
+    struct keeto_access_profile *access_profile_tmp = NULL;
     TAILQ_FOREACH_SAFE(access_profile, info->access_profiles, next,
         access_profile_tmp) {
 
         log_info("processing access profile '%s'", access_profile->uid);
         int rc = post_process_access_profile(access_profile, keystore_records);
         switch (rc) {
-        case POX509_OK:
+        case KEETO_OK:
             break;
-        case POX509_NO_MEMORY:
+        case KEETO_NO_MEMORY:
             res = rc;
             goto cleanup_b;
         default:
-            log_error("removing access profile (%s)", pox509_strerror(rc));
+            log_error("removing access profile (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(info->access_profiles, access_profile, next);
             free_access_profile(access_profile);
         }
@@ -398,12 +398,12 @@ post_process_access_profiles(struct pox509_info *info)
     if (TAILQ_EMPTY(info->access_profiles)) {
         free_access_profiles(info->access_profiles);
         info->access_profiles = NULL;
-        res = POX509_NO_ACCESS_PROFILE;
+        res = KEETO_NO_ACCESS_PROFILE;
         goto cleanup_b;
     }
     info->keystore_records = keystore_records;
     keystore_records = NULL;
-    res = POX509_OK;
+    res = KEETO_OK;
 
 cleanup_b:
     if (keystore_records != NULL) {
@@ -433,14 +433,14 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     /* initialize info object */
-    struct pox509_info *info = new_info();
+    struct keeto_info *info = new_info();
     if (info == NULL) {
         log_error("failed to allocate memory for info");
         return PAM_BUF_ERR;
     }
 
     /* make info object available to module stack */
-    int rc = pam_set_data(pamh, "pox509_info", info, &cleanup);
+    int rc = pam_set_data(pamh, "keeto_info", info, &cleanup);
     if (rc != PAM_SUCCESS) {
         log_error("failed to set pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
@@ -456,9 +456,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* set syslog facility */
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
     rc = set_syslog_facility(syslog_facility);
-    if (rc != POX509_OK) {
+    if (rc != KEETO_OK) {
         log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
-            pox509_strerror(rc));
+            keeto_strerror(rc));
     }
 
     /* retrieve uid */
@@ -478,8 +478,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     bool uid_valid = false;
     char *uid_regex = cfg_getstr(info->cfg, "uid_regex");
     rc = check_uid(uid_regex, uid, &uid_valid);
-    if (rc != POX509_OK) {
-        log_error("failed to check uid (%s)", pox509_strerror(rc));
+    if (rc != KEETO_OK) {
+        log_error("failed to check uid (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
     if (!uid_valid) {
@@ -515,12 +515,12 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* get access profiles from ldap */
     rc = get_access_profiles_from_ldap(info);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         break;
-    case POX509_NO_MEMORY:
+    case KEETO_NO_MEMORY:
         log_error("system is out of memory");
         return PAM_BUF_ERR;
-    case POX509_LDAP_CONNECTION_ERR:
+    case KEETO_LDAP_CONNECTION_ERR:
         log_error("failed to connect to ldap");
         info->ldap_online = 0;
         bool ldap_strict = cfg_getint(info->cfg, "ldap_strict");
@@ -529,13 +529,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
             return PAM_AUTH_ERR;
         }
         return PAM_SUCCESS;
-    case POX509_NO_ACCESS_PROFILE:
+    case KEETO_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
         remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 
@@ -546,18 +546,18 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     log_info("post processing access profiles");
     rc = post_process_access_profiles(info);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         break;
-    case POX509_NO_MEMORY:
+    case KEETO_NO_MEMORY:
         log_error("system is out of memory");
         return PAM_BUF_ERR;
-    case POX509_NO_ACCESS_PROFILE:
+    case KEETO_NO_ACCESS_PROFILE:
         log_info("access profile list empty");
         remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
         log_error("failed to post process access profiles (%s)",
-            pox509_strerror(rc));
+            keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 
@@ -565,10 +565,10 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     log_info("writing keystore file '%s'", info->ssh_keystore_location);
     rc = write_keystore(info->ssh_keystore_location, info->keystore_records);
     switch (rc) {
-    case POX509_OK:
+    case KEETO_OK:
         break;
     default:
-        log_error("failed to write keystore file (%s)", pox509_strerror(rc));
+        log_error("failed to write keystore file (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
 

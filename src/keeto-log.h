@@ -22,15 +22,15 @@
 
 #define log_debug(...) \
 do { \
-if (DEBUG) pox509_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
 } while (0)
-#define fatal(...) pox509_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define fatal(...) keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
 void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void pox509_log_debug(const char *filename, const char *function, int line,
+void keeto_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
-void pox509_fatal(const char *filename, const char *function, int line,
+void keeto_fatal(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((noreturn))
     __attribute__((format(printf, 4, 5)));
 int set_syslog_facility(const char *syslog_facility);
