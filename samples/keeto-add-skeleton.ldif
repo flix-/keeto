@@ -2,8 +2,8 @@ dn: dc=keeto,dc=io
 objectClass: top
 objectClass: dcObject
 objectClass: organization
-dc: ssh
-o: ssh headquarter
+dc: keeto
+o: keeto.io
 
 dn: ou=people,dc=keeto,dc=io
 objectClass: top
