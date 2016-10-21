@@ -22,5 +22,5 @@ tests/.deps
 build-aux
 aclocal.m4
 m4
-tests/pox509-check
+tests/keeto-check
 
