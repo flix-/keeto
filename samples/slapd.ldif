@@ -55,10 +55,10 @@ dn: olcDatabase=hdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
 olcDatabase: hdb
-olcSuffix: dc=ssh,dc=hq
-olcRootDN: cn=directory-manager,dc=ssh,dc=hq
+olcSuffix: dc=keeto,dc=io
+olcRootDN: cn=directory-manager,dc=keeto,dc=io
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
-olcDbDirectory: /var/lib/openldap/dc=ssh,dc=hq
+olcDbDirectory: /var/lib/openldap/dc=keeto,dc=io
 olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq

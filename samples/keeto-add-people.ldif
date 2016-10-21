@@ -1,4 +1,4 @@
-dn: cn=foo,ou=people,dc=ssh,dc=hq
+dn: cn=foo,ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -65,7 +65,7 @@ userCertificate;binary::
  UIzRl+b+czXpPc8lOBJwf2FMGzXcVB97RimFtXd3ZhxSWE5IpiyoBdiZgYubnbrc
  K6Cd
 
-dn: cn=bar,ou=people,dc=ssh,dc=hq
+dn: cn=bar,ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -109,7 +109,7 @@ userCertificate;binary::
  pf/aqZU9lWiBKn0Q46mrRvDJQuuD6la7cpneL/9c/u94vRhzMPaHnFDvNBXVybYY
  XdOMtSi84x8xufDZDi0XS8FAuysaNyWNpD8oKqNe7YYU
 
-dn: cn=tux,ou=people,dc=ssh,dc=hq
+dn: cn=tux,ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -118,7 +118,7 @@ cn: tux
 sn: tux
 uid: tux
 
-dn: cn=tux_legacy,ou=people,dc=ssh,dc=hq
+dn: cn=tux_legacy,ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -155,14 +155,14 @@ userCertificate;binary::
  5padJrNt9kte0lDTkGJUo6Lo4qUtMxY2moVU0P33RHvTeC58LE3+AmFOfFPsHjVO
  yFDaFtX1a+AohVtPq1e89uMAwpqvTV8n4c0=
 
-dn: cn=pox509-test-user,ou=people,dc=ssh,dc=hq
+dn: cn=keeto-test-user,ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-cn: pox509-test-user
-sn: pox509-test-user
-uid: pox509-test-user
+cn: keeto-test-user
+sn: keeto-test-user
+uid: keeto-test-user
 userCertificate;binary:: 
  MIIFNzCCAx+gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBCMRcwFQYDVQQDDA4wMS1j
  YS1pbnQtdXNlcjETMBEGCgmSJomT8ixkARkWA3NzaDESMBAGCgmSJomT8ixkARkW

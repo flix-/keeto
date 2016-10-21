@@ -1,33 +1,33 @@
-dn: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=keeto,dc=io
 objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509AccessOnBehalfProfile
+objectClass: keetoAccessProfile
+objectClass: keetoAccessOnBehalfProfile
 cn: access-on-behalf-1
-pox509TargetKeystore: cn=db2postgresmysql,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: FALSE
+keetoTargetKeystore: cn=db2postgresmysql,ou=technical-accounts,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeystoreOptions: cn=command-only,ou=keystore-options,ou=ssh,dc=keeto,dc=io
+keetoEnabled: FALSE
 description: access-on-behalf-1 profile
 
-dn: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=keeto,dc=io
 objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509AccessOnBehalfProfile
+objectClass: keetoAccessProfile
+objectClass: keetoAccessOnBehalfProfile
 cn: access-on-behalf-2
-pox509TargetKeystore: cn=db2postgres,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: TRUE
+keetoTargetKeystore: cn=db2postgres,ou=technical-accounts,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeystoreOptions: cn=no-options,ou=keystore-options,ou=ssh,dc=keeto,dc=io
+keetoEnabled: TRUE
 description: access-on-behalf-2 profile
 
-dn: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=ssh,dc=hq
+dn: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=keeto,dc=io
 objectClass: top
-objectClass: pox509AccessProfile
-objectClass: pox509AccessOnBehalfProfile
+objectClass: keetoAccessProfile
+objectClass: keetoAccessOnBehalfProfile
 cn: access-on-behalf-3
-pox509TargetKeystore: cn=db2,ou=technical-users,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=ssh,dc=hq
-pox509KeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=ssh,dc=hq
-pox509Enabled: FALSE
+keetoTargetKeystore: cn=db2,ou=technical-accounts,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeyProvider: cn=all,ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
+keetoKeystoreOptions: cn=from-only,ou=keystore-options,ou=ssh,dc=keeto,dc=io
+keetoEnabled: FALSE
 description: access-on-behalf-3 profile
 
