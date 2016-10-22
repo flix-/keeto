@@ -19,6 +19,7 @@ stamp-h1
 src/.deps
 src/.libs
 tests/.deps
+tools/pam-client/keeto-pam-client
 build-aux
 aclocal.m4
 m4
