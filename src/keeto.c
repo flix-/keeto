@@ -504,8 +504,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to allocate memory for ssh keystore location buffer");
         return PAM_BUF_ERR;
     }
-    char *ssh_keystore_location =
-        cfg_getstr(info->cfg, "ssh_keystore_location");
+    char *ssh_keystore_location = cfg_getstr(info->cfg, "ssh_keystore_location");
     substitute_token('u', info->uid, ssh_keystore_location,
         info->ssh_keystore_location, SSH_KEYSTORE_LOCATION_BUFFER_SIZE);
 
