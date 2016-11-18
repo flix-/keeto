@@ -103,10 +103,9 @@ str_to_enum(enum keeto_section section, const char *key)
     struct keeto_str_to_enum_entry *str_to_enum_entry;
     for (str_to_enum_entry = str_to_enum_lt[section];
         str_to_enum_entry->key != NULL; str_to_enum_entry++) {
-        if (strcmp(str_to_enum_entry->key, key) != 0) {
-            continue;
+        if (strcmp(str_to_enum_entry->key, key) == 0) {
+            return str_to_enum_entry->value;
         }
-        return str_to_enum_entry->value;
     }
     return KEETO_NO_SUCH_VALUE;
 }
