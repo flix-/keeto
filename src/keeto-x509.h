@@ -30,7 +30,7 @@
     (cp)[0] = (unsigned char)((value) >> 24), \
     (cp)[1] = (unsigned char)((value) >> 16), \
     (cp)[2] = (unsigned char)((value) >> 8), \
-    (cp)[3] = (unsigned char)(value) )
+    (cp)[3] = (unsigned char)(value))
 
 void init_openssl();
 void cleanup_openssl();
