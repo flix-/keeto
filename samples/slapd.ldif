@@ -15,21 +15,6 @@ olcLogLevel: stats
 # cn=module #
 #############
 
-#############
-# cn=schema #
-#############
-dn: cn=schema,cn=config
-objectClass: olcSchemaConfig
-cn: schema
-
-include: file:///etc/openldap/schema/core.ldif
-include: file:///etc/openldap/schema/cosine.ldif
-include: file:///etc/openldap/schema/inetorgperson.ldif
-include: file:///etc/openldap/schema/openldap.ldif
-include: file:///etc/openldap/schema/nis.ldif
-include: file:///etc/openldap/schema/misc.ldif
-include: file:///etc/openldap/schema/keeto.ldif
-
 ################
 # olcBackend=x #
 ################
@@ -62,4 +47,19 @@ olcDbDirectory: /var/lib/openldap/dc=keeto,dc=io
 olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq
+
+#############
+# cn=schema #
+#############
+dn: cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: schema
+
+include: file:///etc/openldap/schema/core.ldif
+include: file:///etc/openldap/schema/cosine.ldif
+include: file:///etc/openldap/schema/inetorgperson.ldif
+include: file:///etc/openldap/schema/openldap.ldif
+include: file:///etc/openldap/schema/nis.ldif
+include: file:///etc/openldap/schema/misc.ldif
+include: file:///etc/openldap/schema/keeto.ldif
 
