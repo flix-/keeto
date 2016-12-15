@@ -49,8 +49,8 @@ olcObjectClasses:	( 1.0.86.86.86.86.2.2.2
   DESC 'access profile'
   SUP top
   ABSTRACT
-  MUST ( cn $ keetoKeyProvider $ keetoEnabled )
-  MAY ( description $ keetoKeystoreOptions ) )
+  MUST ( cn $ keetoEnabled $ keetoKeyProvider )
+  MAY ( keetoKeystoreOptions $ description ) )
 olcObjectClasses:	( 1.0.86.86.86.86.2.2.3
   NAME 'keetoDirectAccessProfile'
   DESC 'direct access profile'
@@ -70,4 +70,3 @@ olcObjectClasses:	( 1.0.86.86.86.86.2.2.5
   MUST cn
   MAY ( keetoKeystoreOptionFrom $ keetoKeystoreOptionCommand $
   description ) )
-

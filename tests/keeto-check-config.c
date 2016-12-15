@@ -32,7 +32,7 @@ static char *config_neg_lt[] = {
     CONFIGSDIR "/ldap_bind_dn_neg.conf",
     CONFIGSDIR "/ldap_search_timeout_neg.conf",
     CONFIGSDIR "/ldap_strict_neg.conf",
-    CONFIGSDIR "/ldap_ssh_server_base_dn_neg.conf",
+    CONFIGSDIR "/ldap_ssh_server_search_base_neg.conf",
     CONFIGSDIR "/ldap_ssh_server_search_scope_neg.conf",
     CONFIGSDIR "/cert_store_dir_neg.conf",
     CONFIGSDIR "/check_crl_neg.conf",

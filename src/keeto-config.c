@@ -247,19 +247,19 @@ parse_config(const char *cfg_file)
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
         CFG_INT("ldap_strict", 0, CFGF_NONE),
 
-        CFG_STR("ldap_ssh_server_base_dn", "ou=server,ou=ssh,dc=keeto,dc=io",
+        CFG_STR("ldap_ssh_server_search_base", "ou=server,ou=ssh,dc=keeto,dc=io",
             CFGF_NONE),
         CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
         CFG_STR("ssh_server_uid", "keeto-test-server", CFGF_NONE),
 
-        CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
-        CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
-
         CFG_STR("ldap_key_provider_group_member_attr", "member", CFGF_NONE),
         CFG_STR("ldap_key_provider_uid_attr", "uid", CFGF_NONE),
         CFG_STR("ldap_key_provider_cert_attr", "userCertificate;binary",
             CFGF_NONE),
+
+        CFG_STR("ldap_target_keystore_group_member_attr", "member", CFGF_NONE),
+        CFG_STR("ldap_target_keystore_uid_attr", "uid", CFGF_NONE),
 
         CFG_STR("ssh_keystore_location", "/etc/ssh/authorized_keys/%u",
             CFGF_NONE),
@@ -287,7 +287,7 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "ldap_search_timeout",
         &cfg_validate_ldap_search_timeout);
     cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
-    cfg_set_validate_func(cfg, "ldap_ssh_server_base_dn",
+    cfg_set_validate_func(cfg, "ldap_ssh_server_search_base",
         &cfg_validate_ldap_dn);
     cfg_set_validate_func(cfg, "cert_store_dir", &cfg_validate_cert_store_dir);
     cfg_set_validate_func(cfg, "check_crl", &cfg_validate_boolean);

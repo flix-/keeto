@@ -1078,7 +1078,7 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    char *ssh_server_base_dn = cfg_getstr(info->cfg, "ldap_ssh_server_base_dn");
+    char *ssh_server_search_base = cfg_getstr(info->cfg, "ldap_ssh_server_search_base");
     int ssh_server_search_scope =
         cfg_getint(info->cfg, "ldap_ssh_server_search_scope");
     /* construct search filter */
@@ -1095,11 +1095,11 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
 
     /* query ldap for ssh server entry */
     LDAPMessage *ssh_server_entry = NULL;
-    rc = ldap_search_ext_s(ldap_handle, ssh_server_base_dn,
+    rc = ldap_search_ext_s(ldap_handle, ssh_server_search_base,
         ssh_server_search_scope, filter, attrs, 0, NULL, NULL, &search_timeout,
         1, &ssh_server_entry);
     if (rc != LDAP_SUCCESS) {
-        log_error("failed to search ldap: base '%s' (%s)", ssh_server_base_dn,
+        log_error("failed to search ldap: base '%s' (%s)", ssh_server_search_base,
             ldap_err2string(rc));
         res = KEETO_LDAP_NO_SUCH_ENTRY;
         goto cleanup_a;

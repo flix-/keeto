@@ -283,8 +283,8 @@ print_config(cfg_t *cfg)
     log_int("cfg->ldap_search_timeout", cfg_getint(cfg, "ldap_search_timeout"));
     log_bool("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 
-    log_string("cfg->ldap_ssh_server_base_dn", cfg_getstr(cfg,
-        "ldap_ssh_server_base_dn"));
+    log_string("cfg->ldap_ssh_server_search_base", cfg_getstr(cfg,
+        "ldap_ssh_server_search_base"));
     log_int("cfg->ldap_ssh_server_search_scope", cfg_getint(cfg,
         "ldap_ssh_server_search_scope"));
     log_string("cfg->ssh_server_uid", cfg_getstr(cfg, "ssh_server_uid"));
