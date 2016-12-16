@@ -291,10 +291,10 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
             log_info("skipped target keystore");
             goto cleanup_inner;
         }
-        /* get uid of target keystore */
-        char **target_keystore_uid = NULL;
+        /* get uids of target keystore */
+        char **target_keystore_uids = NULL;
         rc = get_attr_values_as_string(ldap_handle, target_keystore_entry,
-            target_keystore_uid_attr, &target_keystore_uid);
+            target_keystore_uid_attr, &target_keystore_uids);
         switch (rc) {
         case KEETO_OK:
             break;
@@ -303,16 +303,19 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
             ldap_msgfree(target_keystore_entry);
             goto cleanup_c;
         default:
-            log_error("failed to obtain target keystore uid: attribute '%s' (%s)",
+            log_error("failed to obtain target keystore uids: attribute '%s' (%s)",
                 target_keystore_uid_attr, keeto_strerror(rc));
             log_info("skipped target keystore");
             goto cleanup_inner;
         }
-        /* check uid */
-        if (strcmp(info->uid, target_keystore_uid[0]) == 0) {
-            relevant = true;
+        /* check uids */
+        for (int j = 0; target_keystore_uids[j] != NULL; j++) {
+            if (strcmp(target_keystore_uids[j], info->uid) == 0) {
+                relevant = true;
+                break;
+            }
         }
-        free_attr_values_as_string(target_keystore_uid);
+        free_attr_values_as_string(target_keystore_uids);
 cleanup_inner:
         ldap_msgfree(target_keystore_entry);
     }
@@ -604,19 +607,19 @@ add_key_provider(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    /* get key provider uid */
+    /* get key provider uids */
     char *key_provider_uid_attr = cfg_getstr(info->cfg,
         "ldap_key_provider_uid_attr");
-    char **key_provider_uid = NULL;
+    char **key_provider_uids = NULL;
     int rc = get_attr_values_as_string(ldap_handle, key_provider_entry,
-        key_provider_uid_attr, &key_provider_uid);
+        key_provider_uid_attr, &key_provider_uids);
     switch (rc) {
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
         return rc;
     default:
-        log_error("failed to obtain key provider uid: attribute '%s' (%s)",
+        log_error("failed to obtain key provider uids: attribute '%s' (%s)",
             key_provider_uid_attr, keeto_strerror(rc));
         return KEETO_LDAP_SCHEMA_ERR;
     }
@@ -626,9 +629,14 @@ add_key_provider(LDAP *ldap_handle, struct keeto_info *info,
      * currently logging in.
      */
     if (access_profile->type == DIRECT_ACCESS_PROFILE) {
-        bool authorized = strcmp(key_provider_uid[0], info->uid) == 0 ?
-            true : false;
-        if (!authorized) {
+        bool relevant = false;
+        for (int i = 0; key_provider_uids[i] != NULL; i++) {
+            if (strcmp(key_provider_uids[i], info->uid) == 0) {
+                relevant = true;
+                break;
+            }
+        }
+        if (!relevant) {
             res = KEETO_NOT_RELEVANT;
             goto cleanup_a;
         }
@@ -646,7 +654,7 @@ add_key_provider(LDAP *ldap_handle, struct keeto_info *info,
         res = KEETO_LDAP_ERR;
         goto cleanup_b;
     }
-    key_provider->uid = strdup(key_provider_uid[0]);
+    key_provider->uid = strdup(key_provider_uids[0]);
     if (key_provider->uid == NULL) {
         log_error("failed to duplicate key provider uid");
         res = KEETO_NO_MEMORY;
@@ -669,7 +677,7 @@ cleanup_b:
         free_key_provider(key_provider);
     };
 cleanup_a:
-    free_attr_values_as_string(key_provider_uid);
+    free_attr_values_as_string(key_provider_uids);
     return res;
 }
 
@@ -1078,9 +1086,10 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    char *ssh_server_search_base = cfg_getstr(info->cfg, "ldap_ssh_server_search_base");
-    int ssh_server_search_scope =
-        cfg_getint(info->cfg, "ldap_ssh_server_search_scope");
+    char *ssh_server_search_base = cfg_getstr(info->cfg,
+        "ldap_ssh_server_search_base");
+    int ssh_server_search_scope = cfg_getint(info->cfg,
+        "ldap_ssh_server_search_scope");
     /* construct search filter */
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
