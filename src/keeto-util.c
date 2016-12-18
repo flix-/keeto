@@ -175,7 +175,7 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
     }
 
     int cdt = 0;
-    int j = 0;
+    unsigned int j = 0;
     size_t strlen_subst = strlen(subst);
     for (int i = 0; (src[i] != '\0') && (j < dst_length - 1); i++) {
         if (cdt) {
@@ -183,7 +183,7 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
             if (src[i] == token) {
                 j--;
                 /* substitute token in dst buffer */
-                int k;
+                unsigned int k;
                 for (k = 0; (j < dst_length - 1) && (k < strlen_subst); k++) {
                     dst[j++] = subst[k];
                 }
