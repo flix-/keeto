@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
