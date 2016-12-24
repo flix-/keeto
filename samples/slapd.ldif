@@ -7,32 +7,13 @@ cn: config
 olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
-#olcTLSCACertificatePath: /usr/local/etc/ssh/cacerts/
+#olcTLSCACertificatePath: /etc/ssh/cert_store
 #olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
 #olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
 
 #############
 # cn=module #
 #############
-dn: cn=module,cn=config
-objectClass: olcModuleList
-cn: module
-olcModulePath: /usr/lib/openldap
-olcModuleLoad: memberof
-
-#############
-# cn=schema #
-#############
-dn: cn=schema,cn=config
-objectClass: olcSchemaConfig
-cn: schema
-
-include: file:///etc/openldap/schema/core.ldif
-include: file:///etc/openldap/schema/cosine.ldif
-include: file:///etc/openldap/schema/inetorgperson.ldif
-include: file:///etc/openldap/schema/openldap.ldif
-include: file:///etc/openldap/schema/nis.ldif
-include: file:///etc/openldap/schema/misc.ldif
 
 ################
 # olcBackend=x #
@@ -52,26 +33,33 @@ dn: olcDatabase=config,cn=config
 objectClass: olcDatabaseConfig
 olcDatabase: config
 olcRootDN: cn=directory-manager,cn=config
-olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4 
+olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
 
 # olcDatabase=hdb
 dn: olcDatabase=hdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
 olcDatabase: hdb
-olcSuffix: dc=ssh,dc=hq
-olcRootDN: cn=directory-manager,dc=ssh,dc=hq
+olcSuffix: dc=keeto,dc=io
+olcRootDN: cn=directory-manager,dc=keeto,dc=io
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
-olcDbDirectory:	/var/lib/openldap/dc=ssh,dc=hq
+olcDbDirectory: /var/lib/openldap/dc=keeto,dc=io
 olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq
 
-# add memberof overlay
-dn: olcOverlay=memberof,olcDatabase={1}hdb,cn=config
-objectClass: olcMemberOf
-olcOverlay: memberof
-olcMemberOfGroupOC: groupOfNames
-olcMemberOfMemberAD: member
-olcMemberOfMemberOfAD: memberOf
+#############
+# cn=schema #
+#############
+dn: cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: schema
+
+include: file:///etc/openldap/schema/core.ldif
+include: file:///etc/openldap/schema/cosine.ldif
+include: file:///etc/openldap/schema/inetorgperson.ldif
+include: file:///etc/openldap/schema/openldap.ldif
+include: file:///etc/openldap/schema/nis.ldif
+include: file:///etc/openldap/schema/misc.ldif
+include: file:///etc/openldap/schema/keeto.ldif
 

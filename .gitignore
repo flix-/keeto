@@ -8,7 +8,6 @@
 Makefile
 Makefile.in
 libtool
-tests/pox509-check
 autom4te.cache
 autoscan.log
 config.cache
@@ -20,8 +19,9 @@ stamp-h1
 src/.deps
 src/.libs
 tests/.deps
+tools/pam-client/keeto-pam-client
 build-aux
 aclocal.m4
 m4
-doc/html
+tests/keeto-check
 

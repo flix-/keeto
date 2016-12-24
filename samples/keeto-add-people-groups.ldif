@@ -1,0 +1,11 @@
+dn: cn=all,ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: groupOfNames
+cn: all
+member: cn=foo,ou=people,dc=keeto,dc=io
+member: cn=bar,ou=people,dc=keeto,dc=io
+member: cn=tux,ou=people,dc=keeto,dc=io
+member: cn=tux_legacy,ou=people,dc=keeto,dc=io
+member: cn=keeto-test-user,ou=people,dc=keeto,dc=io
+description: all group
+

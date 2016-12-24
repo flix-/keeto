@@ -1,0 +1,52 @@
+dn: dc=keeto,dc=io
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+dc: keeto
+o: keeto.io
+
+dn: ou=people,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=technical-accounts,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: technical-accounts
+
+dn: ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: ssh
+
+dn: ou=groups,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=technical-accounts,ou=groups,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: technical-accounts
+
+dn: ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=keystore-options,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: keystore-options
+
+dn: ou=access-profiles,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: access-profiles
+
+dn: ou=server,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: server
+
