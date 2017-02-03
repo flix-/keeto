@@ -10,7 +10,7 @@ URL: https://keeto.io
 Source0: https://keeto.io/static/downloads/keeto-0.2.0-beta/keeto-0.2.0-beta.tar.gz
 BuildRequires: gcc
 BuildRequires: make
-BuildRequires: pkgconfig >= 0.9.9
+BuildRequires: pkgconfig
 BuildRequires: pam-devel
 BuildRequires: libconfuse-devel >= 2.7
 BuildRequires: check-devel >= 0.9.9
