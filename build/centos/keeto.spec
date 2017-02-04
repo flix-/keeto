@@ -58,6 +58,6 @@ make check
 %license COPYING
 
 %changelog
-* Fri Feb 03 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.1.beta
+* Sat Feb 04 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.1.beta
 - Initial package
 
