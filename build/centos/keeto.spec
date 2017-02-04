@@ -32,14 +32,14 @@ key material in an automated and secure manner.
 %configure --libdir=%{_libdir}/security
 %make_build
 
-%check
-make check
-
 %install
 %make_install
 install --directory %{buildroot}/etc/ssh/authorized_keys
 install --directory %{buildroot}/etc/ssh/cert_store
 install samples/keeto.conf %{buildroot}/etc/ssh/
+
+%check
+make check
 
 %files
 %{_libdir}/security/pam_keeto.la
@@ -49,7 +49,7 @@ install samples/keeto.conf %{buildroot}/etc/ssh/
 %dir %attr(0711, root, root) /etc/ssh/authorized_keys
 %dir %attr(0700, root, root) /etc/ssh/cert_store
 %config(noreplace) %attr(0600, root, root) /etc/ssh/keeto.conf
-%doc samples
+%doc samples/*
 %doc AUTHORS
 %doc ChangeLog
 %doc INSTALL
