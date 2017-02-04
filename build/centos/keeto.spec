@@ -49,7 +49,7 @@ make check
 %dir %attr(0711, root, root) /etc/ssh/authorized_keys
 %dir %attr(0700, root, root) /etc/ssh/cert_store
 %config(noreplace) %attr(0600, root, root) /etc/ssh/keeto.conf
-%doc samples/*
+%doc samples
 %doc AUTHORS
 %doc ChangeLog
 %doc INSTALL
