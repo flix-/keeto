@@ -1,4 +1,4 @@
-# Prelude.
+# prelude.
 AC_PREREQ([2.69])
 AC_INIT([keeto], [0.2.0-beta], [seroland86@gmail.com], [], [https://keeto.io])
 AC_LANG([C])
@@ -9,13 +9,16 @@ AM_INIT_AUTOMAKE([gnu subdir-objects -Wall -Werror])
 AM_PROG_AR
 LT_INIT([disable-static dlopen pic-only])
 
-# Checks for programs.
+# checks for programs.
 AC_PROG_CC
+
+# add for legacy reasons.
+AM_PROG_CC_C_O
 
 # define preprocessor symbols.
 AC_DEFINE(DEBUG, 0)
 
-# Checks for libraries.
+# checks for libraries.
 PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
     [AC_MSG_ERROR([cannot find libcheck (>= 0.9.9)])])
 PKG_CHECK_MODULES([libconfuse], [libconfuse >= 2.7], [],
@@ -40,13 +43,13 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
 # set compiler flags
 AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])
 
-# Checks for header files.
+# checks for header files.
 
-# Checks for typedefs, structures, and compiler characteristics.
+# checks for typedefs, structures, and compiler characteristics.
 
-# Checks for library functions.
+# checks for library functions.
 
-# Output files.
+# output files.
 #AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_OUTPUT
