@@ -5,6 +5,9 @@
 .dirstamp
 *.log
 *.trs
+*.swp
+*.swo
+*~
 Makefile
 Makefile.in
 libtool
