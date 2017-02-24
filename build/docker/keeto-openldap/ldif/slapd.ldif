@@ -1,0 +1,65 @@
+#############
+# cn=config #
+#############
+dn: cn=config
+objectClass: olcGlobal
+cn: config
+olcArgsFile: /run/openldap/slapd.args
+olcPidFile: /run/openldap/slapd.pid
+olcLogLevel: stats
+#olcTLSCACertificatePath: /etc/ssh/cert_store
+#olcTLSCertificateFile: /etc/openldap/certs/10-ee-server-1-cert.pem
+#olcTLSCertificateKeyFile: /etc/openldap/certs/10-ee-server-1-key.pem
+
+#############
+# cn=module #
+#############
+
+################
+# olcBackend=x #
+################
+
+#################
+# olcDatabase=x #
+#################
+
+# olcDatabase=frontend
+dn: olcDatabase=frontend,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: frontend
+
+# olcDatabase=config
+dn: olcDatabase=config,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: config
+olcRootDN: cn=directory-manager,cn=config
+olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
+
+# olcDatabase=hdb
+dn: olcDatabase=hdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDatabase: hdb
+olcSuffix: dc=keeto,dc=io
+olcRootDN: cn=directory-manager,dc=keeto,dc=io
+olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
+olcDbDirectory: /var/lib/openldap/dc=keeto,dc=io
+olcDbIndex: default eq
+olcDbIndex: uid
+olcDbIndex: objectclass pres,eq
+
+#############
+# cn=schema #
+#############
+dn: cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: schema
+
+include: file:///etc/openldap/schema/core.ldif
+include: file:///etc/openldap/schema/cosine.ldif
+include: file:///etc/openldap/schema/inetorgperson.ldif
+include: file:///etc/openldap/schema/openldap.ldif
+include: file:///etc/openldap/schema/nis.ldif
+include: file:///etc/openldap/schema/misc.ldif
+include: file:///etc/openldap/schema/keeto.ldif
+

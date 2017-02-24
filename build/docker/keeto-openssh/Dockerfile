@@ -18,16 +18,16 @@ RUN useradd -m sebastian \
     && useradd -m postgres
 
 # setup openssh / keeto
-ADD https://keeto.io/static/downloads/keeto-latest.el7.centos.x86_64.rpm /tmp
+ADD https://keeto.io/static/downloads/keeto-latest.el7.centos.x86_64.rpm /tmp/
 RUN rpm -i /tmp/keeto-latest.el7.centos.x86_64.rpm
-RUN /bin/cp $(rpm -qd keeto | grep '/sshd_config$') /etc/ssh
-RUN /bin/cp $(rpm -qd keeto | grep '/sshd$') /etc/pam.d
-RUN /bin/cp $(rpm -qd keeto | grep -E '\-ca\-|\.crl$') /etc/ssh/cert_store \
+RUN /bin/cp $(rpm -qd keeto | grep '/sshd_config$') /etc/ssh/
+RUN /bin/cp $(rpm -qd keeto | grep '/sshd$') /etc/pam.d/
+RUN /bin/cp $(rpm -qd keeto | grep -E '\-ca\-|\.crl$') /etc/ssh/cert_store/ \
     # in older versions of c_rehash only .pem files are considered. create symlinks as a workaround.
     && ln -s /etc/ssh/cert_store/root.crl /etc/ssh/cert_store/root.crl.pem \
     && ln -s /etc/ssh/cert_store/int-user.crl /etc/ssh/cert_store/int-user.crl.pem \
-    && c_rehash /etc/ssh/cert_store
-RUN mkdir -p /run/sshd
+    && c_rehash /etc/ssh/cert_store/
+RUN mkdir -p /run/sshd/
 RUN ssh-keygen -A
 
 EXPOSE 22/tcp

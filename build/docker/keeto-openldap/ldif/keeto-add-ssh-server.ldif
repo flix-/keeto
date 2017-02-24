@@ -1,0 +1,13 @@
+dn: cn=keeto-test-server,ou=server,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoSSHServer
+cn: keeto-test-server
+uid: keeto-test-server
+description: keeto-test-server
+keetoAccessProfile: cn=direct-access-1,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=direct-access-2,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=direct-access-3,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=access-on-behalf-1,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=access-on-behalf-2,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=access-on-behalf-3,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+
