@@ -13,8 +13,9 @@ RUN yum -y install \
     && yum clean all
 
 # setup local users
-RUN useradd -m sebastian \
-    && useradd -m keeto \
+RUN useradd -m oliver \
+    && useradd -m sebastian \
+    && useradd -m bjoern \
     && useradd -m db2admin \
     && useradd -m postgres
 
