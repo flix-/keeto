@@ -48,6 +48,12 @@ olcDbIndex: default eq
 olcDbIndex: uid
 olcDbIndex: objectclass pres,eq
 
+# olcDatabase=monitor
+dn: olcDatabase=monitor,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMonitorConfig
+olcDatabase: monitor
+
 #############
 # cn=schema #
 #############

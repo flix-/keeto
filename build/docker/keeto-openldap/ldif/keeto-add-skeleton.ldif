@@ -9,44 +9,53 @@ dn: ou=people,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
 ou: people
+description: people
 
 dn: ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
+ou: accounts
+description: technical accounts
+
+dn: ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+description: groups
+
+dn: ou=people,ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+description: people groups
+
+dn: ou=technical-accounts,ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: organizationalUnit
 ou: technical-accounts
+description: technical account groups
 
 dn: ou=ssh,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
 ou: ssh
+description: ssh
 
-dn: ou=groups,ou=ssh,dc=keeto,dc=io
+dn: ou=servers,ou=ssh,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
-ou: groups
-
-dn: ou=technical-accounts,ou=groups,ou=ssh,dc=keeto,dc=io
-objectClass: top
-objectClass: organizationalUnit
-ou: technical-accounts
-
-dn: ou=people,ou=groups,ou=ssh,dc=keeto,dc=io
-objectClass: top
-objectClass: organizationalUnit
-ou: people
-
-dn: ou=keystore-options,ou=ssh,dc=keeto,dc=io
-objectClass: top
-objectClass: organizationalUnit
-ou: keystore-options
+ou: servers
+description: ssh servers
 
 dn: ou=access-profiles,ou=ssh,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
 ou: access-profiles
+description: ssh access profiles
 
-dn: ou=server,ou=ssh,dc=keeto,dc=io
+dn: ou=keystore-options,ou=ssh,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
-ou: server
+ou: keystore-options
+description: ssh keystore options
 
