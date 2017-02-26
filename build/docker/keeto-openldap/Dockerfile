@@ -2,13 +2,11 @@ FROM centos:7
 
 ARG NAME
 ARG VERSION
-ARG BUILD_DATE
 
 # metadata
 LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.name=${NAME} \
     org.label-schema.version=${VERSION} \
-    org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.vendor="Sebastian Roland <seroland86@gmail.com>" \
     org.label-schema.url="https://keeto.io"
 

@@ -2,15 +2,12 @@ FROM centos:7
 
 ARG NAME
 ARG VERSION
-ARG BUILD_DATE
-ARG KEETO_RPM_LINK
-ARG KEETO_RPM_NAME
+ARG KEETO_RPM_URL
 
 # metadata
 LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.name=${NAME} \
     org.label-schema.version=${VERSION} \
-    org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.vendor="Sebastian Roland <seroland86@gmail.com>" \
     org.label-schema.url="https://keeto.io"
 
@@ -35,7 +32,7 @@ RUN useradd -m oliver \
 
 # setup openssh / keeto
 WORKDIR /tmp
-RUN wget ${KEETO_RPM_LINK} && rpm -i ${KEETO_RPM_NAME}
+RUN wget ${KEETO_RPM_URL} && rpm -i $(echo ${KEETO_RPM_URL##*/})
 COPY configs/keeto.conf /etc/ssh/
 RUN chmod 600 /etc/ssh/keeto.conf
 COPY configs/sshd_config /etc/ssh/
