@@ -12,7 +12,8 @@ LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.url="https://keeto.io"
 
 # install packages
-RUN yum -y update && yum -y install epel-release
+RUN yum -y update \
+    && yum -y install epel-release
 RUN yum -y install \
     wget \
     pam \
@@ -32,7 +33,8 @@ RUN useradd -m oliver \
 
 # setup openssh / keeto
 WORKDIR /tmp
-RUN wget ${KEETO_RPM_URL} && rpm -i $(echo ${KEETO_RPM_URL##*/})
+RUN wget ${KEETO_RPM_URL} \
+    && rpm -i $(echo ${KEETO_RPM_URL##*/})
 COPY configs/keeto.conf /etc/ssh/
 RUN chmod 600 /etc/ssh/keeto.conf
 COPY configs/sshd_config /etc/ssh/
