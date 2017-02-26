@@ -3,7 +3,7 @@
 
 Name: keeto
 Version: 0.2.0
-Release: 0.1.%{beta}%{?dist}
+Release: 0.2.%{beta}%{?dist}
 Summary: Key and Access Management for OpenSSH
 License: GPLv3+
 URL: https://keeto.io
@@ -16,6 +16,7 @@ BuildRequires: libconfuse-devel >= 2.7
 BuildRequires: check-devel >= 0.9.9
 BuildRequires: openssl-devel >= 1.0
 BuildRequires: openldap-devel
+Requires: openssl-perl
 Requires: openssh >= 6.2
 Requires: openssh-server >= 6.2
 
@@ -58,6 +59,9 @@ make check
 %license COPYING
 
 %changelog
+* Sun Feb 26 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.2.beta
+- c_rehash is required to create symlinks in certificate store. add dependency.
+
 * Sat Feb 04 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.1.beta
 - Initial package
 
