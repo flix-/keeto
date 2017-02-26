@@ -1,7 +1,11 @@
 #!/bin/bash
 
-IMAGE_NAME="seroland86/keeto-openldap"
-IMAGE_VERSION="0.1.0"
+NAME="seroland86/keeto-openldap"
+VERSION="0.2.0-beta"
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .
+docker build --build-arg NAME=${NAME} \
+    --build-arg VERSION=${VERSION} \
+    --build-arg BUILD_DATE=${BUILD_DATE} \
+    -t ${NAME}:${VERSION} .
 
