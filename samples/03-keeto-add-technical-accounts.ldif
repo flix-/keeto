@@ -2,17 +2,11 @@ dn: uid=db2admin,ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: account
 uid: db2admin
-description: db2 admin account
+description: db2admin account
 
 dn: uid=postgres,ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: account
 uid: postgres
-description: postgress admin account
-
-dn: uid=mysql,ou=technical-accounts,dc=keeto,dc=io
-objectClass: top
-objectClass: account
-uid: mysql
-description: mysql admin account
+description: postgres account
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -247,7 +247,7 @@ parse_config(const char *cfg_file)
         CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
         CFG_INT("ldap_strict", 0, CFGF_NONE),
 
-        CFG_STR("ldap_ssh_server_search_base", "ou=server,ou=ssh,dc=keeto,dc=io",
+        CFG_STR("ldap_ssh_server_search_base", "ou=servers,ou=ssh,dc=keeto,dc=io",
             CFGF_NONE),
         CFG_INT_CB("ldap_ssh_server_search_scope", LDAP_SCOPE_ONE, CFGF_NONE,
             &cfg_str_to_int_cb_libldap),
