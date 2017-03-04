@@ -529,6 +529,9 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         }
         return PAM_SUCCESS;
     case KEETO_NO_SSH_SERVER:
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
+        return PAM_AUTH_ERR;
     case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
         log_info("failed to obtain access profiles from ldap (%s)",
             keeto_strerror(rc));
