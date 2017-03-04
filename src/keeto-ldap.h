@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -27,17 +27,19 @@
 
 #define LDAP_BOOL_TRUE "TRUE"
 
-#define KEETO_SSH_SERVER_UID_ATTR "uid"
-#define KEETO_SSH_SERVER_AP_ATTR "keetoAccessProfile"
-
+#define KEETO_SSH_SERVER_OBJCLASS "keetoSSHServer"
 #define KEETO_DAP_OBJCLASS "keetoDirectAccessProfile"
 #define KEETO_AOBP_OBJCLASS "keetoAccessOnBehalfProfile"
+#define KEETO_KEYSTORE_OPTIONS_OBJCLASS "keetoKeystoreOptions"
 
+#define KEETO_SSH_SERVER_UID_ATTR "uid"
+#define KEETO_SSH_SERVER_AP_ATTR "keetoAccessProfile"
 #define KEETO_AP_KEY_PROVIDER_ATTR "keetoKeyProvider"
+#define KEETO_AP_KEY_PROVIDER_GROUP_ATTR "keetoKeyProviderGroup"
 #define KEETO_AP_KEYSTORE_OPTIONS_ATTR "keetoKeystoreOptions"
-#define KEETO_AP_ENABLED "keetoEnabled"
+#define KEETO_AP_ENABLED_ATTR "keetoEnabled"
 #define KEETO_AOBP_TARGET_KEYSTORE_ATTR "keetoTargetKeystore"
-
+#define KEETO_AOBP_TARGET_KEYSTORE_GROUP_ATTR "keetoTargetKeystoreGroup"
 #define KEETO_KEYSTORE_OPTIONS_FROM_ATTR "keetoKeystoreOptionFrom"
 #define KEETO_KEYSTORE_OPTIONS_CMD_ATTR "keetoKeystoreOptionCommand"
 

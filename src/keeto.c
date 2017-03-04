@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -398,7 +398,7 @@ post_process_access_profiles(struct keeto_info *info)
     if (TAILQ_EMPTY(info->access_profiles)) {
         free_access_profiles(info->access_profiles);
         info->access_profiles = NULL;
-        res = KEETO_NO_ACCESS_PROFILE;
+        res = KEETO_NO_ACCESS_PROFILE_FOR_UID;
         goto cleanup_b;
     }
     info->keystore_records = keystore_records;
@@ -528,8 +528,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
             return PAM_AUTH_ERR;
         }
         return PAM_SUCCESS;
-    case KEETO_NO_ACCESS_PROFILE:
-        log_info("access profile list empty");
+    case KEETO_NO_SSH_SERVER:
+    case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
+        log_info("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
+        return PAM_AUTH_ERR;
+    case KEETO_NO_ACCESS_PROFILE_FOR_UID:
+        log_info("no valid access profile found for uid '%s'", info->uid);
         remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
@@ -550,8 +555,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case KEETO_NO_MEMORY:
         log_error("system is out of memory");
         return PAM_BUF_ERR;
-    case KEETO_NO_ACCESS_PROFILE:
-        log_info("access profile list empty");
+    case KEETO_NO_ACCESS_PROFILE_FOR_UID:
+        log_info("no valid access profile found for uid '%s'", info->uid);
         remove_keystore(info->ssh_keystore_location);
         return PAM_AUTH_ERR;
     default:
