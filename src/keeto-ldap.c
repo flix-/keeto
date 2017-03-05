@@ -283,6 +283,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
         KEETO_AOBP_TARGET_KEYSTORE_ATTR, &relevant);
     switch (rc) {
     case KEETO_OK:
+        /* FALLTHROUGH */
     case KEETO_LDAP_NO_SUCH_ATTR:
         break;
     case KEETO_NO_MEMORY:
@@ -326,6 +327,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
                 target_keystore_group_member_attr, &relevant);
             switch (rc) {
             case KEETO_OK:
+                /* FALLTHROUGH */
             case KEETO_LDAP_NO_SUCH_ATTR:
                 break;
             case KEETO_NO_MEMORY:
@@ -812,153 +814,35 @@ cleanup_a:
 }
 
 static int
-add_key_provider_groups(LDAP *ldap_handle, struct keeto_info *info,
+process_key_providers(LDAP *ldap_handle, struct keeto_info *info,
     struct keeto_access_profile *access_profile,
-    LDAPMessage *access_profile_entry, struct keeto_key_providers *key_providers)
+    LDAPMessage *key_provider_group_entry, char *key_provider_member_attr,
+    struct keeto_key_providers *key_providers)
 {
     if (ldap_handle == NULL || info == NULL || access_profile == NULL ||
-        access_profile_entry == NULL || key_providers == NULL) {
-        fatal("ldap_handle, info, access_profile, access_profile_entry or "
-            "key_providers == NULL");
+        key_provider_group_entry == NULL || key_provider_member_attr == NULL ||
+        key_providers == NULL) {
+        fatal("ldap_handle, info, access_profile, key_provider_group_entry, "
+            "key_provider_member_attr or key_providers == NULL");
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    log_info("processing key provider groups");
-
-    /* add key provider groups */
-    char **key_provider_group_dns = NULL;
-    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        KEETO_AP_KEY_PROVIDER_GROUP_ATTR, &key_provider_group_dns);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        return rc;
-    case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no key provider groups specified");
-        return rc;
-    default:
-        log_error("failed to obtain key provider group dns: attribute '%s' (%s)",
-            KEETO_AP_KEY_PROVIDER_GROUP_ATTR, keeto_strerror(rc));
-        return rc;
-    }
-
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
-    char *key_provider_uid_attr = cfg_getstr(info->cfg,
-        "ldap_key_provider_uid_attr");
-    char *key_provider_cert_attr = cfg_getstr(info->cfg,
-        "ldap_key_provider_cert_attr");
-    char *attrs[] = { key_provider_uid_attr, key_provider_cert_attr, NULL };
-    char *key_provider_group_member_attr = cfg_getstr(info->cfg,
-        "ldap_key_provider_group_member_attr");
-
-    for (int i = 0; key_provider_group_dns[i] != NULL; i++) {
-        char *key_provider_group_dn = key_provider_group_dns[i];
-        log_info("processing key provider group '%s'", key_provider_group_dn);
-
-        LDAPMessage *group_member_entry = NULL;
-        rc = get_group_member_entry(ldap_handle, info, key_provider_group_dn,
-            key_provider_group_member_attr, &group_member_entry);
-        if (rc != KEETO_OK) {
-            log_info("skipped key provider group");
-            continue;
-        }
-
-        /* get key provider dns */
-        char **key_provider_dns = NULL;
-        rc = get_attr_values_as_string(ldap_handle, group_member_entry,
-            key_provider_group_member_attr, &key_provider_dns);
-        switch (rc) {
-        case KEETO_OK:
-            break;
-        case KEETO_NO_MEMORY:
-            res = rc;
-            ldap_msgfree(group_member_entry);
-            goto cleanup;
-        case KEETO_LDAP_NO_SUCH_ENTRY:
-            log_info("no members in group specified");
-            goto cleanup_inner_a;
-        default:
-            log_error("failed to obtain key provider dns: attribute '%s' (%s)",
-                key_provider_group_member_attr, keeto_strerror(rc));
-            goto cleanup_inner_a;
-        }
-
-        for (int j = 0; key_provider_dns[j] != NULL; j++) {
-            char *key_provider_dn = key_provider_dns[j];
-            log_info("processing key provider '%s'", key_provider_dn);
-
-            LDAPMessage *key_provider_entry = NULL;
-            rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
-                NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
-                &key_provider_entry);
-            if (rc != LDAP_SUCCESS) {
-                log_error("failed to search ldap: base '%s' (%s) - skipping",
-                key_provider_dn, ldap_err2string(rc));
-                goto cleanup_inner_b;
-            }
-
-            rc = add_key_provider(ldap_handle, info, access_profile,
-                key_provider_entry, key_providers);
-            switch (rc) {
-            case KEETO_OK:
-                log_info("added key provider");
-                break;
-            case KEETO_NO_MEMORY:
-                res = rc;
-                ldap_msgfree(key_provider_entry);
-                free_attr_values_as_string(key_provider_dns);
-                ldap_msgfree(group_member_entry);
-                goto cleanup;
-            default:
-                log_info("skipped key provider (%s)", keeto_strerror(rc));
-                goto cleanup_inner_b;
-            }
-        cleanup_inner_b:
-            ldap_msgfree(key_provider_entry);
-        }
-
-        free_attr_values_as_string(key_provider_dns);
-    cleanup_inner_a:
-        ldap_msgfree(group_member_entry);
-    }
-
-    res = KEETO_OK;
-
-cleanup:
-    free_attr_values_as_string(key_provider_group_dns);
-    return res;
-}
-
-static int
-add_direct_key_providers(LDAP *ldap_handle, struct keeto_info *info,
-    struct keeto_access_profile *access_profile,
-    LDAPMessage *access_profile_entry, struct keeto_key_providers *key_providers)
-{
-    if (ldap_handle == NULL || info == NULL || access_profile == NULL ||
-        access_profile_entry == NULL || key_providers == NULL) {
-        fatal("ldap_handle, info, access_profile, access_profile_entry or "
-            "key_providers == NULL");
-    }
-
-    int res = KEETO_UNKNOWN_ERR;
-    log_info("processing direct key providers");
 
     /* add key providers */
     char **key_provider_dns = NULL;
-    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        KEETO_AP_KEY_PROVIDER_ATTR, &key_provider_dns);
+    int rc = get_attr_values_as_string(ldap_handle, key_provider_group_entry,
+        key_provider_member_attr, &key_provider_dns);
     switch (rc) {
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
         return rc;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no direct key providers specified");
+        log_info("no key providers specified");
         return rc;
     default:
         log_error("failed to obtain key provider dns: attribute '%s' (%s)",
-            KEETO_AP_KEY_PROVIDER_ATTR, keeto_strerror(rc));
+            key_provider_member_attr, keeto_strerror(rc));
         return rc;
     }
 
@@ -983,6 +867,7 @@ add_direct_key_providers(LDAP *ldap_handle, struct keeto_info *info,
             goto cleanup_inner;
         }
 
+        /* add key provider */
         rc = add_key_provider(ldap_handle, info, access_profile,
             key_provider_entry, key_providers);
         switch (rc) {
@@ -1029,10 +914,12 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     /* add direct key providers */
-    int rc = add_direct_key_providers(ldap_handle, info, access_profile,
-        access_profile_entry, key_providers);
+    log_info("processing direct key providers");
+    int rc = process_key_providers(ldap_handle, info, access_profile,
+        access_profile_entry, KEETO_AP_KEY_PROVIDER_ATTR, key_providers);
     switch (rc) {
     case KEETO_OK:
+        /* FALLTHROUGH */
     case KEETO_LDAP_NO_SUCH_ATTR:
         break;
     case KEETO_NO_MEMORY:
@@ -1040,24 +927,63 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
         goto cleanup;
     default:
         log_error("failed to add direct key providers (%s)", keeto_strerror(rc));
-        res = rc;
-        goto cleanup;
+        break;
     }
 
     /* add key provider groups */
-    rc = add_key_provider_groups(ldap_handle, info, access_profile,
-        access_profile_entry, key_providers);
+    log_info("processing key provider groups");
+    char **key_provider_group_dns = NULL;
+    rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
+        KEETO_AP_KEY_PROVIDER_GROUP_ATTR, &key_provider_group_dns);
     switch (rc) {
     case KEETO_OK:
-    case KEETO_LDAP_NO_SUCH_ATTR:
+        ;
+        char *key_provider_group_member_attr = cfg_getstr(info->cfg,
+            "ldap_key_provider_group_member_attr");
+
+        for (int i = 0; key_provider_group_dns[i] != NULL; i++) {
+            char *key_provider_group_dn = key_provider_group_dns[i];
+            log_info("processing key provider group '%s'", key_provider_group_dn);
+
+            LDAPMessage *group_member_entry = NULL;
+            rc = get_group_member_entry(ldap_handle, info, key_provider_group_dn,
+                key_provider_group_member_attr, &group_member_entry);
+            if (rc != KEETO_OK) {
+                log_info("skipped key provider group");
+                continue;
+            }
+
+            rc = process_key_providers(ldap_handle, info, access_profile,
+                group_member_entry, key_provider_group_member_attr, key_providers);
+            switch (rc) {
+            case KEETO_OK:
+                /* FALLTHROUGH */
+            case KEETO_LDAP_NO_SUCH_ATTR:
+                break;
+            case KEETO_NO_MEMORY:
+                ldap_msgfree(group_member_entry);
+                free_attr_values_as_string(key_provider_group_dns);
+                goto cleanup;
+            default:
+                log_error("failed to process key providers (%s)",
+                    keeto_strerror(rc));
+                goto cleanup_inner;
+            }
+        cleanup_inner:
+            ldap_msgfree(group_member_entry);
+        }
+        free_attr_values_as_string(key_provider_group_dns);
         break;
     case KEETO_NO_MEMORY:
         res = rc;
         goto cleanup;
+    case KEETO_LDAP_NO_SUCH_ATTR:
+        log_info("no key provider groups specified");
+        break;
     default:
-        log_error("failed to add key provider groups (%s)", keeto_strerror(rc));
-        res = rc;
-        goto cleanup;
+        log_error("failed to obtain key provider group dns: attribute '%s' (%s)",
+            KEETO_AP_KEY_PROVIDER_GROUP_ATTR, keeto_strerror(rc));
+        break;
     }
 
     /* check if not empty */
