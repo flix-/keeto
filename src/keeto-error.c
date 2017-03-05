@@ -25,6 +25,7 @@ keeto_strerror(int errnum)
     switch(errnum) {
     case KEETO_OK:
         return "ok";
+
     case KEETO_SYSTEM_ERR:
         return "system error";
     case KEETO_NO_MEMORY:

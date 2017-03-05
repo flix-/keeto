@@ -46,13 +46,6 @@ struct keeto_substitute_token_entry {
     char *exp_result;
 };
 
-struct keeto_create_ldap_search_filter_entry {
-    char *rdn;
-    char *uid;
-    size_t dst_length;
-    char *exp_result;
-};
-
 struct keeto_get_rdn_from_dn_entry {
     char *dn;
     int exp_res;

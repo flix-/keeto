@@ -34,7 +34,67 @@
 #include "keeto-log.h"
 #include "keeto-util.h"
 
-#define LDAP_SEARCH_FILTER_BUFFER_SIZE 2048
+#define LDAP_SEARCH_FILTER_BUFFER_SIZE 1024
+
+static int
+ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
+    int scope, char *filter, char *attrs[], LDAPMessage **ret)
+{
+    if (ldap_handle == NULL || info == NULL || base == NULL || ret == NULL) {
+        fatal("ldap_handle, info, base or ret == NULL");
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+    int sizelimit = 1;
+
+    LDAPMessage *result_entry = NULL;
+    log_info("ldap search (base: '%s', scope: %d, filter: '%s', sizelimit: %d)",
+        base, scope, filter, sizelimit);
+    int rc = ldap_search_ext_s(ldap_handle, base, scope, filter, attrs, 0, NULL,
+        NULL, &search_timeout, sizelimit, &result_entry);
+    if (rc != LDAP_SUCCESS) {
+        log_error("failed to search ldap: base '%s' (%s)", base,
+            ldap_err2string(rc));
+        res = KEETO_LDAP_NO_SUCH_ENTRY;
+        goto cleanup;
+    }
+
+    rc = ldap_count_entries(ldap_handle, result_entry);
+    switch (rc) {
+    case -1:
+        log_error("failed to parse ldap search result set");
+        res = KEETO_LDAP_ERR;
+        goto cleanup;
+    /*
+     * this case happens if a dn exists in the DIT but it is not part
+     * of the result set e.g. because it was not matching filter
+     * criteria.
+     */
+    case 0:
+        log_error("ldap search result set is empty");
+        res = KEETO_LDAP_SCHEMA_ERR;
+        goto cleanup;
+    case 1:
+        break;
+    default:
+        /* impossible?! */
+        log_error("ldap search result set contains more than one entry (%d)", rc);
+        res = KEETO_LDAP_ERR;
+        goto cleanup;
+    }
+
+    *ret = result_entry;
+    result_entry = NULL;
+    res = KEETO_OK;
+
+cleanup:
+    if (result_entry != NULL) {
+        ldap_msgfree(result_entry);
+    }
+    return res;
+}
 
 static void
 free_attr_values_as_string(char **values)
@@ -150,27 +210,24 @@ get_group_member_entry(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    char *attr[] = { group_member_attr, NULL };
+
+    /* prepare ldap search */
+    char *attrs[] = {
+        group_member_attr,
+        NULL
+    };
+
     /* query ldap for group members */
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
     LDAPMessage *group_member_entry = NULL;
-    int rc = ldap_search_ext_s(ldap_handle, group_dn, LDAP_SCOPE_BASE, NULL,
-        attr, 0, NULL, NULL, &search_timeout, 1, &group_member_entry);
-    if (rc != LDAP_SUCCESS) {
-        log_error("failed to search ldap: base '%s' (%s)", group_dn,
-            ldap_err2string(rc));
-        res = KEETO_LDAP_NO_SUCH_ENTRY;
-        goto cleanup;
+    int rc = ldap_search_keeto(ldap_handle, info, group_dn, LDAP_SCOPE_BASE,
+        NULL, attrs, &group_member_entry);
+    if (rc != KEETO_OK) {
+        log_error("failed to obtain group member entry '%s'",
+            keeto_strerror(rc));
+        return rc;
     }
     *ret = group_member_entry;
-    group_member_entry = NULL;
-    res = KEETO_OK;
-
-cleanup:
-    if (group_member_entry != NULL) {
-        ldap_msgfree(group_member_entry);
-    }
-    return res;
+    return KEETO_OK;
 }
 
 static int
@@ -206,23 +263,25 @@ check_target_keystores(LDAP *ldap_handle, struct keeto_info *info,
         return rc;
     }
 
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+    /* prepare ldap search */
     char *target_keystore_uid_attr = cfg_getstr(info->cfg,
         "ldap_target_keystore_uid_attr");
-    char *attrs[] = { target_keystore_uid_attr, NULL };
+    char *attrs[] = {
+        target_keystore_uid_attr,
+        NULL
+    };
 
     for (int i = 0; target_keystore_dns[i] != NULL && !relevant; i++) {
         char *target_keystore_dn = target_keystore_dns[i];
         log_info("checking target keystore '%s'", target_keystore_dn);
 
         LDAPMessage *target_keystore_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, target_keystore_dn, LDAP_SCOPE_BASE,
-            NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
-            &target_keystore_entry);
-        if (rc != LDAP_SUCCESS) {
-            log_error("failed to search ldap: base '%s' (%s) - skipping",
-                target_keystore_dn, ldap_err2string(rc));
-            goto cleanup_inner;
+        rc = ldap_search_keeto(ldap_handle, info, target_keystore_dn,
+            LDAP_SCOPE_BASE, NULL, attrs, &target_keystore_entry);
+        if (rc != KEETO_OK) {
+            log_error("failed to obtain target keystore '%s'",
+                keeto_strerror(rc));
+            continue;
         }
 
         /* get uids of target keystore */
@@ -639,6 +698,7 @@ add_key(struct berval *cert, struct keeto_keys *keys)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* create and populate keeto key struct */
     struct keeto_key *key = new_key();
     if (key == NULL) {
@@ -676,6 +736,7 @@ add_keys(LDAP *ldap_handle, struct keeto_info *info,
 
     int res = KEETO_UNKNOWN_ERR;
     log_info("processing keys");
+
     /* get certificates */
     char *key_provider_cert_attr = cfg_getstr(info->cfg,
         "ldap_key_provider_cert_attr");
@@ -846,25 +907,28 @@ process_key_providers(LDAP *ldap_handle, struct keeto_info *info,
         return rc;
     }
 
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+    /* prepare ldap search */
     char *key_provider_uid_attr = cfg_getstr(info->cfg,
         "ldap_key_provider_uid_attr");
     char *key_provider_cert_attr = cfg_getstr(info->cfg,
         "ldap_key_provider_cert_attr");
-    char *attrs[] = { key_provider_uid_attr, key_provider_cert_attr, NULL };
+    char *attrs[] = {
+        key_provider_uid_attr,
+        key_provider_cert_attr,
+        NULL
+    };
 
     for (int i = 0; key_provider_dns[i] != NULL; i++) {
         char *key_provider_dn = key_provider_dns[i];
         log_info("processing key provider '%s'", key_provider_dn);
 
         LDAPMessage *key_provider_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, key_provider_dn, LDAP_SCOPE_BASE,
-            NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
-            &key_provider_entry);
-        if (rc != LDAP_SUCCESS) {
-            log_error("failed to search ldap: base '%s' (%s) - skipping",
-                key_provider_dn, ldap_err2string(rc));
-            goto cleanup_inner;
+        rc = ldap_search_keeto(ldap_handle, info, key_provider_dn,
+            LDAP_SCOPE_BASE, NULL, attrs, &key_provider_entry);
+        if (rc != KEETO_OK) {
+            log_error("failed to obtain key provider entry '%s'",
+                keeto_strerror(rc));
+            continue;
         }
 
         /* add key provider */
@@ -1085,23 +1149,41 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
     switch (rc) {
     case KEETO_OK:
         log_info("processing keystore options '%s'", keystore_options_dn[0]);
-        struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+
+        /* prepare ldap search */
+        char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
+        rc = snprintf(filter, sizeof filter, "(objectClass=%s)",
+            KEETO_KEYSTORE_OPTIONS_OBJCLASS);
+        if (rc < 0) {
+            log_error("failed to create ldap search filter");
+            res = KEETO_SYSTEM_ERR;
+            goto cleanup_b;
+        }
         char *attrs[] = {
             KEETO_KEYSTORE_OPTIONS_FROM_ATTR,
             KEETO_KEYSTORE_OPTIONS_CMD_ATTR,
             NULL
         };
+
         LDAPMessage *keystore_options_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, keystore_options_dn[0],
-            LDAP_SCOPE_BASE, NULL, attrs, 0, NULL, NULL, &search_timeout, 1,
-            &keystore_options_entry);
-        if (rc != LDAP_SUCCESS) {
-            log_error("failed to search ldap: base '%s' (%s)",
-                keystore_options_dn[0], ldap_err2string(rc));
-            res = KEETO_LDAP_NO_SUCH_ENTRY;
-            ldap_msgfree(keystore_options_entry);
-            goto cleanup_b;
+        rc = ldap_search_keeto(ldap_handle, info, keystore_options_dn[0],
+            LDAP_SCOPE_BASE, filter, attrs, &keystore_options_entry);
+        if (rc != KEETO_OK) {
+            log_error("failed to obtain keystore options entry '%s'",
+                keeto_strerror(rc));
+            /*
+             * keystore options attribute is set but not pointing
+             * to a valid keystore options entry. as keystore options
+             * are used to restrict access to an SSH server the whole
+             * access profile is skipped as adding keys without the
+             * keystore options (that someone was intended to set)
+             * would give someone higher privileges than he is supposed
+             * to have.
+             */
+             res = rc;
+             goto cleanup_b;
         }
+
         rc = add_keystore_options(ldap_handle, keystore_options_entry,
             access_profile);
         switch (rc) {
@@ -1187,19 +1269,27 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
         goto cleanup_a;
     }
 
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+    /* prepare ldap search */
+    char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
+    rc = snprintf(filter, sizeof filter, "(objectClass=%s)", KEETO_AP_OBJCLASS);
+    if (rc < 0) {
+        log_error("failed to create ldap search filter");
+        res = KEETO_SYSTEM_ERR;
+        goto cleanup_b;
+    }
+
     /* add access profiles */
     for (int i = 0; access_profile_dns[i] != NULL; i++) {
         char *access_profile_dn = access_profile_dns[i];
         log_info("processing access profile '%s'", access_profile_dn);
 
         LDAPMessage *access_profile_entry = NULL;
-        rc = ldap_search_ext_s(ldap_handle, access_profile_dn, LDAP_SCOPE_BASE,
-            NULL, NULL, 0, NULL, NULL, &search_timeout, 1, &access_profile_entry);
-        if (rc != LDAP_SUCCESS) {
-            log_error("failed to search ldap: base '%s' (%s) - skipping",
-                access_profile_dn, ldap_err2string(rc));
-            goto cleanup_inner;
+        rc = ldap_search_keeto(ldap_handle, info, access_profile_dn,
+            LDAP_SCOPE_BASE, filter, NULL, &access_profile_entry);
+        if (rc != KEETO_OK) {
+            log_error("failed to obtain access profile entry '%s'",
+                keeto_strerror(rc));
+            continue;
         }
 
         rc = add_access_profile(ldap_handle, info, access_profile_entry,
@@ -1209,6 +1299,8 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
             log_info("added access profile");
             break;
         case KEETO_NO_MEMORY:
+            /* FALLTHROUGH */
+        case KEETO_SYSTEM_ERR:
             res = rc;
             ldap_msgfree(access_profile_entry);
             goto cleanup_b;
@@ -1247,47 +1339,32 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
+    /* prepare ldap search */
     char *ssh_server_search_base = cfg_getstr(info->cfg,
         "ldap_ssh_server_search_base");
     int ssh_server_search_scope = cfg_getint(info->cfg,
         "ldap_ssh_server_search_scope");
-    /* construct search filter */
-    char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
-    int rc = create_ldap_search_filter(KEETO_SSH_SERVER_UID_ATTR, ssh_server_uid,
-        filter, sizeof filter);
-    if (rc != KEETO_OK) {
-        log_error("failed to create ldap search filter (%s)", keeto_strerror(rc));
+    char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
+    int rc = snprintf(filter, sizeof filter, "(&(objectClass=%s)(%s=%s))",
+        KEETO_SSH_SERVER_OBJCLASS, KEETO_SSH_SERVER_UID_ATTR, ssh_server_uid);
+    if (rc < 0) {
+        log_error("failed to create ldap search filter");
         return KEETO_SYSTEM_ERR;
     }
-    char *attrs[] = { KEETO_SSH_SERVER_AP_ATTR, NULL };
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
+    char *attrs[] = {
+        KEETO_SSH_SERVER_AP_ATTR,
+        NULL
+    };
 
     /* query ldap for ssh server entry */
     LDAPMessage *ssh_server_entry = NULL;
-    rc = ldap_search_ext_s(ldap_handle, ssh_server_search_base,
-        ssh_server_search_scope, filter, attrs, 0, NULL, NULL, &search_timeout,
-        1, &ssh_server_entry);
-    if (rc != LDAP_SUCCESS) {
-        log_error("failed to search ldap: base '%s' (%s)", ssh_server_search_base,
-            ldap_err2string(rc));
-        res = KEETO_LDAP_NO_SUCH_ENTRY;
-        goto cleanup_a;
-    }
-
-    /* check if ssh server entry has been found */
-    rc = ldap_count_entries(ldap_handle, ssh_server_entry);
-    switch (rc) {
-    case 0:
-        log_error("ssh server entry not existent");
-        res = KEETO_LDAP_NO_SUCH_ENTRY;
-        goto cleanup_a;
-    case 1:
-        break;
-    default:
-        log_error("failed to parse ldap search result count");
-        res = KEETO_LDAP_ERR;
-        goto cleanup_a;
+    rc = ldap_search_keeto(ldap_handle, info, ssh_server_search_base,
+        ssh_server_search_scope, filter, attrs, &ssh_server_entry);
+    if (rc != KEETO_OK) {
+        log_error("failed to obtain ssh server entry (%s)", keeto_strerror(rc));
+        return rc;
     }
 
     /* create and populate keeto ssh server struct */
@@ -1335,17 +1412,19 @@ init_starttls(LDAP *ldap_handle)
         fatal("ldap_handle == NULL");
     }
 
-    /* establishes connection to ldap */
+    /* initiate start tls session with server */
     int rc = ldap_start_tls_s(ldap_handle, NULL, NULL);
     if (rc != LDAP_SUCCESS) {
         char *msg = NULL;
+        int old_rc = rc;
         rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
         if (rc == LDAP_OPT_SUCCESS) {
             log_error("failed to initialize starttls (%s)", msg);
             ldap_memfree(msg);
-            return KEETO_LDAP_CONNECTION_ERR;
+        } else {
+            log_error("failed to initialize starttls (%s)",
+                ldap_err2string(old_rc));
         }
-        log_error("failed to initialize starttls");
         return KEETO_LDAP_CONNECTION_ERR;
     }
     return KEETO_OK;
@@ -1499,9 +1578,13 @@ get_access_profiles_from_ldap(struct keeto_info *info)
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
+        /* FALLTHROUGH */
+    case KEETO_SYSTEM_ERR:
         res = rc;
         goto cleanup_a;
     case KEETO_LDAP_NO_SUCH_ENTRY:
+        /* FALLTHROUGH */
+    case KEETO_LDAP_SCHEMA_ERR:
         res = KEETO_NO_SSH_SERVER;
         goto cleanup_a;
     default:

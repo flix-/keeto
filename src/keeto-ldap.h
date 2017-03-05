@@ -28,6 +28,7 @@
 #define LDAP_BOOL_TRUE "TRUE"
 
 #define KEETO_SSH_SERVER_OBJCLASS "keetoSSHServer"
+#define KEETO_AP_OBJCLASS "keetoAccessProfile"
 #define KEETO_DAP_OBJCLASS "keetoDirectAccessProfile"
 #define KEETO_AOBP_OBJCLASS "keetoAccessOnBehalfProfile"
 #define KEETO_KEYSTORE_OPTIONS_OBJCLASS "keetoKeystoreOptions"

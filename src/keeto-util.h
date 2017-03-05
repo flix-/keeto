@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -112,8 +112,6 @@ int str_to_enum(enum keeto_section section, const char *key);
 bool file_readable(const char *file);
 int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
-    size_t dst_length);
-int create_ldap_search_filter(const char *attr, const char *value, char *dst,
     size_t dst_length);
 int get_rdn_from_dn(const char *, char **buffer);
 struct timeval get_ldap_search_timeout(cfg_t *cfg);

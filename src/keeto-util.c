@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -197,26 +197,6 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
         dst[j++] = src[i];
     }
     dst[j] = '\0';
-}
-
-int
-create_ldap_search_filter(const char *attr, const char *value, char *dst,
-    size_t dst_length)
-{
-    if (attr == NULL || value == NULL || dst == NULL) {
-        fatal("attr, value or dst == NULL");
-    }
-
-    if (dst_length == 0) {
-        fatal("dst_length must be > 0");
-    }
-
-    int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
-    if (rc < 0) {
-        log_error("failed to write to buffer");
-        return KEETO_SYSTEM_ERR;
-    }
-    return KEETO_OK;
 }
 
 int

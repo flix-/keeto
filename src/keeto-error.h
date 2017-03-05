@@ -24,6 +24,7 @@
 
 enum {
     KEETO_OK = 0,
+
     KEETO_SYSTEM_ERR = INT_MIN,
     KEETO_NO_MEMORY,
     KEETO_NO_SUCH_VALUE,
