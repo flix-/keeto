@@ -209,8 +209,6 @@ get_group_member_entry(LDAP *ldap_handle, struct keeto_info *info,
         fatal("ldap_handle, info, group_dn, group_member_attr or ret == NULL");
     }
 
-    int res = KEETO_UNKNOWN_ERR;
-
     /* prepare ldap search */
     char *attrs[] = {
         group_member_attr,
