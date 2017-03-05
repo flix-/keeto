@@ -174,47 +174,35 @@ cleanup:
 }
 
 static int
-check_target_keystore_groups(LDAP *ldap_handle, struct keeto_info *info,
-    LDAPMessage *access_profile_entry, bool *ret)
+check_target_keystores(LDAP *ldap_handle, struct keeto_info *info,
+    LDAPMessage *target_keystore_group_entry, char *target_keystore_member_attr,
+    bool *ret)
 {
-    if (ldap_handle == NULL || info == NULL || access_profile_entry == NULL ||
-        ret == NULL) {
-        fatal("ldap_handle, info, access_profile_entry or ret == NULL");
-    }
-
-
-    *ret = true;
-    return KEETO_OK;
-}
-
-static int
-check_direct_target_keystores(LDAP *ldap_handle, struct keeto_info *info,
-    LDAPMessage *access_profile_entry, bool *ret)
-{
-    if (ldap_handle == NULL || info == NULL || access_profile_entry == NULL ||
-        ret == NULL) {
-        fatal("ldap_handle, info, access_profile_entry or ret == NULL");
+    if (ldap_handle == NULL || info == NULL ||
+        target_keystore_group_entry == NULL ||
+        target_keystore_member_attr == NULL || ret == NULL) {
+        fatal("ldap_handle, info, target_keystore_group_entry, "
+            "target_keystore_member_attr or ret == NULL");
     }
 
     int res = KEETO_UNKNOWN_ERR;
     bool relevant = false;
-    log_info("checking direct target keystores");
 
     /* check target keystores */
     char **target_keystore_dns = NULL;
-    int rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
-        KEETO_AOBP_TARGET_KEYSTORE_ATTR, &target_keystore_dns);
+    int rc = get_attr_values_as_string(ldap_handle, target_keystore_group_entry,
+        target_keystore_member_attr, &target_keystore_dns);
     switch (rc) {
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
         return rc;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no direct target keystore specified");
+        log_info("no target keystores specified");
         return rc;
     default:
-        log_error("failed to obtain direct target keystore dns: attribute '%s' "
-            "(%s)", KEETO_AOBP_TARGET_KEYSTORE_ATTR, keeto_strerror(rc));
+        log_error("failed to obtain target keystore dns: attribute '%s' (%s)",
+            target_keystore_member_attr, keeto_strerror(rc));
         return rc;
     }
 
@@ -286,12 +274,13 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
         fatal("ldap_handle, info, access_profile_entry or ret == NULL");
     }
 
-    bool access_profile_relevant = false;
+    bool relevant = false;
     log_info("checking target keystores");
 
     /* check direct target keystores */
-    int rc = check_direct_target_keystores(ldap_handle, info,
-        access_profile_entry, &access_profile_relevant);
+    log_info("checking direct target keystores");
+    int rc = check_target_keystores(ldap_handle, info, access_profile_entry,
+        KEETO_AOBP_TARGET_KEYSTORE_ATTR, &relevant);
     switch (rc) {
     case KEETO_OK:
     case KEETO_LDAP_NO_SUCH_ATTR:
@@ -301,14 +290,72 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
     default:
         log_error("failed to check direct target keystores (%s)",
             keeto_strerror(rc));
-        return rc;
+        break;
     }
-    if (access_profile_relevant) {
+    if (relevant) {
         *ret = true;
         return KEETO_OK;
     }
 
     /* check target keystore groups */
+    log_info("checking target keystore groups");
+    char **target_keystore_group_dns = NULL;
+    rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
+        KEETO_AOBP_TARGET_KEYSTORE_GROUP_ATTR, &target_keystore_group_dns);
+    switch (rc) {
+    case KEETO_OK:
+        ;
+        char *target_keystore_group_member_attr = cfg_getstr(info->cfg,
+        "ldap_target_keystore_group_member_attr");
+
+        for (int i = 0; target_keystore_group_dns[i] != NULL && !relevant; i++) {
+            char *target_keystore_group_dn = target_keystore_group_dns[i];
+            log_info("checking target keystore group '%s'",
+                target_keystore_group_dn);
+
+            LDAPMessage *group_member_entry = NULL;
+            rc = get_group_member_entry(ldap_handle, info,
+                target_keystore_group_dn, target_keystore_group_member_attr,
+                &group_member_entry);
+            if (rc != KEETO_OK) {
+                log_info("skipped target keystore group");
+                continue;
+            }
+
+            rc = check_target_keystores(ldap_handle, info, group_member_entry,
+                target_keystore_group_member_attr, &relevant);
+            switch (rc) {
+            case KEETO_OK:
+            case KEETO_LDAP_NO_SUCH_ATTR:
+                break;
+            case KEETO_NO_MEMORY:
+                ldap_msgfree(group_member_entry);
+                free_attr_values_as_string(target_keystore_group_dns);
+                return rc;
+            default:
+                log_error("failed to check target keystores (%s)",
+                    keeto_strerror(rc));
+                goto cleanup_inner;
+            }
+        cleanup_inner:
+            ldap_msgfree(group_member_entry);
+        }
+        free_attr_values_as_string(target_keystore_group_dns);
+        break;
+    case KEETO_NO_MEMORY:
+        return rc;
+    case KEETO_LDAP_NO_SUCH_ATTR:
+        log_info("no target keystore groups specified");
+        break;
+    default:
+        log_error("failed to check target keystore groups (%s)",
+            keeto_strerror(rc));
+        break;
+    }
+    if (relevant) {
+        *ret = true;
+        return KEETO_OK;
+    }
 
     *ret = false;
     return KEETO_OK;
@@ -387,9 +434,9 @@ check_access_profile_relevance(LDAP *ldap_handle, struct keeto_info *info,
             "== NULL");
     }
 
-    bool access_profile_relevant = false;
+    bool relevant = false;
     int rc = check_access_profile_relevance_generic(ldap_handle,
-        access_profile_entry, &access_profile_relevant);
+        access_profile_entry, &relevant);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -400,7 +447,7 @@ check_access_profile_relevance(LDAP *ldap_handle, struct keeto_info *info,
             keeto_strerror(rc));
         return rc;
     }
-    if (!access_profile_relevant) {
+    if (!relevant) {
         *ret = false;
         return KEETO_OK;
     }
@@ -411,9 +458,9 @@ check_access_profile_relevance(LDAP *ldap_handle, struct keeto_info *info,
      * currently logging in.
      */
     if (access_profile->type == ACCESS_ON_BEHALF_PROFILE) {
-        bool aobp_relevant = false;
+        bool relevant = false;
         rc = check_access_profile_relevance_aobp(ldap_handle, info,
-            access_profile_entry, &aobp_relevant);
+            access_profile_entry, &relevant);
         switch (rc) {
         case KEETO_OK:
             break;
@@ -424,7 +471,7 @@ check_access_profile_relevance(LDAP *ldap_handle, struct keeto_info *info,
                 keeto_strerror(rc));
             return rc;
         }
-        if (!aobp_relevant) {
+        if (!relevant) {
             *ret = false;
             return KEETO_OK;
         }
@@ -807,8 +854,9 @@ add_key_provider_groups(LDAP *ldap_handle, struct keeto_info *info,
 
     for (int i = 0; key_provider_group_dns[i] != NULL; i++) {
         char *key_provider_group_dn = key_provider_group_dns[i];
-        LDAPMessage *group_member_entry = NULL;
         log_info("processing key provider group '%s'", key_provider_group_dn);
+
+        LDAPMessage *group_member_entry = NULL;
         rc = get_group_member_entry(ldap_handle, info, key_provider_group_dn,
             key_provider_group_member_attr, &group_member_entry);
         if (rc != KEETO_OK) {
@@ -831,8 +879,8 @@ add_key_provider_groups(LDAP *ldap_handle, struct keeto_info *info,
             log_info("no members in group specified");
             goto cleanup_inner_a;
         default:
-            log_error("failed to obtain key provider group dns: attribute '%s' "
-                "(%s)", key_provider_group_member_attr, keeto_strerror(rc));
+            log_error("failed to obtain key provider dns: attribute '%s' (%s)",
+                key_provider_group_member_attr, keeto_strerror(rc));
             goto cleanup_inner_a;
         }
 
@@ -909,7 +957,7 @@ add_direct_key_providers(LDAP *ldap_handle, struct keeto_info *info,
         log_info("no direct key providers specified");
         return rc;
     default:
-        log_error("failed to obtain direct key provider dns: attribute '%s' (%s)",
+        log_error("failed to obtain key provider dns: attribute '%s' (%s)",
             KEETO_AP_KEY_PROVIDER_ATTR, keeto_strerror(rc));
         return rc;
     }
@@ -1076,9 +1124,9 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     /* check access profile relevance */
-    bool access_profile_relevant = false;
+    bool relevant = false;
     rc = check_access_profile_relevance(ldap_handle, info, access_profile,
-        access_profile_entry, &access_profile_relevant);
+        access_profile_entry, &relevant);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -1091,7 +1139,7 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
         res = rc;
         goto cleanup_a;
     }
-    if (!access_profile_relevant) {
+    if (!relevant) {
         res = KEETO_NOT_RELEVANT;
         goto cleanup_a;
     }
