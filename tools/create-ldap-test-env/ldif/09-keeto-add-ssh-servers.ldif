@@ -1,0 +1,6 @@
+dn: cn=keeto-test-server,ou=servers,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoSSHServer
+cn: keeto-test-server
+uid: keeto-test-server
+
