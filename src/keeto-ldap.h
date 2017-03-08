@@ -20,9 +20,6 @@
 #ifndef KEETO_LDAP_H
 #define KEETO_LDAP_H
 
-#include "queue.h"
-#include <confuse.h>
-
 #include "keeto-util.h"
 
 #define LDAP_BOOL_TRUE "TRUE"

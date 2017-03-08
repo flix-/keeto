@@ -20,15 +20,13 @@
 #include "keeto-util.h"
 
 #include <errno.h>
-#include <stdarg.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <ldap.h>
 #include <regex.h>

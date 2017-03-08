@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,8 +20,8 @@
 #ifndef KEETO_X509_H
 #define KEETO_X509_H
 
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
+#include <stdbool.h>
+
 #include <openssl/x509.h>
 
 #include "keeto-util.h"

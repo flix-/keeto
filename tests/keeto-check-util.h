@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -21,9 +21,6 @@
 #define KEETO_CHECK_UTIL_H
 
 #include <stdbool.h>
-
-#include <bits/types.h>
-#include <sys/stat.h>
 
 #include <check.h>
 

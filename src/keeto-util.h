@@ -23,14 +23,9 @@
 #include "queue.h"
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <time.h>
-#include <unistd.h>
 
 #include <confuse.h>
 #include <openssl/x509.h>
-
-#include "keeto-log.h"
 
 #define KEETO_DEBUG \
 int sleepy = 1; \
