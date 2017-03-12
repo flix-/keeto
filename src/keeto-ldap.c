@@ -50,7 +50,7 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
     int sizelimit = 1;
 
     LDAPMessage *result_entry = NULL;
-    log_info("ldap search (base: '%s', scope: %d, filter: '%s', sizelimit: %d)",
+    log_debug("ldap search (base: '%s', scope: %d, filter: '%s', sizelimit: %d)",
         base, scope, filter, sizelimit);
     int rc = ldap_search_ext_s(ldap_handle, base, scope, filter, attrs, 0, NULL,
         NULL, &search_timeout, sizelimit, &result_entry);

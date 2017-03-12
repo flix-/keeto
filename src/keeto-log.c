@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -35,7 +35,7 @@
 static int keeto_syslog_facility = LOG_LOCAL1;
 
 static void
-keeto_log(char *prefix, const char *fmt, va_list ap)
+keeto_log(int level, char *prefix, const char *fmt, va_list ap)
 {
     if (prefix == NULL || fmt == NULL) {
         fatal("prefix or fmt == NULL");
@@ -43,12 +43,12 @@ keeto_log(char *prefix, const char *fmt, va_list ap)
 
     static bool initialized = false;
     if (!initialized) {
-        openlog("keeto", LOG_PID, keeto_syslog_facility);
+        openlog(KEETO_SYSLOG_IDENTIFIER, LOG_PID, keeto_syslog_facility);
         initialized = true;
     }
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    syslog(keeto_syslog_facility, "%s %s\n", prefix, buffer);
+    syslog(keeto_syslog_facility | level, "%s %s\n", prefix, buffer);
 }
 
 void
@@ -60,7 +60,7 @@ log_info(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    keeto_log("[I]", fmt, ap);
+    keeto_log(LOG_INFO, "[I]", fmt, ap);
     va_end(ap);
 }
 
@@ -73,7 +73,7 @@ log_error(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    keeto_log("[E]", fmt, ap);
+    keeto_log(LOG_ERR, "[E]", fmt, ap);
     va_end(ap);
 }
 
@@ -90,7 +90,7 @@ keeto_log_debug(const char *filename, const char *function, int line,
         line);
     va_list ap;
     va_start(ap, fmt);
-    keeto_log(prefix, fmt, ap);
+    keeto_log(LOG_DEBUG, prefix, fmt, ap);
     va_end(ap);
 }
 
@@ -107,7 +107,7 @@ keeto_fatal(const char *filename, const char *function, int line,
         line);
     va_list ap;
     va_start(ap, fmt);
-    keeto_log(prefix, fmt, ap);
+    keeto_log(LOG_EMERG, prefix, fmt, ap);
     va_end(ap);
     exit(EXIT_FAILURE);
 }
