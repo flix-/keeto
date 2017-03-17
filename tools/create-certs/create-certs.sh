@@ -10,7 +10,7 @@
 # only.
 #
 # author: sebastian roland
-# date: 25.09.2016
+# date: 17.03.2017
 #
 ########################################
 
@@ -25,6 +25,9 @@ SUBJECT_POSTFIX='/DC=keeto/DC=io'
 
 # validity in days for root ca
 ROOT_CA_VALIDITY=36500
+
+# server fqdn
+SERVER_FQDN='keeto-openldap'
 
 ### END CONFIG ###
 
@@ -82,15 +85,22 @@ create_keystore_openssl()
     index=$(get_next_free_index ${cert_type})
 
     # create csr
+    if [ ${cert_type} = "server" ]
+    then
+        subject="/CN=${SERVER_FQDN}${SUBJECT_POSTFIX}"
+    else
+        subject="/CN=10-ee-${cert_type}-${index}${SUBJECT_POSTFIX}"
+    fi
+
     ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee-${cert_type}-${index}-key.pem \
-        -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
-        -subj "/CN=10-ee-${cert_type}-${index}${SUBJECT_POSTFIX}" \
-        -config ${openssl_conf} &> /dev/null
+    -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+    -subj ${subject} -config ${openssl_conf} &> /dev/null
     # sign request
     ${OPENSSL} ca -name ca_int_${cert_type} \
-        -in ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
-        -out ${ROOT}/ca/10-ee-${cert_type}-${index}-cert.pem -notext \
-        -config ${openssl_conf} &> /dev/null << EOF
+    -in ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+    -out ${ROOT}/ca/10-ee-${cert_type}-${index}-cert.pem -notext \
+    -extensions extensions_ca_int_${cert_type} -config ${openssl_conf} \
+    &> /dev/null << EOF
 y
 y
 EOF
@@ -216,8 +226,7 @@ create new? [y/n]: " overwrite_root
                 -keyout ${ROOT}/ca/00-ca-root-key.pem \
                 -out ${ROOT}/ca/00-ca-root-cert.pem \
                 -subj "/CN=00-ca-root${SUBJECT_POSTFIX}" \
-                -extensions ca_extension \
-                -config ${openssl_conf} &> /dev/null
+                -extensions extensions_ca -config ${openssl_conf} &> /dev/null
 
             # create intermediate ca's
             echo "creating intermediate ca's"
@@ -237,21 +246,21 @@ create new? [y/n]: " overwrite_root
             # sign requests
             ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
                 -out ${ROOT}/ca/01-ca-int-server-cert.pem \
-                -extensions ca_extension -notext -config ${openssl_conf} \
+                -extensions extensions_ca -notext -config ${openssl_conf} \
                 &> /dev/null << EOF
 y
 y
 EOF
             ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
                 -out ${ROOT}/ca/01-ca-int-email-cert.pem \
-                -extensions ca_extension -notext -config ${openssl_conf} \
+                -extensions extensions_ca -notext -config ${openssl_conf} \
                 &> /dev/null << EOF
 y
 y
 EOF
             ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
                 -out ${ROOT}/ca/01-ca-int-user-cert.pem \
-                -extensions ca_extension -notext -config ${openssl_conf} \
+                -extensions extensions_ca -notext -config ${openssl_conf} \
                 &> /dev/null << EOF
 y
 y

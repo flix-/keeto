@@ -1500,11 +1500,11 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
      * new context has to be set in order to apply options set above
      * regarding tls.
      */
-    int new_ctx = KEETO_UNDEF;
-    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &new_ctx);
+    const int is_server = 0;
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_NEWCTX, &is_server);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_NEWCTX', "
-            "value '%d'", new_ctx);
+            "value '%d'", is_server);
         return KEETO_LDAP_ERR;
     }
     return KEETO_OK;
