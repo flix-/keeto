@@ -1,8 +1,8 @@
-dn: cn=database-accounts,ou=technical-accounts,ou=groups,dc=keeto,dc=io
+dn: cn=ldap-accounts,ou=technical-accounts,ou=groups,dc=keeto,dc=io
 objectClass: top
 objectClass: groupOfNames
-cn: database-accounts
-member: uid=db2admin,ou=technical-accounts,dc=keeto,dc=io
-member: uid=postgres,ou=technical-accounts,dc=keeto,dc=io
-description: group for database accounts
+cn: ldap-accounts
+member: uid=opendj,ou=technical-accounts,dc=keeto,dc=io
+member: uid=slapd,ou=technical-accounts,dc=keeto,dc=io
+description: group for ldap accounts
 

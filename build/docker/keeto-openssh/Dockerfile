@@ -25,11 +25,11 @@ RUN yum -y install \
     && yum clean all
 
 # setup local users
-RUN useradd -m oliver \
-    && useradd -m sebastian \
-    && useradd -m bjoern \
-    && useradd -m db2admin \
-    && useradd -m postgres
+RUN useradd -m birgit \
+    && useradd -m wolfgang \
+    && useradd -m keeto \
+    && useradd -m opendj \
+    && useradd -m slapd
 
 # setup openssh / keeto
 WORKDIR /tmp
@@ -38,7 +38,6 @@ RUN wget ${KEETO_RPM_URL} \
 WORKDIR /etc/ssh
 COPY config/cert_store cert_store/
 COPY config/keeto.conf .
-RUN chmod 600 keeto.conf
 COPY config/sshd_config .
 COPY config/sshd /etc/pam.d/
 RUN c_rehash cert_store \

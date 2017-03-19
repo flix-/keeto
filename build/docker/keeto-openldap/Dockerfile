@@ -14,7 +14,6 @@ LABEL org.label-schema.schema-version="1.0" \
 RUN yum -y update && yum -y install \
     openldap-clients \
     openldap-servers \
-    openssl-perl \
     && yum clean all
 
 # setup openldap
@@ -22,12 +21,9 @@ WORKDIR /etc/openldap
 COPY config/slapd.ldif .
 COPY schema/keeto.ldif schema/
 COPY ldif ldif
-COPY config/cert_store cert_store
 COPY config/key_store key_store
 COPY config/DB_CONFIG /var/lib/openldap/dc\=keeto\,dc\=io/
 RUN rm -rf slapd.d/* \
-    && c_rehash cert_store/ \
-    && mkdir -p /var/lib/openldap/dc\=keeto\,dc\=io \
     && slapadd -l slapd.ldif -F slapd.d/ -n0 -v \
     && for file in ldif/*.ldif; do slapadd -l $file -F slapd.d/ -n1 -v; done
 

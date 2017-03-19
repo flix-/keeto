@@ -1,12 +1,18 @@
-dn: uid=db2admin,ou=technical-accounts,dc=keeto,dc=io
+dn: uid=slapd,ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: account
-uid: db2admin
-description: db2admin account
+uid: slapd
+description: slapd account
 
-dn: uid=postgres,ou=technical-accounts,dc=keeto,dc=io
+dn: uid=opendj,ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: account
-uid: postgres
-description: postgres account
+uid: opendj
+description: opendj account
+
+dn: uid=keeto,ou=technical-accounts,dc=keeto,dc=io
+objectClass: top
+objectClass: account
+uid: keeto
+description: keeto account
 

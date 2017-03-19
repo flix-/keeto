@@ -1,9 +1,10 @@
-dn: cn=keeto-dev-1,ou=servers,ou=ssh,dc=keeto,dc=io
+dn: cn=keeto-test-server,ou=servers,ou=ssh,dc=keeto,dc=io
 objectClass: top
 objectClass: keetoSSHServer
-cn: keeto-dev-1
-uid: keeto-dev-1
-description: development server 1 for project keeto
-keetoAccessProfile: cn=dap-cryptography-engineering-project-keeto-dev,ou=access-profiles,ou=ssh,dc=keeto,dc=io
-keetoAccessProfile: cn=aobp-database-administrators-project-keeto-dev,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+cn: keeto-test-server
+uid: keeto-test-server
+keetoAccessProfile: cn=unix-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=ldap-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=keeto-engineering,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+description: keeto test server
 

@@ -1,0 +1,10 @@
+dn: cn=unix-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoAccessProfile
+objectClass: keetoDirectAccessProfile
+cn: unix-administration
+keetoEnabled: TRUE
+keetoKeyProviderGroup: cn=unix-administrators,ou=people,ou=groups,dc=keeto,dc=io
+keetoKeystoreOptions: cn=admin-lan-only,ou=keystore-options,ou=ssh,dc=keeto,dc=io
+description: direct access profile for unix administration
+

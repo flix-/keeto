@@ -7,7 +7,7 @@ cn: config
 olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
-olcTLSCACertificatePath: /etc/openldap/cert_store
+#olcTLSCACertificatePath: /etc/openldap/cert_store
 olcTLSCertificateFile: /etc/openldap/key_store/10-ee-server-6-cert.pem
 olcTLSCertificateKeyFile: /etc/openldap/key_store/10-ee-server-6-key.pem
 
@@ -44,9 +44,9 @@ olcSuffix: dc=keeto,dc=io
 olcRootDN: cn=directory-manager,dc=keeto,dc=io
 olcRootPW: {SSHA}qmkWtIXexBkldOPs1JlAqD64u/3Wl4S4
 olcDbDirectory: /var/lib/openldap/dc=keeto,dc=io
-olcDbIndex: default eq
-olcDbIndex: uid
-olcDbIndex: objectclass pres,eq
+olcDbIndex: default pres,eq
+olcDbIndex: objectClass
+olcDbIndex: uid eq
 
 # olcDatabase=monitor
 dn: olcDatabase=monitor,cn=config

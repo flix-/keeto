@@ -3,7 +3,8 @@ objectClass: top
 objectClass: dcObject
 objectClass: organization
 dc: keeto
-o: keeto.io
+o: keeto
+description: https://keeto.io
 
 dn: ou=people,dc=keeto,dc=io
 objectClass: top
@@ -14,7 +15,7 @@ description: people
 dn: ou=technical-accounts,dc=keeto,dc=io
 objectClass: top
 objectClass: organizationalUnit
-ou: accounts
+ou: technical-accounts
 description: technical accounts
 
 dn: ou=groups,dc=keeto,dc=io
