@@ -1,1 +1,1 @@
-../../../samples/00-slapd.ldif
+../../../build/docker/keeto-openldap/config/slapd.ldif

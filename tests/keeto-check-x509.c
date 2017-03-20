@@ -35,13 +35,13 @@
 #define BUFFER_SIZE 4096
 
 static struct keeto_validate_x509_entry validate_x509_no_crl_check_lt[] = {
-    { X509CERTSDIR "/untrusted-ca.pem", false },
+    { X509CERTSDIR "/revoked.pem", true },
     { X509CERTSDIR "/trusted-ca-expired.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-ku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
     { X509CERTSDIR "/trusted-ca-wrong-xku-non-critical.pem", false },
-    { X509CERTSDIR "/trusted-ca-expired.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
+    { X509CERTSDIR "/untrusted-ca.pem", false },
     { X509CERTSDIR "/valid1.pem", true },
     { X509CERTSDIR "/valid2.pem", true },
     { X509CERTSDIR "/valid3.pem", true },
@@ -49,14 +49,13 @@ static struct keeto_validate_x509_entry validate_x509_no_crl_check_lt[] = {
 };
 
 static struct keeto_validate_x509_entry validate_x509_crl_check_lt[] = {
-    { X509CERTSDIR "/untrusted-ca.pem", false },
-    { X509CERTSDIR "/trusted-ca-expired.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-ku-non-critical.pem", false },
-    { X509CERTSDIR "/trusted-ca-wrong-xku-non-critical.pem", false },
-    { X509CERTSDIR "/trusted-ca-expired.pem", false },
     { X509CERTSDIR "/revoked.pem", false },
+    { X509CERTSDIR "/trusted-ca-expired.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-ku.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku-non-critical.pem", false },
+    { X509CERTSDIR "/trusted-ca-wrong-xku.pem", false },
+    { X509CERTSDIR "/untrusted-ca.pem", false },
     { X509CERTSDIR "/valid1.pem", true },
     { X509CERTSDIR "/valid2.pem", true },
     { X509CERTSDIR "/valid3.pem", true },

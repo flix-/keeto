@@ -8,8 +8,8 @@ olcArgsFile: /run/openldap/slapd.args
 olcPidFile: /run/openldap/slapd.pid
 olcLogLevel: stats
 olcTLSCACertificatePath: /etc/openldap/cert_store/
-olcTLSCertificateFile: /etc/openldap/key_store/10-ee-server-6-cert.pem
-olcTLSCertificateKeyFile: /etc/openldap/key_store/10-ee-server-6-key.pem
+olcTLSCertificateFile: /etc/openldap/key_store/10-ee-server-1-cert.pem
+olcTLSCertificateKeyFile: /etc/openldap/key_store/10-ee-server-1-key.pem
 
 #############
 # cn=module #

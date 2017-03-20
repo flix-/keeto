@@ -10,7 +10,7 @@
 # only.
 #
 # author: sebastian roland
-# date: 17.03.2017
+# date: 20.03.2017
 #
 ########################################
 
@@ -20,8 +20,8 @@
 ROOT='/home/sebastian/documents/programming/ca'
 # path to openssl
 OPENSSL='/usr/bin/openssl'
-# postfix for subject dn
-SUBJECT_POSTFIX='/DC=keeto/DC=io'
+# prefix for subject dn
+SUBJECT_PREFIX='/DC=io/DC=keeto'
 
 # validity in days for root ca
 ROOT_CA_VALIDITY=36500
@@ -32,7 +32,8 @@ SERVER_FQDN='keeto-openldap'
 ### END CONFIG ###
 
 # make var accessible for openssl config
-export ROOT
+PATHLEN=0
+export ROOT PATHLEN
 
 ### BEGIN FUNCTIONS ###
 
@@ -87,9 +88,9 @@ create_keystore_openssl()
     # create csr
     if [ ${cert_type} = "server" ]
     then
-        subject="/CN=${SERVER_FQDN}${SUBJECT_POSTFIX}"
+        subject="${SUBJECT_PREFIX}/CN=${SERVER_FQDN}"
     else
-        subject="/CN=10-ee-${cert_type}-${index}${SUBJECT_POSTFIX}"
+        subject="${SUBJECT_PREFIX}/CN=10-ee-${cert_type}-${index}"
     fi
 
     ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee-${cert_type}-${index}-key.pem \
@@ -211,7 +212,8 @@ create new? [y/n]: " overwrite_root
 
             rm -rf ${ROOT}
             echo "creating directory structure and files"
-            mkdir -p ${ROOT}/ca/csr ${ROOT}/ca/res ${ROOT}/etc ${ROOT}/tmp
+            mkdir -p ${ROOT}/ca/csr ${ROOT}/ca/res ${ROOT}/ca/crl ${ROOT}/etc \
+                ${ROOT}/tmp
             touch ${ROOT}/ca/res/ca-database
             echo "01" > ${ROOT}/ca/res/ca-serial
             echo "01" > ${ROOT}/ca/res/crl-number
@@ -222,10 +224,11 @@ create new? [y/n]: " overwrite_root
 
             # create root ca
             echo "creating root ca"
+            PATHLEN=1
             ${OPENSSL} req -new -x509 -days ${ROOT_CA_VALIDITY} \
                 -keyout ${ROOT}/ca/00-ca-root-key.pem \
                 -out ${ROOT}/ca/00-ca-root-cert.pem \
-                -subj "/CN=00-ca-root${SUBJECT_POSTFIX}" \
+                -subj "${SUBJECT_PREFIX}/CN=00-ca-root" \
                 -extensions extensions_ca -config ${openssl_conf} &> /dev/null
 
             # create intermediate ca's
@@ -233,17 +236,18 @@ create new? [y/n]: " overwrite_root
             # create csr's
             ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-server-key.pem \
                 -out ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
-                -subj "/CN=01-ca-int-server${SUBJECT_POSTFIX}" \
+                -subj "${SUBJECT_PREFIX}/CN=01-ca-int-server" \
                 -config ${openssl_conf} &> /dev/null
             ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-email-key.pem \
                 -out ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
-                -subj "/CN=01-ca-int-email${SUBJECT_POSTFIX}" \
+                -subj "${SUBJECT_PREFIX}/CN=01-ca-int-email" \
                 -config ${openssl_conf} &> /dev/null
             ${OPENSSL} req -new -keyout ${ROOT}/ca/01-ca-int-user-key.pem \
                 -out ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
-                -subj "/CN=01-ca-int-user${SUBJECT_POSTFIX}" \
+                -subj "${SUBJECT_PREFIX}/CN=01-ca-int-user" \
                 -config ${openssl_conf} &> /dev/null
             # sign requests
+            PATHLEN=0
             ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
                 -out ${ROOT}/ca/01-ca-int-server-cert.pem \
                 -extensions extensions_ca -notext -config ${openssl_conf} \
@@ -262,22 +266,6 @@ EOF
                 -out ${ROOT}/ca/01-ca-int-user-cert.pem \
                 -extensions extensions_ca -notext -config ${openssl_conf} \
                 &> /dev/null << EOF
-y
-y
-EOF
-
-            # create sscep server certificate
-            echo "creating sscep server certificate"
-            # create csr
-            ${OPENSSL} req -new -keyout ${ROOT}/ca/02-ee-server-sscep-key.pem \
-                -out ${ROOT}/ca/csr/02-ee-server-sscep-cert.csr \
-                -subj "/CN=02-ee-server-sscep${SUBJECT_POSTFIX}" \
-                -config ${openssl_conf} &> /dev/null
-            # sign request
-            ${OPENSSL} ca -name ca_int_server \
-                -in ${ROOT}/ca/csr/02-ee-server-sscep-cert.csr \
-                -out ${ROOT}/ca/02-ee-server-sscep-cert.pem -notext \
-                -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
