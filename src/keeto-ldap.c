@@ -1478,8 +1478,17 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         return KEETO_LDAP_ERR;
     }
 
-    /* force validation of certificates when using ldaps */
-    int req_cert = LDAP_OPT_X_TLS_HARD;
+    /* set path to trusted ca's */
+    const char *cert_store_dir = cfg_getstr(info->cfg, "cert_store_dir");
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cert_store_dir);
+    if (rc != LDAP_OPT_SUCCESS) {
+        log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CACERTDIR', "
+            "value '%s'", cert_store_dir);
+        return KEETO_LDAP_ERR;
+    }
+
+    /* force validation of certificates when using starttls / ldaps */
+    const int req_cert = LDAP_OPT_X_TLS_DEMAND;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_REQUIRE_CERT', "
@@ -1487,13 +1496,16 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         return KEETO_LDAP_ERR;
     }
 
-    /* set path to trusted ca's */
-    char *cert_store_dir = cfg_getstr(info->cfg, "cert_store_dir");
-    rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CACERTDIR, cert_store_dir);
-    if (rc != LDAP_OPT_SUCCESS) {
-        log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CACERTDIR', "
-            "value '%s'", cert_store_dir);
-        return KEETO_LDAP_ERR;
+    /* check CRL if specified in config */
+    bool check_crl = cfg_getint(info->cfg, "check_crl");
+    if (check_crl) {
+        const int crl_check = LDAP_OPT_X_TLS_CRL_ALL;
+        rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CRLCHECK, &crl_check);
+        if (rc != LDAP_OPT_SUCCESS) {
+            log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CRLCHECK', "
+                "value '%d'", crl_check);
+            return KEETO_LDAP_ERR;
+        }
     }
 
     /*
@@ -1528,7 +1540,7 @@ init_ldap_handle(struct keeto_info *info, LDAP **ret)
     rc = set_ldap_options(ldap_handle, info);
     if (rc != KEETO_OK) {
         log_error("failed to set ldap options (%s)", keeto_strerror(rc));
-        res = KEETO_LDAP_ERR;
+        res = rc;
         goto cleanup;
     }
     *ret = ldap_handle;
