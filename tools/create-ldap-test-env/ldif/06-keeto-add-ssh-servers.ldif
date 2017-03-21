@@ -3,4 +3,5 @@ objectClass: top
 objectClass: keetoSSHServer
 cn: keeto-test-server
 uid: keeto-test-server
+description: keeto test server
 

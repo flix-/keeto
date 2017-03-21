@@ -1,5 +1,0 @@
-dn: uid=db2admin,ou=technical-accounts,dc=keeto,dc=io
-objectClass: top
-objectClass: account
-uid: db2admin
-

@@ -10,7 +10,7 @@
 # only.
 #
 # author: sebastian roland
-# date: 20.03.2017
+# date: 21.03.2017
 #
 ########################################
 
@@ -94,14 +94,13 @@ create_keystore_openssl()
     fi
 
     ${OPENSSL} req -new -keyout ${ROOT}/ca/10-ee-${cert_type}-${index}-key.pem \
-    -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
-    -subj ${subject} -config ${openssl_conf} &> /dev/null
+        -out ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+        -subj ${subject} -config ${openssl_conf} &> /dev/null
     # sign request
     ${OPENSSL} ca -name ca_int_${cert_type} \
-    -in ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
-    -out ${ROOT}/ca/10-ee-${cert_type}-${index}-cert.pem -notext \
-    -extensions extensions_ca_int_${cert_type} -config ${openssl_conf} \
-    &> /dev/null << EOF
+        -in ${ROOT}/ca/csr/10-ee-${cert_type}-${index}-cert.csr \
+        -out ${ROOT}/ca/10-ee-${cert_type}-${index}-cert.pem -notext \
+        -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
@@ -228,8 +227,9 @@ create new? [y/n]: " overwrite_root
             ${OPENSSL} req -new -x509 -days ${ROOT_CA_VALIDITY} \
                 -keyout ${ROOT}/ca/00-ca-root-key.pem \
                 -out ${ROOT}/ca/00-ca-root-cert.pem \
+                -extensions extensions_ca_root \
                 -subj "${SUBJECT_PREFIX}/CN=00-ca-root" \
-                -extensions extensions_ca -config ${openssl_conf} &> /dev/null
+                -config ${openssl_conf} &> /dev/null
 
             # create intermediate ca's
             echo "creating intermediate ca's"
@@ -248,24 +248,24 @@ create new? [y/n]: " overwrite_root
                 -config ${openssl_conf} &> /dev/null
             # sign requests
             PATHLEN=0
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
-                -out ${ROOT}/ca/01-ca-int-server-cert.pem \
-                -extensions extensions_ca -notext -config ${openssl_conf} \
-                &> /dev/null << EOF
+            ${OPENSSL} ca -name ca_root \
+                -in ${ROOT}/ca/csr/01-ca-int-server-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-server-cert.pem -notext \
+                -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
-                -out ${ROOT}/ca/01-ca-int-email-cert.pem \
-                -extensions extensions_ca -notext -config ${openssl_conf} \
-                &> /dev/null << EOF
+            ${OPENSSL} ca -name ca_root \
+                -in ${ROOT}/ca/csr/01-ca-int-email-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-email-cert.pem -notext \
+                -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
-            ${OPENSSL} ca -in ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
-                -out ${ROOT}/ca/01-ca-int-user-cert.pem \
-                -extensions extensions_ca -notext -config ${openssl_conf} \
-                &> /dev/null << EOF
+            ${OPENSSL} ca -name ca_root \
+                -in ${ROOT}/ca/csr/01-ca-int-user-cert.csr \
+                -out ${ROOT}/ca/01-ca-int-user-cert.pem -notext \
+                -config ${openssl_conf} &> /dev/null << EOF
 y
 y
 EOF
