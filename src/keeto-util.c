@@ -233,18 +233,18 @@ cleanup:
 }
 
 struct timeval
-get_ldap_search_timeout(cfg_t *cfg)
+get_ldap_timeout(cfg_t *cfg)
 {
     if (cfg == NULL) {
         fatal("cfg == NULL");
     }
 
-    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
-    struct timeval search_timeout = {
-        .tv_sec = ldap_search_timeout,
+    int ldap_timeout_config = cfg_getint(cfg, "ldap_timeout");
+    struct timeval ldap_timeout = {
+        .tv_sec = ldap_timeout_config,
         .tv_usec = 0
     };
-    return search_timeout;
+    return ldap_timeout;
 }
 
 /* constructors */

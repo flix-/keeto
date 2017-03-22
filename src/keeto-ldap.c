@@ -46,14 +46,13 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
 
     int res = KEETO_UNKNOWN_ERR;
 
-    struct timeval search_timeout = get_ldap_search_timeout(info->cfg);
     int sizelimit = 1;
-
     LDAPMessage *result_entry = NULL;
+
     log_debug("ldap search (base: '%s', scope: %d, filter: '%s', sizelimit: %d)",
         base, scope, filter, sizelimit);
     int rc = ldap_search_ext_s(ldap_handle, base, scope, filter, attrs, 0, NULL,
-        NULL, &search_timeout, sizelimit, &result_entry);
+        NULL, NULL, sizelimit, &result_entry);
     if (rc != LDAP_SUCCESS) {
         log_error("failed to search ldap: base '%s' (%s)", base,
             ldap_err2string(rc));
@@ -1418,10 +1417,12 @@ init_starttls(LDAP *ldap_handle)
         rc = ldap_get_option(ldap_handle, LDAP_OPT_DIAGNOSTIC_MESSAGE, &msg);
         if (rc == LDAP_OPT_SUCCESS) {
             log_error("failed to initialize starttls (%s)", msg);
-            ldap_memfree(msg);
         } else {
             log_error("failed to initialize starttls (%s)",
                 ldap_err2string(old_rc));
+        }
+        if (msg != NULL) {
+            ldap_memfree(msg);
         }
         return KEETO_LDAP_CONNECTION_ERR;
     }
@@ -1475,6 +1476,28 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_PROTOCOL_VERSION', "
             "value '%d'", ldap_version);
+        return KEETO_LDAP_ERR;
+    }
+
+    /* set timeout */
+    const int ldap_timeout_config = cfg_getint(info->cfg, "ldap_timeout");
+    struct timeval ldap_timeout = get_ldap_timeout(info->cfg);
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_NETWORK_TIMEOUT, &ldap_timeout);
+    if (rc != LDAP_OPT_SUCCESS) {
+        log_error("failed to set ldap option: key 'LDAP_OPT_NETWORK_TIMEOUT', "
+            "value '%d'", ldap_timeout_config);
+        return KEETO_LDAP_ERR;
+    }
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMEOUT, &ldap_timeout);
+    if (rc != LDAP_OPT_SUCCESS) {
+        log_error("failed to set ldap option: key 'LDAP_OPT_TIMEOUT', value "
+            "'%d'", ldap_timeout_config);
+        return KEETO_LDAP_ERR;
+    }
+    rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMELIMIT, &ldap_timeout_config);
+    if (rc != LDAP_OPT_SUCCESS) {
+        log_error("failed to set ldap option: key 'LDAP_OPT_TIMELIMIT', value "
+            "'%d'", ldap_timeout_config);
         return KEETO_LDAP_ERR;
     }
 

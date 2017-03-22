@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -280,7 +280,7 @@ print_config(cfg_t *cfg)
     log_bool("cfg->ldap_starttls", cfg_getint(cfg, "ldap_starttls"));
     log_string("cfg->ldap_bind_dn", cfg_getstr(cfg, "ldap_bind_dn"));
     log_string("cfg->ldap_bind_pwd", cfg_getstr(cfg, "ldap_bind_pwd"));
-    log_int("cfg->ldap_search_timeout", cfg_getint(cfg, "ldap_search_timeout"));
+    log_int("cfg->ldap_timeout", cfg_getint(cfg, "ldap_timeout"));
     log_bool("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 
     log_string("cfg->ldap_ssh_server_search_base", cfg_getstr(cfg,

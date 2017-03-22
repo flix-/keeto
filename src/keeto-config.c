@@ -102,6 +102,22 @@ cfg_validate_ldap_uri(cfg_t *cfg, cfg_opt_t *opt)
 }
 
 static int
+cfg_validate_ldap_timeout(cfg_t *cfg, cfg_opt_t *opt)
+{
+    if (cfg == NULL || opt == NULL) {
+        fatal("cfg or opt == NULL");
+    }
+
+    long int ldap_timeout = cfg_opt_getnint(opt, 0);
+    if (ldap_timeout <= 0) {
+        log_error("failed to validate ldap timeout: option '%s', value '%li' "
+            "(value must be > 0)", cfg_opt_name(opt), ldap_timeout);
+        return -1;
+    }
+    return 0;
+}
+
+static int
 cfg_validate_boolean(cfg_t *cfg, cfg_opt_t *opt)
 {
     if (cfg == NULL || opt == NULL) {
@@ -145,22 +161,6 @@ cfg_validate_ldap_dn(cfg_t *cfg, cfg_opt_t *opt)
         return -1;
     }
     ldap_dnfree(dn);
-    return 0;
-}
-
-static int
-cfg_validate_ldap_search_timeout(cfg_t *cfg, cfg_opt_t *opt)
-{
-    if (cfg == NULL || opt == NULL) {
-        fatal("cfg or opt == NULL");
-    }
-
-    long int timeout = cfg_opt_getnint(opt, 0);
-    if (timeout <= 0) {
-        log_error("failed to validate ldap search timeout: option '%s', "
-            "value '%li' (value must be > 0)", cfg_opt_name(opt), timeout);
-        return -1;
-    }
     return 0;
 }
 
@@ -242,10 +242,10 @@ parse_config(const char *cfg_file)
         CFG_STR("syslog_facility", "LOG_LOCAL1", CFGF_NONE),
 
         CFG_STR("ldap_uri", "ldap://localhost:389", CFGF_NONE),
+        CFG_INT("ldap_timeout", 5, CFGF_NONE),
         CFG_INT("ldap_starttls", 1, CFGF_NONE),
         CFG_STR("ldap_bind_dn", "cn=directory-manager,dc=keeto,dc=io", CFGF_NONE),
         CFG_STR("ldap_bind_pwd", "test123", CFGF_NONE),
-        CFG_INT("ldap_search_timeout", 5, CFGF_NONE),
         CFG_INT("ldap_strict", 0, CFGF_NONE),
 
         CFG_STR("ldap_ssh_server_search_base", "ou=servers,ou=ssh,dc=keeto,dc=io",
@@ -283,10 +283,9 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "syslog_facility",
         &cfg_validate_syslog_facility);
     cfg_set_validate_func(cfg, "ldap_uri", &cfg_validate_ldap_uri);
+    cfg_set_validate_func(cfg, "ldap_timeout", &cfg_validate_ldap_timeout);
     cfg_set_validate_func(cfg, "ldap_starttls", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "ldap_bind_dn", &cfg_validate_ldap_dn);
-    cfg_set_validate_func(cfg, "ldap_search_timeout",
-        &cfg_validate_ldap_search_timeout);
     cfg_set_validate_func(cfg, "ldap_strict", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "ldap_ssh_server_search_base",
         &cfg_validate_ldap_dn);

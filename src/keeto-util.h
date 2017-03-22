@@ -109,7 +109,7 @@ int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
 int get_rdn_from_dn(const char *, char **buffer);
-struct timeval get_ldap_search_timeout(cfg_t *cfg);
+struct timeval get_ldap_timeout(cfg_t *cfg);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();
