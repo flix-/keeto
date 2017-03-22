@@ -40,9 +40,7 @@ COPY config/cert_store/ cert_store/
 COPY config/keeto.conf .
 COPY config/sshd_config .
 COPY config/sshd /etc/pam.d/
-RUN c_rehash cert_store/ \
-    && mkdir -p /run/sshd/ \
-    && ssh-keygen -A
+RUN mkdir -p /run/sshd/ && ssh-keygen -A
 
 EXPOSE 22/tcp
 

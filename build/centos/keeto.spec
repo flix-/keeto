@@ -1,13 +1,13 @@
 %global beta beta
-%global top_level_directory keeto-0.2.0-beta
+%global top_level_directory keeto-0.3.0-beta
 
 Name: keeto
-Version: 0.2.0
-Release: 0.2.%{beta}%{?dist}
+Version: 0.3.0
+Release: 0.1.%{beta}%{?dist}
 Summary: Key and Access Management for OpenSSH
 License: GPLv3+
 URL: https://keeto.io
-Source0: https://keeto.io/static/downloads/keeto-0.2.0-beta/keeto-0.2.0-beta.tar.gz
+Source0: https://keeto.io/static/downloads/keeto-0.3.0-beta/keeto-0.3.0-beta.tar.gz
 BuildRequires: gcc
 BuildRequires: make
 BuildRequires: pkgconfig
@@ -47,8 +47,8 @@ make check
 %{_libdir}/security/pam_keeto.so
 %{_libdir}/security/pam_keeto_audit.la
 %{_libdir}/security/pam_keeto_audit.so
-%dir %attr(0711, root, root) /etc/ssh/authorized_keys
-%dir %attr(0700, root, root) /etc/ssh/cert_store
+%dir %attr(0755, root, root) /etc/ssh/authorized_keys
+%dir %attr(0755, root, root) /etc/ssh/cert_store
 %config(noreplace) %attr(0600, root, root) /etc/ssh/keeto.conf
 %doc samples
 %doc AUTHORS
@@ -59,6 +59,9 @@ make check
 %license COPYING
 
 %changelog
+* Xxx Xxx xx 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
+- relax directory permissions
+
 * Sun Feb 26 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.2.beta
 - c_rehash is required to create symlinks in certificate store. add dependency.
 

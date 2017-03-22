@@ -6,8 +6,8 @@ LDAP_PORT=1389
 LDAP_BIND_DN="cn=directory-manager,dc=keeto,dc=io"
 LDAP_BIND_PWD="test123"
 
-NUM_ACCESS_PROFILES=10
-NUM_NE_PROFILES=5
+NUM_ACCESS_PROFILES=500
+NUM_NE_PROFILES=50
 DIRECT_ACCESS_PROFILE_PREFIX="direct-access-profile"
 AOB_PROFILE_PREFIX="access-on-behalf-profile"
 
