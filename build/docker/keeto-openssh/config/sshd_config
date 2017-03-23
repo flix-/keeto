@@ -108,7 +108,6 @@ AuthenticationMethods keyboard-interactive:pam,publickey
 #PrintLastLog yes
 #TCPKeepAlive yes
 #UseLogin no
-UsePrivilegeSeparation yes # Default for new installations.
 #PermitUserEnvironment no
 Compression no
 #ClientAliveInterval 0

@@ -28,9 +28,9 @@
 static char *config_neg_lt[] = {
     CONFIGSDIR "/syslog_facility_neg.conf",
     CONFIGSDIR "/ldap_uri_neg.conf",
+    CONFIGSDIR "/ldap_timeout_neg.conf",
     CONFIGSDIR "/ldap_starttls_neg.conf",
     CONFIGSDIR "/ldap_bind_dn_neg.conf",
-    CONFIGSDIR "/ldap_timeout_neg.conf",
     CONFIGSDIR "/ldap_strict_neg.conf",
     CONFIGSDIR "/ldap_ssh_server_search_base_neg.conf",
     CONFIGSDIR "/ldap_ssh_server_search_scope_neg.conf",
