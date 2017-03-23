@@ -53,7 +53,17 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
         base, scope, filter, sizelimit);
     int rc = ldap_search_ext_s(ldap_handle, base, scope, filter, attrs, 0, NULL,
         NULL, NULL, sizelimit, &result_entry);
-    if (rc != LDAP_SUCCESS) {
+    switch (rc) {
+    case LDAP_SUCCESS:
+        break;
+    case LDAP_TIMEOUT:
+        /* FALLTHROUGH */
+    case LDAP_TIMELIMIT_EXCEEDED:
+        /* TODO: Caller shall quit on receiving timeout / timelimit exceeded */
+        log_error("please handle me before release: %s", ldap_err2string(rc));
+        res = KEETO_LDAP_CONNECTION_ERR;
+        goto cleanup;
+    default:
         log_error("failed to search ldap: base '%s' (%s)", base,
             ldap_err2string(rc));
         res = KEETO_LDAP_NO_SUCH_ENTRY;
@@ -1483,18 +1493,31 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
     const int ldap_timeout_config = cfg_getint(info->cfg, "ldap_timeout");
     const struct timeval ldap_timeout = get_ldap_timeout(info->cfg);
 
+    /* initial ldap connection establishment (bind/starttls) */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_NETWORK_TIMEOUT, &ldap_timeout);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_NETWORK_TIMEOUT', "
             "value '%d'", ldap_timeout_config);
         return KEETO_LDAP_ERR;
     }
+    /*
+     * timeout after connection establishment for every synchronous
+     * ldap call e.g. ldap_search_ext_s(). has precedence over
+     * LDAP_OPT_TIMELIMIT (tcp) but can be overruled by passing a
+     * timeout to the synchronous functions directly.
+     */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMEOUT, &ldap_timeout);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_TIMEOUT', value "
             "'%d'", ldap_timeout_config);
         return KEETO_LDAP_ERR;
     }
+    /*
+     * maximum time (in seconds) allowed for a ldap search operation
+     * (ldap). setting it globally only sets the timeout in the ldap
+     * search request. can also be overruled by passing a timeout to
+     * the ldap_search_ext_s() function directly.
+     */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMELIMIT, &ldap_timeout_config);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_TIMELIMIT', value "
