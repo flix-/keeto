@@ -1489,11 +1489,14 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         return KEETO_LDAP_ERR;
     }
 
-    /* set timeout */
+    /* set timeout(s) */
     const int ldap_timeout_config = cfg_getint(info->cfg, "ldap_timeout");
     const struct timeval ldap_timeout = get_ldap_timeout(info->cfg);
 
-    /* initial ldap connection establishment (bind/starttls) */
+    /*
+     * timeout for initial ldap connection establishment
+     * (bind/starttls).
+     */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_NETWORK_TIMEOUT, &ldap_timeout);
     if (rc != LDAP_OPT_SUCCESS) {
         log_error("failed to set ldap option: key 'LDAP_OPT_NETWORK_TIMEOUT', "
