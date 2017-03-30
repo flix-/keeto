@@ -132,10 +132,10 @@ EOF
 
 # create initial tree
 killall slapd
-rm -rf /var/lib/openldap/dc\=keeto\,dc\=io/*                                     
-rm -rf /var/lib/openldap/openldap-data/                                          
-rm -rf /etc/openldap/slapd.d/*                                                   
-cp /etc/openldap/DB_CONFIG.example /var/lib/openldap/dc\=keeto\,dc\=io/DB_CONFIG 
+rm -rf /var/lib/openldap/dc\=keeto\,dc\=io/*
+rm -rf /var/lib/openldap/openldap-data/
+rm -rf /etc/openldap/slapd.d/*
+cp /etc/openldap/DB_CONFIG.example /var/lib/openldap/dc\=keeto\,dc\=io/DB_CONFIG
 schema2ldif ${SCHEMA_DIR}/keeto.schema > /etc/openldap/schema/keeto.ldif
 slapadd -l ${CONFIG_DIR}/slapd.ldif -F /etc/openldap/slapd.d/ -n0
 /usr/bin/slapd -4 -h "ldap://${LDAP_HOST}:${LDAP_PORT}/"
