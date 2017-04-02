@@ -1506,7 +1506,7 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
     /*
      * timeout after connection establishment for every synchronous
      * ldap call e.g. ldap_search_ext_s(). has precedence over
-     * LDAP_OPT_TIMELIMIT (tcp) but can be overruled by passing a
+     * LDAP_OPT_TIMELIMIT (tcp) but can be overridden by passing a
      * timeout to the synchronous functions directly.
      */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMEOUT, &ldap_timeout);
@@ -1518,7 +1518,7 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
     /*
      * maximum time (in seconds) allowed for a ldap search operation
      * (ldap). setting it globally only sets the timeout in the ldap
-     * search request. can also be overruled by passing a timeout to
+     * search request. can also be overridden by passing a timeout to
      * the ldap_search_ext_s() function directly.
      */
     rc = ldap_set_option(ldap_handle, LDAP_OPT_TIMELIMIT, &ldap_timeout_config);
