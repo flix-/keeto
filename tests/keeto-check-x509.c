@@ -30,6 +30,7 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
+#include "../src/keeto-openssl.h"
 #include "../src/keeto-x509.c"
 
 #define BUFFER_SIZE 4096

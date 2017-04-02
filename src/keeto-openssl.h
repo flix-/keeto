@@ -17,13 +17,39 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KEETO_OPENSSL_COMPAT_H
-#define KEETO_OPENSSL_COMPAT_H
+#ifndef KEETO_OPENSSL_H
+#define KEETO_OPENSSL_H
 
+#include <stddef.h>
+
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/opensslv.h>
+#include <openssl/ssl.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
+
+#define init_openssl() \
+do { \
+    SSL_load_error_strings(); \
+    OpenSSL_add_all_algorithms(); \
+} while (0)
+
+#define cleanup_openssl() \
+do { \
+    ERR_free_strings(); \
+    CRYPTO_cleanup_all_ex_data(); \
+    EVP_cleanup(); \
+    ERR_remove_thread_state(NULL); \
+} while (0)
+
+#else /* openssl 1.1 functions */
+
+#define init_openssl() do {} while (0)
+#define cleanup_openssl() do {} while (0)
 
 #endif
+
 #endif
 

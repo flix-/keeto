@@ -42,6 +42,9 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
 
 # set compiler flags
 AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])
+#AC_SUBST([CFLAGS], ["-I/home/sebastian/documents/programming/jail/include \
+#    -L/home/sebastian/documents/programming/jail/lib -Wall -std=gnu99 \
+#    -pedantic-errors"])
 
 # checks for header files.
 

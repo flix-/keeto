@@ -24,7 +24,7 @@
 
 #define log_debug(...) \
 do { \
-if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+    if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
 } while (0)
 #define fatal(...) keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
@@ -36,5 +36,6 @@ void keeto_fatal(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((noreturn))
     __attribute__((format(printf, 4, 5)));
 int set_syslog_facility(const char *syslog_facility);
+
 #endif
 

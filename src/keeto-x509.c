@@ -35,28 +35,9 @@
 
 #include "keeto-error.h"
 #include "keeto-log.h"
+#include "keeto-openssl.h"
 
 static X509_STORE *cert_store;
-
-void
-init_openssl()
-{
-    SSL_load_error_strings();
-    OpenSSL_add_all_algorithms();
-    /*
-    CRYPTO_malloc_debug_init();
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-    */
-}
-
-void
-cleanup_openssl()
-{
-    ERR_free_strings();
-    CRYPTO_cleanup_all_ex_data();
-    EVP_cleanup();
-    ERR_remove_thread_state(NULL);
-}
 
 static bool
 msb_set(unsigned char byte)

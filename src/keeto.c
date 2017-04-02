@@ -35,6 +35,7 @@
 #include "keeto-error.h"
 #include "keeto-ldap.h"
 #include "keeto-log.h"
+#include "keeto-openssl.h"
 #include "keeto-util.h"
 #include "keeto-x509.h"
 

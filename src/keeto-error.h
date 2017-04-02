@@ -54,5 +54,6 @@ enum {
 };
 
 const char *keeto_strerror(int errnum);
+
 #endif
 

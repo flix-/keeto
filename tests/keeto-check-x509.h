@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -29,5 +29,6 @@ struct keeto_validate_x509_entry {
 };
 
 Suite *make_x509_suite(void);
+
 #endif
 

@@ -10,6 +10,7 @@ pam_keeto_la_SOURCES = keeto.c \
                        keeto-ldap.c \
                        keeto-log.h \
                        keeto-log.c \
+                       keeto-openssl.h \
                        keeto-util.h \
                        keeto-util.c \
                        keeto-x509.h \
