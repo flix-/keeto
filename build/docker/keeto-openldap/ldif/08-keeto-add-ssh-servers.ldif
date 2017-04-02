@@ -1,0 +1,10 @@
+dn: cn=keeto-test-server,ou=servers,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoSSHServer
+cn: keeto-test-server
+uid: keeto-test-server
+keetoAccessProfile: cn=unix-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=ldap-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+keetoAccessProfile: cn=keeto-engineering,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+description: keeto test server
+

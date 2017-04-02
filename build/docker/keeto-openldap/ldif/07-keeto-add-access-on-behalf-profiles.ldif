@@ -1,0 +1,20 @@
+dn: cn=ldap-administration,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoAccessProfile
+objectClass: keetoAccessOnBehalfProfile
+cn: ldap-administration
+keetoEnabled: TRUE
+keetoKeyProviderGroup: cn=ldap-administrators,ou=people,ou=groups,dc=keeto,dc=io
+keetoTargetKeystoreGroup: cn=ldap-accounts,ou=technical-accounts,ou=groups,dc=keeto,dc=io
+description: access on behalf profile for ldap administration
+
+dn: cn=keeto-engineering,ou=access-profiles,ou=ssh,dc=keeto,dc=io
+objectClass: top
+objectClass: keetoAccessProfile
+objectClass: keetoAccessOnBehalfProfile
+cn: keeto-engineering
+keetoEnabled: TRUE
+keetoKeyProviderGroup: cn=keeto-engineers,ou=people,ou=groups,dc=keeto,dc=io
+keetoTargetKeystore: uid=keeto,ou=technical-accounts,dc=keeto,dc=io
+description: access on behalf profile for keeto engineering
+

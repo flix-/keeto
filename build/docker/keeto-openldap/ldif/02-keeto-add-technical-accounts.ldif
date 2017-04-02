@@ -1,0 +1,18 @@
+dn: uid=slapd,ou=technical-accounts,dc=keeto,dc=io
+objectClass: top
+objectClass: account
+uid: slapd
+description: slapd account
+
+dn: uid=opendj,ou=technical-accounts,dc=keeto,dc=io
+objectClass: top
+objectClass: account
+uid: opendj
+description: opendj account
+
+dn: uid=keeto,ou=technical-accounts,dc=keeto,dc=io
+objectClass: top
+objectClass: account
+uid: keeto
+description: keeto account
+

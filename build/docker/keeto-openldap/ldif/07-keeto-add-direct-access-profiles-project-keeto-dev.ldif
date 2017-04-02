@@ -1,9 +1,0 @@
-dn: cn=dap-cryptography-engineering-project-keeto-dev,ou=access-profiles,ou=ssh,dc=keeto,dc=io
-objectClass: top
-objectClass: keetoAccessProfile
-objectClass: keetoDirectAccessProfile
-cn: dap-cryptography-engineering-project-keeto-dev
-keetoKeyProvider: cn=cryptography-engineering,ou=people,ou=groups,dc=keeto,dc=io
-keetoEnabled: TRUE
-description: direct access profile providing access to dev environment of project keeto
-

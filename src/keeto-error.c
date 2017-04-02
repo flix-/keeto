@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -25,6 +25,7 @@ keeto_strerror(int errnum)
     switch(errnum) {
     case KEETO_OK:
         return "ok";
+
     case KEETO_SYSTEM_ERR:
         return "system error";
     case KEETO_NO_MEMORY:
@@ -51,8 +52,10 @@ keeto_strerror(int errnum)
         return "no key provider";
     case KEETO_X509_ERR:
         return "x509 error";
-    case KEETO_NO_ACCESS_PROFILE:
-        return "no access profile";
+    case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
+        return "no access profile for ssh server";
+    case KEETO_NO_ACCESS_PROFILE_FOR_UID:
+        return "no access profile for uid";
     case KEETO_UNKNOWN_ACCESS_PROFILE_TYPE:
         return "unknown access profile type";
     case KEETO_NO_KEYSTORE_OPTION:

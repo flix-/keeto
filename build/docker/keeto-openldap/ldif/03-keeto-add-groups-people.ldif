@@ -1,0 +1,24 @@
+dn: cn=unix-administrators,ou=people,ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: groupOfNames
+cn: unix-administrators
+member: cn=birgit,ou=people,dc=keeto,dc=io
+member: cn=wolfgang,ou=people,dc=keeto,dc=io
+description: group for unix administrators
+
+dn: cn=ldap-administrators,ou=people,ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: groupOfNames
+cn: ldap-administrators
+member: cn=oliver,ou=people,dc=keeto,dc=io
+member: cn=trixi,ou=people,dc=keeto,dc=io
+description: group for ldap administrators
+
+dn: cn=keeto-engineers,ou=people,ou=groups,dc=keeto,dc=io
+objectClass: top
+objectClass: groupOfNames
+cn: keeto-engineers
+member: cn=bjoern,ou=people,dc=keeto,dc=io
+member: cn=sebastian,ou=people,dc=keeto,dc=io
+description: group for keeto engineers
+
