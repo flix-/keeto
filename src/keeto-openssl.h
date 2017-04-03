@@ -56,5 +56,6 @@ void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e,
 #define cleanup_openssl() do {} while (0)
 
 #endif
+
 #endif
 
