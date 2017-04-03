@@ -16,6 +16,7 @@ keeto_check_SOURCES = keeto-check.c \
                       ../src/keeto-log.h \
                       ../src/keeto-log.c \
                       ../src/keeto-openssl.h \
+                      ../src/keeto-openssl.c \
                       ../src/keeto-util.h \
                       ../src/keeto-util.c \
                       ../src/keeto-x509.h

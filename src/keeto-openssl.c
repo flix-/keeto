@@ -17,44 +17,28 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KEETO_OPENSSL_H
-#define KEETO_OPENSSL_H
-
 #include <stddef.h>
 
 #include <openssl/bn.h>
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
 #include <openssl/opensslv.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/rsa.h>
-#include <openssl/ssl.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
 
-#define init_openssl() \
-do { \
-    SSL_load_error_strings(); \
-    OpenSSL_add_all_algorithms(); \
-} while (0)
+void
+RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+    if (n != NULL) {
+        *n = r->n;
+    }
+    if (e != NULL) {
+        *e = r->e;
+    }
+    if (d != NULL) {
+        *d = r->d;
+    }
+}
 
-#define cleanup_openssl() \
-do { \
-    ERR_free_strings(); \
-    CRYPTO_cleanup_all_ex_data(); \
-    EVP_cleanup(); \
-    ERR_remove_thread_state(NULL); \
-} while (0)
-
-void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e,
-    const BIGNUM **d);
-
-#else /* openssl 1.1 functions */
-
-#define init_openssl() do {} while (0)
-#define cleanup_openssl() do {} while (0)
-
-#endif
 #endif
 
