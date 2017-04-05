@@ -20,18 +20,19 @@
 #ifndef KEETO_OPENSSL_H
 #define KEETO_OPENSSL_H
 
+#include <openssl/opensslv.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
+
 #include <stddef.h>
 
 #include <openssl/bn.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
-#include <openssl/opensslv.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
 
 #define init_openssl() \
 do { \
@@ -55,7 +56,7 @@ void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e,
 #define init_openssl() do {} while (0)
 #define cleanup_openssl() do {} while (0)
 
-#endif
+#endif /* OPENSSL_VERSION_NUMBER */
 
-#endif
+#endif /* KEETO_OPENSSL_H */
 

@@ -37,5 +37,5 @@ void keeto_fatal(const char *filename, const char *function, int line,
     __attribute__((format(printf, 4, 5)));
 int set_syslog_facility(const char *syslog_facility);
 
-#endif
+#endif /* KEETO_LOG_H */
 

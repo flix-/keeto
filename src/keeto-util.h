@@ -135,5 +135,5 @@ void free_keystore_options(struct keeto_keystore_options *keystore_options);
 void free_keystore_records(struct keeto_keystore_records *keystore_records);
 void free_keystore_record(struct keeto_keystore_record *keystore_record);
 
-#endif
+#endif /* KEETO_UTIL_H */
 

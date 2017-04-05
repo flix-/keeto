@@ -24,5 +24,5 @@
 
 Suite *make_config_suite(void);
 
-#endif
+#endif /* KEETO_CHECK_CONFIG_H */
 

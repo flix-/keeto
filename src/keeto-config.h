@@ -25,5 +25,5 @@
 cfg_t *parse_config(const char *cfg_file);
 void free_config(cfg_t *cfg);
 
-#endif
+#endif /* KEETO_CONFIG_H */
 

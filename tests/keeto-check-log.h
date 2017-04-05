@@ -24,5 +24,5 @@
 
 Suite *make_log_suite(void);
 
-#endif
+#endif /* KEETO_CHECK_LOG_H */
 

@@ -30,5 +30,5 @@ struct keeto_validate_x509_entry {
 
 Suite *make_x509_suite(void);
 
-#endif
+#endif /* KEETO_CHECK_X509_H */
 

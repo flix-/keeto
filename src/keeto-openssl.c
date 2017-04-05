@@ -17,14 +17,15 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <openssl/opensslv.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
+
 #include <stddef.h>
 
 #include <openssl/bn.h>
-#include <openssl/opensslv.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/rsa.h>
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
 
 void
 RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
@@ -40,5 +41,9 @@ RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
     }
 }
 
-#endif
+#else /* openssl 1.1 functions */
+
+extern int remove_me_if_code_is_added_here;
+
+#endif /* OPENSSL_VERSION_NUMBER */
 
