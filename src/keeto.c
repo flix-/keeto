@@ -77,7 +77,6 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
     free_info(info);
     cleanup_openssl();
     closelog();
-    //CRYPTO_mem_leaks_fp(stderr);
 }
 
 static void

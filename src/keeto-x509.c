@@ -58,6 +58,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     RSA *rsa = EVP_PKEY_get1_RSA(pkey);
     if (rsa == NULL) {
         log_error("failed to obtain rsa key");
@@ -189,6 +190,7 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     EVP_PKEY *pkey = X509_get_pubkey(x509);
     if (pkey == NULL) {
         log_error("failed to extract public key from certificate");

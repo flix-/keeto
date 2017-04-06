@@ -17,7 +17,6 @@ BuildRequires: check-devel >= 0.9.9
 BuildRequires: openssl-devel >= 1.0
 BuildRequires: openldap-devel
 Requires: openssl-perl
-Requires: openssh >= 6.2
 Requires: openssh-server >= 6.2
 
 %description
@@ -61,6 +60,7 @@ make check
 %changelog
 * Xxx Xxx xx 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
 - relax directory permissions
+- remove openssh dependency as it is automatically provided via openssh-server.
 
 * Sun Feb 26 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.2.beta
 - c_rehash is required to create symlinks in certificate store. add dependency.

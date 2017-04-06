@@ -715,7 +715,7 @@ add_key(struct berval *cert, struct keeto_keys *keys)
 
     char *x509 = cert->bv_val;
     ber_len_t x509_len = cert->bv_len;
-    key->x509 = d2i_X509(NULL, (const unsigned char **) &x509, x509_len);
+    key->x509 = d2i_X509(NULL, (const unsigned char **) &x509, (long) x509_len);
     if (key->x509 == NULL) {
         log_error("failed to decode certificate");
         res = KEETO_X509_ERR;

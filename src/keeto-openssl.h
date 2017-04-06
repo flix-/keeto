@@ -34,14 +34,12 @@
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
 
-#define init_openssl() \
-do { \
+#define init_openssl() do { \
     SSL_load_error_strings(); \
     OpenSSL_add_all_algorithms(); \
 } while (0)
 
-#define cleanup_openssl() \
-do { \
+#define cleanup_openssl() do { \
     ERR_free_strings(); \
     CRYPTO_cleanup_all_ex_data(); \
     EVP_cleanup(); \
