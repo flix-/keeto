@@ -50,5 +50,6 @@ struct keeto_get_rdn_from_dn_entry {
 };
 
 Suite *make_util_suite(void);
-#endif
+
+#endif /* KEETO_CHECK_UTIL_H */
 

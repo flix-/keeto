@@ -35,6 +35,7 @@
 #include "keeto-error.h"
 #include "keeto-ldap.h"
 #include "keeto-log.h"
+#include "keeto-openssl.h"
 #include "keeto-util.h"
 #include "keeto-x509.h"
 
@@ -76,7 +77,6 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
     free_info(info);
     cleanup_openssl();
     closelog();
-    //CRYPTO_mem_leaks_fp(stderr);
 }
 
 static void

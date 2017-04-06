@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -17,18 +17,33 @@
  * along with Keeto.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KEETO_CHECK_X509_H
-#define KEETO_CHECK_X509_H
+#include <openssl/opensslv.h>
 
-#include <stdbool.h>
-#include <check.h>
+#if OPENSSL_VERSION_NUMBER < 0x10100000L /* openssl 1.0 functions */
 
-struct keeto_validate_x509_entry {
-    char *file;
-    bool exp_result;
-};
+#include <stddef.h>
 
-Suite *make_x509_suite(void);
+#include <openssl/bn.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/rsa.h>
 
-#endif /* KEETO_CHECK_X509_H */
+void
+RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+    if (n != NULL) {
+        *n = r->n;
+    }
+    if (e != NULL) {
+        *e = r->e;
+    }
+    if (d != NULL) {
+        *d = r->d;
+    }
+}
+
+#else /* openssl 1.1 functions */
+
+extern int remove_me_if_code_is_added_here;
+
+#endif /* OPENSSL_VERSION_NUMBER */
 

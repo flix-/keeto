@@ -42,5 +42,6 @@
 #define KEETO_KEYSTORE_OPTIONS_CMD_ATTR "keetoKeystoreOptionCommand"
 
 int get_access_profiles_from_ldap(struct keeto_info *info);
-#endif
+
+#endif /* KEETO_LDAP_H */
 

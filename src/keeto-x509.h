@@ -32,8 +32,6 @@
     (cp)[2] = (unsigned char)((value) >> 8), \
     (cp)[3] = (unsigned char)(value))
 
-void init_openssl();
-void cleanup_openssl();
 int init_cert_store(char *cert_store_dir, bool check_crl);
 void free_cert_store();
 int add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key);
@@ -42,5 +40,6 @@ char *get_serial_from_x509(X509 *x509);
 int get_issuer_from_x509(X509 *x509, char **ret);
 int get_subject_from_x509(X509 *x509, char **ret);
 void free_x509(X509 *x509);
-#endif
+
+#endif /* KEETO_X509_H */
 
