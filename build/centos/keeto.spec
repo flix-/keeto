@@ -17,7 +17,7 @@ BuildRequires: check-devel >= 0.9.9
 BuildRequires: openssl-devel >= 1.0
 BuildRequires: openldap-devel
 Requires: openssl-perl
-Requires: openssh-server >= 6.2
+Requires: openssh-server%{?_isa} >= 6.2
 
 %description
 Keeto is a module for OpenSSH that enables profile-based administration
@@ -42,10 +42,10 @@ install samples/keeto.conf %{buildroot}/etc/ssh/
 make check
 
 %files
-%{_libdir}/security/pam_keeto.la
 %{_libdir}/security/pam_keeto.so
-%{_libdir}/security/pam_keeto_audit.la
+%exclude %{_libdir}/security/pam_keeto.la
 %{_libdir}/security/pam_keeto_audit.so
+%exclude %{_libdir}/security/pam_keeto_audit.la
 %dir %attr(0755, root, root) /etc/ssh/authorized_keys
 %dir %attr(0755, root, root) /etc/ssh/cert_store
 %config(noreplace) %attr(0600, root, root) /etc/ssh/keeto.conf
@@ -58,9 +58,10 @@ make check
 %license COPYING
 
 %changelog
-* Xxx Xxx xx 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
+* Fri Apr 14 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
 - Relax directory permissions.
 - Remove 'openssh' dependency as it is automatically provided via 'openssh-server'.
+- Remove libtool archive files.
 
 * Sun Feb 26 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.2.beta
 - Add 'c_rehash' as dependency which is required to create symlinks in certificate store.
