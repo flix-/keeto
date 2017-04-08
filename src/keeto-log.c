@@ -52,6 +52,23 @@ keeto_log(int level, char *prefix, const char *fmt, va_list ap)
 }
 
 void
+keeto_log_debug(const char *filename, const char *function, int line,
+    const char *fmt, ...)
+{
+    if (filename == NULL || function == NULL || fmt == NULL) {
+        fatal("filename, function or fmt == NULL");
+    }
+
+    char prefix[LOG_PREFIX_BUFFER_SIZE];
+    snprintf(prefix, sizeof prefix, "[D] [%s, %s(), %d]", filename, function,
+        line);
+    va_list ap;
+    va_start(ap, fmt);
+    keeto_log(LOG_DEBUG, prefix, fmt, ap);
+    va_end(ap);
+}
+
+void
 log_info(const char *fmt, ...)
 {
     if (fmt == NULL) {
@@ -78,19 +95,15 @@ log_error(const char *fmt, ...)
 }
 
 void
-keeto_log_debug(const char *filename, const char *function, int line,
-    const char *fmt, ...)
+log_critical(const char *fmt, ...)
 {
-    if (filename == NULL || function == NULL || fmt == NULL) {
-        fatal("filename, function or fmt == NULL");
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
     }
 
-    char prefix[LOG_PREFIX_BUFFER_SIZE];
-    snprintf(prefix, sizeof prefix, "[D] [%s, %s(), %d]", filename, function,
-        line);
     va_list ap;
     va_start(ap, fmt);
-    keeto_log(LOG_DEBUG, prefix, fmt, ap);
+    keeto_log(LOG_CRIT, "[C]", fmt, ap);
     va_end(ap);
 }
 

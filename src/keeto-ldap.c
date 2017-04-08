@@ -1546,15 +1546,23 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         return KEETO_LDAP_ERR;
     }
 
-    /* check CRL if specified in config */
+    /*
+     * check ldap server certificate chain against CRL if specified in
+     * config.
+     *
+     * this option is only supported when libldap is linked against
+     * openssl! in case of failure a critical warning will be logged
+     * and execution flow continues. failing with an error would break
+     * support with major distros that haven't linked libldap against
+     * openssl.
+     */
     bool check_crl = cfg_getint(info->cfg, "check_crl");
     if (check_crl) {
         const int crl_check = LDAP_OPT_X_TLS_CRL_ALL;
         rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CRLCHECK, &crl_check);
         if (rc != LDAP_OPT_SUCCESS) {
-            log_error("failed to set ldap option: key 'LDAP_OPT_X_TLS_CRLCHECK', "
+            log_critical("failed to set ldap option: key 'LDAP_OPT_X_TLS_CRLCHECK', "
                 "value '%d'", crl_check);
-            return KEETO_LDAP_ERR;
         }
     }
 
