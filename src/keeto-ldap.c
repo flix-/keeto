@@ -49,8 +49,6 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
     int sizelimit = 1;
     LDAPMessage *result_entry = NULL;
 
-    log_debug("ldap search (base: '%s', scope: %d, filter: '%s', sizelimit: %d)",
-        base, scope, filter, sizelimit);
     int rc = ldap_search_ext_s(ldap_handle, base, scope, filter, attrs, 0, NULL,
         NULL, NULL, sizelimit, &result_entry);
     switch (rc) {
@@ -1583,7 +1581,7 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         return KEETO_LDAP_ERR;
     }
 
-    /* force validation of certificates when using starttls / ldaps */
+    /* force validation of certificates when using starttls/ldaps */
     const int req_cert = LDAP_OPT_X_TLS_DEMAND;
     rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_REQUIRE_CERT, &req_cert);
     if (rc != LDAP_OPT_SUCCESS) {

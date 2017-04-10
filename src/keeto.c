@@ -308,7 +308,6 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
     if (TAILQ_EMPTY(key_provider->keys)) {
         return KEETO_NO_KEY;
     }
-
     return KEETO_OK;
 }
 
@@ -580,7 +579,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to write keystore file (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-
     return PAM_SUCCESS;
 }
 

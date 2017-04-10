@@ -1,12 +1,32 @@
+[0.3.0-beta] - 2017-04-XX
+-------------------------
+
+* Added support for linking key providers/target keystores directly
+  to an access profile rather than through groups only.
+
+* Added support for OpenSSL 1.1.
+
+* Added support for checking LDAP server certificate chain against CRL.
+
+* Added Docker testing/showcase environment.
+
+* Fixed timeout handling which was previously only supported for LDAP
+  search requests.
+
+* Optimized LDAP search queries.
+
+* Changed various attributes in LDAP schema from mandatory to optional.
+
+
 [0.2.0-beta] - 2016-12-24
 -------------------------
 
-* Introduction of access profiles allowing a more flexible way of
+* Added support of access profiles allowing a more flexible way of
   defining access permissions in LDAP server.
 
-* Add support for CRL checking.
+* Added support for CRL checking.
 
-* Error handling.
+* Added error handling.
 
 
 [0.1.0-beta] - 2016-01-01
