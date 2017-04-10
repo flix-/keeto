@@ -251,7 +251,8 @@ init_cert_store(char *cert_store_dir, bool check_crl)
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    /* create a new x509 store with trusted ca certs / crls */
+
+    /* create a new x509 store with trusted ca certs/crl's */
     X509_STORE *cert_store_tmp = X509_STORE_new();
     if (cert_store_tmp == NULL) {
         log_error("failed to create cert store");
