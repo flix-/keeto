@@ -59,12 +59,12 @@ make check
 
 %changelog
 * Fri Apr 14 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
-- Relax directory permissions.
-- Remove 'openssh' dependency as it is automatically provided via 'openssh-server'.
-- Remove libtool archive files.
+- Relaxed directory permissions.
+- Removed 'openssh' dependency as it is automatically provided via 'openssh-server'.
+- Removed libtool archive files.
 
 * Sun Feb 26 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.2.beta
-- Add 'c_rehash' as dependency which is required to create symlinks in certificate store.
+- Added 'c_rehash' as dependency which is required to create symlinks in certificate store.
 
 * Sat Feb 04 2017 Sebastian Roland <seroland86@gmail.com> - 0.2.0-0.1.beta
 - Initial package.
