@@ -423,7 +423,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh or argv == NULL");
     }
 
-    /* check if argument is path to config file */
+    /* check if argument is path to readable file */
     if (argc != 1) {
         log_error("arg count != 1");
         return PAM_SERVICE_ERR;
@@ -445,6 +445,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     int rc = pam_set_data(pamh, "keeto_info", info, &cleanup);
     if (rc != PAM_SUCCESS) {
         log_error("failed to set pam data (%s)", pam_strerror(pamh, rc));
+        free_info(info);
         return PAM_SYSTEM_ERR;
     }
 
@@ -461,6 +462,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     if (rc != KEETO_OK) {
         log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
             keeto_strerror(rc));
+        return PAM_SYSTEM_ERR;
     }
 
     /* retrieve uid */
@@ -531,12 +533,10 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         }
         return PAM_SUCCESS;
     case KEETO_NO_SSH_SERVER:
-        log_error("failed to obtain access profiles from ldap (%s)",
+        log_error("failed to obtain ssh server entry from ldap (%s)",
             keeto_strerror(rc));
         return PAM_AUTH_ERR;
     case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
-        log_info("failed to obtain access profiles from ldap (%s)",
-            keeto_strerror(rc));
         return PAM_AUTH_ERR;
     case KEETO_NO_ACCESS_PROFILE_FOR_UID:
         log_info("no valid access profile found for uid '%s'", info->uid);

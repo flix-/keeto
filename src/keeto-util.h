@@ -23,15 +23,17 @@
 #include "queue.h"
 
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <confuse.h>
 #include <openssl/x509.h>
 
-#define KEETO_DEBUG \
-int sleepy = 1; \
-while (sleepy) { \
-    sleep(5); \
-}
+#define KEETO_DEBUG do { \
+    int sleepy = 1; \
+    while (sleepy) { \
+        sleep(5); \
+    } \
+} while (0)
 
 enum {
     KEETO_UNDEF = 0x56

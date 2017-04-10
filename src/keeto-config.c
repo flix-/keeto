@@ -299,7 +299,6 @@ parse_config(const char *cfg_file)
         free_config(cfg);
         return NULL;
     }
-
     return cfg;
 }
 
