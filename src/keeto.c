@@ -514,33 +514,42 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* init openssl */
     init_openssl();
 
-    /* get access profiles from ldap */
+    int res = PAM_ABORT;
+    /*
+     * get access profiles from ldap.
+     *
+     * only remove keystore when access permissions explicitly say so.
+     */
     rc = get_access_profiles_from_ldap(info);
     switch (rc) {
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
-        log_error("system is out of memory");
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
         return PAM_BUF_ERR;
     case KEETO_LDAP_CONNECTION_ERR:
-        log_error("failed to connect to ldap");
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
         info->ldap_online = 0;
         bool ldap_strict = cfg_getint(info->cfg, "ldap_strict");
         if (ldap_strict) {
             log_info("ldap strict mode active - refusing access");
-            return PAM_AUTH_ERR;
+            return PAM_AUTHINFO_UNAVAIL;
         }
         return PAM_SUCCESS;
     case KEETO_NO_SSH_SERVER:
-        log_error("failed to obtain ssh server entry from ldap (%s)",
+        log_error("failed to obtain access profiles from ldap (%s)",
             keeto_strerror(rc));
-        return PAM_AUTH_ERR;
+        return PAM_AUTHINFO_UNAVAIL;
     case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
-        return PAM_AUTH_ERR;
+        log_info("no access profiles specified for ssh server");
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
     case KEETO_NO_ACCESS_PROFILE_FOR_UID:
-        log_info("no valid access profile found for uid '%s'", info->uid);
-        remove_keystore(info->ssh_keystore_location);
-        return PAM_AUTH_ERR;
+        log_info("no valid access profile specified for uid '%s'", info->uid);
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
             keeto_strerror(rc));
@@ -557,12 +566,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
-        log_error("system is out of memory");
+        log_error("failed to post process access profiles (%s)",
+            keeto_strerror(rc));
         return PAM_BUF_ERR;
     case KEETO_NO_ACCESS_PROFILE_FOR_UID:
-        log_info("no valid access profile found for uid '%s'", info->uid);
-        remove_keystore(info->ssh_keystore_location);
-        return PAM_AUTH_ERR;
+        log_info("no valid access profile specified for uid '%s'", info->uid);
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
     default:
         log_error("failed to post process access profiles (%s)",
             keeto_strerror(rc));
@@ -580,6 +590,10 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
     return PAM_SUCCESS;
+
+cleanup_keystore:
+    remove_keystore(info->ssh_keystore_location);
+    return res;
 }
 
 PAM_EXTERN int

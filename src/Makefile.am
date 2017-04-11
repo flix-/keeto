@@ -27,6 +27,8 @@ pam_keeto_audit_la_SOURCES = keeto-audit.c \
                              keeto-error.c \
                              keeto-log.h \
                              keeto-log.c \
+                             keeto-openssl.h \
+                             keeto-openssl.c \
                              keeto-util.h \
                              keeto-util.c \
                              keeto-x509.h \

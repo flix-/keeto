@@ -66,6 +66,7 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
         res = KEETO_LDAP_NO_SUCH_ENTRY;
         goto cleanup;
     case LDAP_NO_MEMORY:
+        log_error("failed to search ldap (%s)", ldap_err2string(rc));
         res = KEETO_NO_MEMORY;
         goto cleanup;
     default:
@@ -416,6 +417,10 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
                 ldap_msgfree(group_member_entry);
                 free_attr_values_as_string(target_keystore_group_dns);
                 return rc;
+            case KEETO_LDAP_NO_SUCH_ATTR:
+                log_error("failed to obtain target keystore dns: attribute '%s' "
+                    "(%s)", target_keystore_group_member_attr, keeto_strerror(rc));
+                goto cleanup_inner;
             default:
                 log_error("failed to check target keystore group (%s)",
                     keeto_strerror(rc));
@@ -655,8 +660,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         res = rc;
         goto cleanup_a;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("skipped keystore option 'command' (%s)",
-            KEETO_KEYSTORE_OPTIONS_CMD_ATTR);
+        log_info("no keystore option 'command' specified");
         break;
     default:
         log_error("failed to obtain keystore option 'command': attribute '%s' (%s)",
@@ -682,8 +686,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
         res = rc;
         goto cleanup_b;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("skipped keystore option 'from' (%s)",
-            KEETO_KEYSTORE_OPTIONS_FROM_ATTR);
+        log_info("no keystore option 'from' specified");
         break;
     default:
         log_error("failed to obtain keystore option 'from': attribute '%s' (%s)",
@@ -791,7 +794,7 @@ add_keys(LDAP *ldap_handle, struct keeto_info *info,
             res = rc;
             goto cleanup_b;
         default:
-            log_info("skipped key (%s)", keeto_strerror(rc));
+            log_error("failed to add key (%s)", keeto_strerror(rc));
         }
     }
     /* check if not empty */
@@ -1071,6 +1074,10 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
                 ldap_msgfree(group_member_entry);
                 free_attr_values_as_string(key_provider_group_dns);
                 goto cleanup;
+            case KEETO_LDAP_NO_SUCH_ATTR:
+                log_error("failed to obtain key provider dns: attribute '%s' "
+                    "(%s)", key_provider_group_member_attr, keeto_strerror(rc));
+                goto cleanup_inner;
             default:
                 log_error("failed to process key provider group (%s)",
                     keeto_strerror(rc));
@@ -1188,6 +1195,7 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     /* add keystore options */
+    log_info("processing keystore options");
     char **keystore_options_dn = NULL;
     rc = get_attr_values_as_string(ldap_handle, access_profile_entry,
         KEETO_AP_KEYSTORE_OPTIONS_ATTR, &keystore_options_dn);
@@ -1262,7 +1270,7 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
         res = rc;
         goto cleanup_a;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("skipped keystore options (%s)", keeto_strerror(rc));
+        log_info("no keystore options specified");
         break;
     default:
         log_error("failed to obtain keystore options dn: attribute '%s' (%s)",
@@ -1305,7 +1313,6 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
     case KEETO_NO_MEMORY:
         return rc;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no access profiles specified");
         return KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER;
     default:
         log_error("failed to obtain access profile dns: attribute '%s' (%s)",
@@ -1709,6 +1716,7 @@ get_access_profiles_from_ldap(struct keeto_info *info)
         goto cleanup_a;
     case KEETO_LDAP_NO_SUCH_ENTRY:
     case KEETO_LDAP_SCHEMA_ERR:
+        log_error("failed to add ssh server (%s)", keeto_strerror(rc));
         res = KEETO_NO_SSH_SERVER;
         goto cleanup_a;
     default:

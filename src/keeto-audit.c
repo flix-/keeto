@@ -289,17 +289,17 @@ print_config(cfg_t *cfg)
         "ldap_ssh_server_search_scope"));
     log_string("cfg->ssh_server_uid", cfg_getstr(cfg, "ssh_server_uid"));
 
-    log_string("cfg->ldap_target_keystore_group_member_attr", cfg_getstr(cfg,
-        "ldap_target_keystore_group_member_attr"));
-    log_string("cfg->ldap_target_keystore_uid_attr", cfg_getstr(cfg,
-        "ldap_target_keystore_uid_attr"));
-
     log_string("cfg->ldap_key_provider_group_member_attr", cfg_getstr(cfg,
         "ldap_key_provider_group_member_attr"));
     log_string("cfg->ldap_key_provider_uid_attr", cfg_getstr(cfg,
         "ldap_key_provider_uid_attr"));
     log_string("cfg->ldap_key_provider_cert_attr", cfg_getstr(cfg,
         "ldap_key_provider_cert_attr"));
+
+    log_string("cfg->ldap_target_keystore_group_member_attr", cfg_getstr(cfg,
+        "ldap_target_keystore_group_member_attr"));
+    log_string("cfg->ldap_target_keystore_uid_attr", cfg_getstr(cfg,
+        "ldap_target_keystore_uid_attr"));
 
     log_string("cfg->ssh_keystore_location", cfg_getstr(cfg,
         "ssh_keystore_location"));
@@ -348,12 +348,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 
     /* set log facility */
     char *syslog_facility = cfg_getstr(info->cfg, "syslog_facility");
-    if (syslog_facility != NULL) {
-        rc = set_syslog_facility(syslog_facility);
-        if (rc != KEETO_OK) {
-            log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
-                keeto_strerror(rc));
-        }
+    if (syslog_facility == NULL) {
+        return PAM_SYSTEM_ERR;
+    }
+
+    rc = set_syslog_facility(syslog_facility);
+    if (rc != KEETO_OK) {
+        log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
+            keeto_strerror(rc));
+        return PAM_SYSTEM_ERR;
     }
     print_info(info);
 

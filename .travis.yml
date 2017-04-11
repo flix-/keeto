@@ -8,7 +8,7 @@ notifications:
 
 before_install:
   - sudo add-apt-repository "deb http://de.archive.ubuntu.com/ubuntu trusty main
-    restricted universe multiverse"
+        restricted universe multiverse"
   - sudo apt-get update -qq
 
 install:
