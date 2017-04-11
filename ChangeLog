@@ -21,8 +21,8 @@
 [0.2.0-beta] - 2016-12-24
 -------------------------
 
-* Added support of access profiles allowing a more flexible way of
-  defining access permissions in LDAP server.
+* Added support for access profiles allowing a more flexible way for
+  the definition of access permissions in LDAP server.
 
 * Added support for CRL checking.
 
