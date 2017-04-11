@@ -26,7 +26,9 @@
     if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
 } while (0)
 
-#define fatal(...) keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define fatal(...) do { \
+    keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+} while (0)
 
 void keeto_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));

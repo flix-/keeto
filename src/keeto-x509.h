@@ -26,11 +26,12 @@
 
 #include "keeto-util.h"
 
-#define PUT_32BIT(cp, value)( \
-    (cp)[0] = (unsigned char)((value) >> 24), \
-    (cp)[1] = (unsigned char)((value) >> 16), \
-    (cp)[2] = (unsigned char)((value) >> 8), \
-    (cp)[3] = (unsigned char)(value))
+#define PUT_32BIT(cp, value) do { \
+    (cp)[0] = (unsigned char) ((value) >> 24); \
+    (cp)[1] = (unsigned char) ((value) >> 16); \
+    (cp)[2] = (unsigned char) ((value) >> 8); \
+    (cp)[3] = (unsigned char) (value); \
+} while (0)
 
 int init_cert_store(char *cert_store_dir, bool check_crl);
 void free_cert_store();
