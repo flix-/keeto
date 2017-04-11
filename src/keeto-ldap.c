@@ -266,7 +266,6 @@ check_target_keystores(LDAP *ldap_handle, struct keeto_info *info,
     case KEETO_NO_MEMORY:
         return rc;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no target keystores specified");
         return rc;
     default:
         log_error("failed to obtain target keystore dns: attribute '%s' (%s)",
@@ -357,11 +356,13 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
         KEETO_AOBP_TARGET_KEYSTORE_ATTR, &relevant);
     switch (rc) {
     case KEETO_OK:
-    case KEETO_LDAP_NO_SUCH_ATTR:
         break;
     case KEETO_LDAP_CONNECTION_ERR:
     case KEETO_NO_MEMORY:
         return rc;
+    case KEETO_LDAP_NO_SUCH_ATTR:
+        log_info("no direct target keystores specified");
+        break;
     default:
         log_error("failed to check direct target keystores (%s)",
             keeto_strerror(rc));
@@ -400,7 +401,8 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
                 free_attr_values_as_string(target_keystore_group_dns);
                 return rc;
             default:
-                log_info("skipped target keystore group");
+                log_error("failed to check target keystore group (%s)",
+                    keeto_strerror(rc));
                 continue;
             }
 
@@ -415,7 +417,7 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
                 free_attr_values_as_string(target_keystore_group_dns);
                 return rc;
             default:
-                log_error("failed to check target keystores (%s)",
+                log_error("failed to check target keystore group (%s)",
                     keeto_strerror(rc));
                 goto cleanup_inner;
             }
@@ -430,8 +432,8 @@ check_access_profile_relevance_aobp(LDAP *ldap_handle, struct keeto_info *info,
         log_info("no target keystore groups specified");
         break;
     default:
-        log_error("failed to check target keystore groups (%s)",
-            keeto_strerror(rc));
+        log_error("failed to obtain target keystore group dns: attribute '%s' "
+            "(%s)", KEETO_AOBP_TARGET_KEYSTORE_GROUP_ATTR, keeto_strerror(rc));
         break;
     }
     if (relevant) {
@@ -921,7 +923,6 @@ process_key_providers(LDAP *ldap_handle, struct keeto_info *info,
     case KEETO_NO_MEMORY:
         return rc;
     case KEETO_LDAP_NO_SUCH_ATTR:
-        log_info("no key providers specified");
         return rc;
     default:
         log_error("failed to obtain key provider dns: attribute '%s' (%s)",
@@ -971,14 +972,16 @@ process_key_providers(LDAP *ldap_handle, struct keeto_info *info,
             res = rc;
             ldap_msgfree(key_provider_entry);
             goto cleanup;
-        default:
+        case KEETO_NOT_RELEVANT:
             log_info("skipped key provider (%s)", keeto_strerror(rc));
+            goto cleanup_inner;
+        default:
+            log_error("failed to add key provider (%s)", keeto_strerror(rc));
             goto cleanup_inner;
         }
     cleanup_inner:
         ldap_msgfree(key_provider_entry);
     }
-
     res = KEETO_OK;
 
 cleanup:
@@ -1012,12 +1015,14 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
         access_profile_entry, KEETO_AP_KEY_PROVIDER_ATTR, key_providers);
     switch (rc) {
     case KEETO_OK:
-    case KEETO_LDAP_NO_SUCH_ATTR:
         break;
     case KEETO_LDAP_CONNECTION_ERR:
     case KEETO_NO_MEMORY:
         res = rc;
         goto cleanup;
+    case KEETO_LDAP_NO_SUCH_ATTR:
+        log_info("no direct key providers specified");
+        break;
     default:
         log_error("failed to add direct key providers (%s)", keeto_strerror(rc));
         break;
@@ -1050,7 +1055,8 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
                 free_attr_values_as_string(key_provider_group_dns);
                 goto cleanup;
             default:
-                log_info("skipped key provider group");
+                log_error("failed to process key provider group (%s)",
+                    keeto_strerror(rc));
                 continue;
             }
 
@@ -1061,11 +1067,12 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
                 break;
             case KEETO_LDAP_CONNECTION_ERR:
             case KEETO_NO_MEMORY:
+                res = rc;
                 ldap_msgfree(group_member_entry);
                 free_attr_values_as_string(key_provider_group_dns);
                 goto cleanup;
             default:
-                log_error("failed to process key providers (%s)",
+                log_error("failed to process key provider group (%s)",
                     keeto_strerror(rc));
                 goto cleanup_inner;
             }
@@ -1356,8 +1363,12 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
             res = rc;
             ldap_msgfree(access_profile_entry);
             goto cleanup_b;
-        default:
+        case KEETO_NO_KEY_PROVIDER:
+        case KEETO_NOT_RELEVANT:
             log_info("skipped access profile (%s)", keeto_strerror(rc));
+            goto cleanup_inner;
+        default:
+            log_error("failed to add access profile (%s)", keeto_strerror(rc));
             goto cleanup_inner;
         }
     cleanup_inner:

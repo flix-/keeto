@@ -13,7 +13,9 @@
 * Fixed timeout handling which was previously only supported for LDAP
   search requests.
 
-* Optimized LDAP search queries.
+* Improved LDAP search queries.
+
+* Improved error handling/logging.
 
 * Changed various attributes in LDAP schema from mandatory to optional.
 
