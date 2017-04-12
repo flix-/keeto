@@ -20,7 +20,7 @@ RUN yum -y update && yum -y install \
 WORKDIR /etc/openldap/
 COPY config/cert_store/ cert_store/
 COPY config/slapd.ldif .
-COPY schema/keeto.ldif schema/
+COPY schema/keeto-openldap-schema.ldif schema/
 COPY ldif/ ldif/
 COPY config/key_store/ key_store/
 COPY config/DB_CONFIG /var/lib/openldap/dc\=keeto\,dc\=io/
