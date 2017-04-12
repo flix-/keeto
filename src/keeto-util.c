@@ -210,6 +210,7 @@ get_rdn_from_dn(const char *dn, char **buffer)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     LDAPDN ldap_dn = NULL;
     int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {

@@ -108,6 +108,7 @@ write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* create temporary file */
     char *template_suffix = "-XXXXXXX";
     size_t tmp_keystore_size = strlen(keystore) + strlen(template_suffix) + 1;

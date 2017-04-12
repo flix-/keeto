@@ -196,8 +196,8 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
         log_error("failed to extract public key from certificate");
         return KEETO_X509_ERR;
     }
-    char *ssh_keytype = NULL;
 
+    char *ssh_keytype = NULL;
     int pkey_type = EVP_PKEY_base_id(pkey);
     switch (pkey_type) {
     case EVP_PKEY_RSA:
@@ -313,6 +313,7 @@ validate_x509(X509 *x509, bool *ret)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* validate the user certificate against the cert store */
     X509_STORE_CTX *ctx_store = X509_STORE_CTX_new();
     if (ctx_store == NULL) {

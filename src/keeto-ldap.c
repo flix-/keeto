@@ -45,7 +45,6 @@ ldap_search_keeto(LDAP *ldap_handle, struct keeto_info *info, char *base,
     }
 
     int res = KEETO_UNKNOWN_ERR;
-
     int sizelimit = 1;
     LDAPMessage *result_entry = NULL;
 
@@ -622,6 +621,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* create and populate keeto keystore options struct */
     struct keeto_keystore_options *keystore_options = new_keystore_options();
     if (keystore_options == NULL) {
@@ -827,6 +827,7 @@ add_key_provider(LDAP *ldap_handle, struct keeto_info *info,
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* get key provider uids */
     char *key_provider_uid_attr = cfg_getstr(info->cfg,
         "ldap_key_provider_uid_attr");
@@ -1651,6 +1652,7 @@ init_ldap_handle(struct keeto_info *info, LDAP **ret)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     LDAP *ldap_handle = NULL;
     char *ldap_uri = cfg_getstr(info->cfg, "ldap_uri");
     int rc = ldap_initialize(&ldap_handle, ldap_uri);
