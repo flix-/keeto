@@ -58,7 +58,7 @@ make check
 %license COPYING
 
 %changelog
-* Fri Apr 14 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
+* Sat Apr 15 2017 Sebastian Roland <seroland86@gmail.com> - 0.3.0-0.1.beta
 - Relaxed directory permissions.
 - Removed 'openssh' dependency as it is automatically provided via 'openssh-server'.
 - Removed libtool archive files.
