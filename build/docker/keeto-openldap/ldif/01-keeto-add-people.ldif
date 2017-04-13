@@ -7,7 +7,7 @@ cn: birgit
 sn: birgit
 uid: birgit
 # valid-key-birgit
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBBTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDIwWhgPMjExNzAyMjQxODQ0MjBaMEIxEjAQBgoJ
@@ -27,7 +27,7 @@ userCertificate;binary::
  Je8xIFQHqNS6G4cWaOpAhzHBKijetBnh5+UitSkcEFX6UcG3rDfXUgqqvqyY6IEO
  EIOhRp4GWvEsMBgh
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -47,7 +47,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -67,7 +67,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -87,7 +87,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -107,7 +107,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -127,7 +127,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -147,7 +147,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -176,7 +176,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -196,7 +196,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -215,7 +215,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -234,7 +234,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ
@@ -263,7 +263,7 @@ cn: bjoern
 sn: bjoern
 uid: bjoern
 # valid-key-bjoern
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBBjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDIyWhgPMjExNzAyMjQxODQ0MjJaMEIxEjAQBgoJ
@@ -283,7 +283,7 @@ userCertificate;binary::
  QsEZC1Mjzb1lH5uEX8HiiuSrg1mI5ta9VRdJOBDvAmrHD51bhOaRJkRK4+ivjjwY
  EfxPNCxXPjsbchoa
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -303,7 +303,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -323,7 +323,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -343,7 +343,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -363,7 +363,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -383,7 +383,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -403,7 +403,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -432,7 +432,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -452,7 +452,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -471,7 +471,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -490,7 +490,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ
@@ -519,7 +519,7 @@ cn: oliver
 sn: oliver
 uid: oliver
 # valid-key-oliver
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBBzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDIzWhgPMjExNzAyMjQxODQ0MjNaMEIxEjAQBgoJ
@@ -539,7 +539,7 @@ userCertificate;binary::
  BDqtXPflt34SR6kaUdYaUUMbENMaEUV8QqRydmr0Fj4jzrm3goZX6S06257GZzd8
  EypJ3PqDNm9sB/SJ
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -559,7 +559,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -579,7 +579,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -599,7 +599,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -619,7 +619,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -639,7 +639,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -659,7 +659,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -688,7 +688,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -708,7 +708,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -727,7 +727,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -746,7 +746,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ
@@ -775,7 +775,7 @@ cn: sebastian
 sn: sebastian
 uid: sebastian
 # valid-key-sebastian
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDI0WhgPMjExNzAyMjQxODQ0MjRaMEIxEjAQBgoJ
@@ -795,7 +795,7 @@ userCertificate;binary::
  YiQVCoe5227He4a/DA87IL+TfSRqt2C+ufH1zZbeCUgPR4RQnLtUBuvz1CXct+GF
  hG3Etwm4bB1X7FZE
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -815,7 +815,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -835,7 +835,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -855,7 +855,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -875,7 +875,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -895,7 +895,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -915,7 +915,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -944,7 +944,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -964,7 +964,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -983,7 +983,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -1002,7 +1002,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ
@@ -1031,7 +1031,7 @@ cn: trixi
 sn: trixi
 uid: trixi
 # valid-key-trixi
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDI1WhgPMjExNzAyMjQxODQ0MjVaMEIxEjAQBgoJ
@@ -1051,7 +1051,7 @@ userCertificate;binary::
  iy4bpE9R3EXuCBOwR+pxERG3DIIUw93pqn6PLv5Roo9pCkWdOQnn5qPHuew3lUxb
  5A8naiMDtGvcdtBA
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -1071,7 +1071,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -1091,7 +1091,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -1111,7 +1111,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -1131,7 +1131,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -1151,7 +1151,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -1171,7 +1171,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -1200,7 +1200,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -1220,7 +1220,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -1239,7 +1239,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -1258,7 +1258,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ
@@ -1287,7 +1287,7 @@ cn: wolfgang
 sn: wolfgang
 uid: wolfgang
 # valid-key-wolfgang
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NDI2WhgPMjExNzAyMjQxODQ0MjZaMEIxEjAQBgoJ
@@ -1307,7 +1307,7 @@ userCertificate;binary::
  pEk5FaLyVtY6NMZmwi3YJwE0nUf7q1l6/mCS20k3n6cTAC66PWSb7MJBbiXFfrQd
  w0VH17eaKadTi1nv
 # revoked
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBCzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIwMTg0NTI5WhgPMjExNzAyMjQxODQ1MjlaMEIxEjAQBgoJ
@@ -1327,7 +1327,7 @@ userCertificate;binary::
  eRljCS+xUywjdfmfDJ7+25yEEFM4/uX/EHCVzjrA9IBamNKrE0b5tZ+OfQ+noBC7
  4YYfoErkSht02i7H
 # trusted-ca-expired
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwHhcNMTcwMzIwMTg1MzEwWhcNMTcwMzIxMTg1MzEwWjBCMRIwEAYKCZIm
@@ -1347,7 +1347,7 @@ userCertificate;binary::
  u6Pnw6Dp9ShSEnlaXfhJ0gIDA54U3aqKei6Dz2bT1tVnwYOq6AATxc9VSjBLL3Ej
  NiIjJBZk79o/yA==
 # trusted-ca-wrong-ku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDODCCAiCgAwIBAgIBDTANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMTQ1WhgPMjExNzAyMjYxMTMxNDVaMEIxEjAQBgoJ
@@ -1367,7 +1367,7 @@ userCertificate;binary::
  Zain2CqC9cvWYO8vViNxeBnPLZSgoG8lbv1PoO+bOsv7GvjOOEbmwcYuRPHggqq7
  mLPHXkkl57zhUHAY
 # trusted-ca-wrong-ku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBDjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzMzMwWhgPMjExNzAyMjYxMTMzMzBaMEMxEjAQBgoJ
@@ -1387,7 +1387,7 @@ userCertificate;binary::
  ycOzhg/MEYnZZDSoofFngv4iDCf2C01ianLJIRvZD2WT9LriG6CfOf40aTM/wRhn
  WNkNG8b9UTXk0Zr1e9wC7Q==
 # trusted-ca-wrong-xku-non-critical
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDNjCCAh6gAwIBAgIBDzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNTA5WhgPMjExNzAyMjYxMTM1MDlaMEMxEjAQBgoJ
@@ -1407,7 +1407,7 @@ userCertificate;binary::
  CjZDNJQRuJNh76JP+7f4V1eKeV91cvw3Wy4LTly+8QUds3cfF/77HahS+m3Gd+wd
  nt+oTlb6ZnCjpQ==
 # trusted-ca-wrong-xku
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBEDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzNzA1WhgPMjExNzAyMjYxMTM3MDVaMEMxEjAQBgoJ
@@ -1427,7 +1427,7 @@ userCertificate;binary::
  FHiw8BEfrYa45eUm5X6oyu+IfNRnaypbhl1RbY8lbvzVWvg0Jx/cIHJtHkd5TzSf
  zKnhCvXbt+j25j6kmxK0Sw==
 # untrusted-ca
-userCertificate;binary:: 
+userCertificate;binary::
  MIIE9DCCA9ygAwIBAgISA+rZnCgAJilbJA0t+h66hchpMA0GCSqGSIb3DQEBCwUA
  MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
  ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzAyMjUxOTI5MDBaFw0x
@@ -1456,7 +1456,7 @@ userCertificate;binary::
  BtUqiwpBKbq15+ah0rw6YUjv5pn8l0ZSltDkxNcDPzvldMpUN+hG5Wa5ExG9j0VK
  fJKjua7aPr8mZ5ThVXewzwMu+6zuOfSR
 # valid-1-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDPDCCAiSgAwIBAgIBETANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzODQ0WhgPMjExNzAyMjYxMTM4NDRaMEMxEjAQBgoJ
@@ -1476,7 +1476,7 @@ userCertificate;binary::
  +/v2qS96mZIRx4oWQRNKKktmJH7lxrvPFVETDJE3qKziPrkGQWNyV7EAI11GxIkP
  SEoSe0T8c4DjdFXdvBcsyg==
 # valid-2-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDJDCCAgygAwIBAgIBEjANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTEzOTU1WhgPMjExNzAyMjYxMTM5NTVaMEMxEjAQBgoJ
@@ -1495,7 +1495,7 @@ userCertificate;binary::
  +1dykfBVYtjrkU/UTLHv6pIxbV2xKSTlIV+RDhBiyvwvv1CCriYP4I2Pvj45455+
  NQMccrL3hV3Xqgd5BXBc/BgqNB3kGC/9r/PDN+FCShu1jhnOOejwfw==
 # valid-3-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDLDCCAhSgAwIBAgIBEzANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MDQ3WhgPMjExNzAyMjYxMTQwNDdaMEMxEjAQBgoJ
@@ -1514,7 +1514,7 @@ userCertificate;binary::
  ojXyxz383iQ4g1QBOrnMpd0y5It7icZLqCi0G9mbalo7mhHqhBPdRLkFTu3RBFBU
  TkMelhnvkxkTgsGrhWDdDlpVGqOOgIuJ1kAa8YojHCGGWDYoErl+oWViBsWg8VNm
 # valid-4-no-key
-userCertificate;binary:: 
+userCertificate;binary::
  MIIDOTCCAiGgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBEMRIwEAYKCZImiZPyLGQB
  GRYCaW8xFTATBgoJkiaJk/IsZAEZFgVrZWV0bzEXMBUGA1UEAwwOMDEtY2EtaW50
  LXVzZXIwIBcNMTcwMzIyMTE0MTQ0WhgPMjExNzAyMjYxMTQxNDRaMEMxEjAQBgoJ

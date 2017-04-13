@@ -1416,7 +1416,7 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
         "ldap_ssh_server_search_base");
     int ssh_server_search_scope = cfg_getint(info->cfg,
         "ldap_ssh_server_search_scope");
-    char *ssh_server_uid = cfg_getstr(info->cfg, "ssh_server_uid");
+    char *ssh_server_uid = cfg_getstr(info->cfg, "ldap_ssh_server_uid");
     char filter[LDAP_SEARCH_FILTER_BUFFER_SIZE];
     int rc = snprintf(filter, sizeof filter, "(&(objectClass=%s)(%s=%s))",
         KEETO_SSH_SERVER_OBJCLASS, KEETO_SSH_SERVER_UID_ATTR, ssh_server_uid);
@@ -1452,7 +1452,7 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
         res = KEETO_LDAP_ERR;
         goto cleanup_b;
     }
-    ssh_server->uid = strdup(cfg_getstr(info->cfg, "ssh_server_uid"));
+    ssh_server->uid = strdup(cfg_getstr(info->cfg, "ldap_ssh_server_uid"));
     if (ssh_server->uid == NULL) {
         log_error("failed to duplicate ssh server uid");
         res = KEETO_NO_MEMORY;

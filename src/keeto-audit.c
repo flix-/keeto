@@ -277,17 +277,18 @@ print_config(cfg_t *cfg)
     log_string("cfg->syslog_facility", cfg_getstr(cfg, "syslog_facility"));
 
     log_string("cfg->ldap_uri", cfg_getstr(cfg, "ldap_uri"));
-    log_int("cfg->ldap_timeout", cfg_getint(cfg, "ldap_timeout"));
     log_bool("cfg->ldap_starttls", cfg_getint(cfg, "ldap_starttls"));
     log_string("cfg->ldap_bind_dn", cfg_getstr(cfg, "ldap_bind_dn"));
-    log_string("cfg->ldap_bind_pwd", cfg_getstr(cfg, "ldap_bind_pwd"));
+    log_string("cfg->ldap_bind_pwd", "********");
+    log_int("cfg->ldap_timeout", cfg_getint(cfg, "ldap_timeout"));
     log_bool("cfg->ldap_strict", cfg_getint(cfg, "ldap_strict"));
 
     log_string("cfg->ldap_ssh_server_search_base", cfg_getstr(cfg,
         "ldap_ssh_server_search_base"));
     log_int("cfg->ldap_ssh_server_search_scope", cfg_getint(cfg,
         "ldap_ssh_server_search_scope"));
-    log_string("cfg->ssh_server_uid", cfg_getstr(cfg, "ssh_server_uid"));
+    log_string("cfg->ldap_ssh_server_uid", cfg_getstr(cfg,
+        "ldap_ssh_server_uid"));
 
     log_string("cfg->ldap_key_provider_group_member_attr", cfg_getstr(cfg,
         "ldap_key_provider_group_member_attr"));
