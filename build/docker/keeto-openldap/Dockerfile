@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos
 
 ARG NAME
 ARG VERSION
