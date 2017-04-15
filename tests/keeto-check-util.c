@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,10 +20,7 @@
 #include "keeto-check-util.h"
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <check.h>
 #include <ldap.h>
@@ -85,17 +82,6 @@ static struct keeto_substitute_token_entry substitute_token_lt[] = {
     { 'u', "foo", "/home/%u/", 10, "/home/foo" },
     { 'u', "foo", "/home/%u/", 1, "" },
     { 'u', "foo", "/home/%u/", 2, "/" }
-};
-
-static struct keeto_create_ldap_search_filter_entry
-    create_ldap_search_filter_lt[] = {
-    { "uid", "foo", 8, "uid=foo" },
-    { "uid", "foo", 7, "uid=fo" },
-    { "uid", "foo", 100, "uid=foo" },
-    { "uid", "foo", 1, "" },
-    { "uid", "foo", 2, "u" },
-    { "uid", "foo", 5, "uid=" },
-    { "uid", "foo", 6, "uid=f" }
 };
 
 static struct keeto_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
@@ -207,24 +193,6 @@ START_TEST
 END_TEST
 
 /*
- * create_ldap_search_filter()
- */
-START_TEST
-(t_create_ldap_search_filter)
-{
-    char *rdn = create_ldap_search_filter_lt[_i].rdn;
-    char *uid = create_ldap_search_filter_lt[_i].uid;
-    size_t dst_length = create_ldap_search_filter_lt[_i].dst_length;
-    char *exp_result = create_ldap_search_filter_lt[_i].exp_result;
-
-    size_t dst_buffer_length = 1024;
-    char dst[dst_buffer_length];
-    create_ldap_search_filter(rdn, uid, dst, dst_length);
-    ck_assert_str_eq( exp_result, dst);
-}
-END_TEST
-
-/*
  * get_rdn_from_dn()
  */
 START_TEST
@@ -278,11 +246,6 @@ make_util_suite(void)
     int substitute_token_lt_items = sizeof substitute_token_lt /
         sizeof substitute_token_lt[0];
     tcase_add_loop_test(tc_main, t_substitute_token, 0, substitute_token_lt_items);
-
-    /* create_ldap_search_filter() */
-    int clsf_lt_items = sizeof create_ldap_search_filter_lt /
-        sizeof create_ldap_search_filter_lt[0];
-    tcase_add_loop_test(tc_main, t_create_ldap_search_filter, 0, clsf_lt_items);
 
     /* get_rdn_from_dn() */
     int get_rdn_from_dn_lt_items = sizeof get_rdn_from_dn_lt /

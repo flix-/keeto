@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -24,6 +24,7 @@
 
 enum {
     KEETO_OK = 0,
+
     KEETO_SYSTEM_ERR = INT_MIN,
     KEETO_NO_MEMORY,
     KEETO_NO_SUCH_VALUE,
@@ -37,7 +38,8 @@ enum {
     KEETO_NO_CERT,
     KEETO_NO_KEY_PROVIDER,
     KEETO_X509_ERR,
-    KEETO_NO_ACCESS_PROFILE,
+    KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER,
+    KEETO_NO_ACCESS_PROFILE_FOR_UID,
     KEETO_UNKNOWN_ACCESS_PROFILE_TYPE,
     KEETO_NO_KEYSTORE_OPTION,
     KEETO_CERT_VALIDATION_ERR,
@@ -52,5 +54,6 @@ enum {
 };
 
 const char *keeto_strerror(int errnum);
-#endif
+
+#endif /* KEETO_ERROR_H */
 

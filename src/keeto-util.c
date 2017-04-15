@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,15 +20,13 @@
 #include "keeto-util.h"
 
 #include <errno.h>
-#include <stdarg.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <ldap.h>
 #include <regex.h>
@@ -200,26 +198,6 @@ substitute_token(char token, const char *subst, const char *src, char *dst,
 }
 
 int
-create_ldap_search_filter(const char *attr, const char *value, char *dst,
-    size_t dst_length)
-{
-    if (attr == NULL || value == NULL || dst == NULL) {
-        fatal("attr, value or dst == NULL");
-    }
-
-    if (dst_length == 0) {
-        fatal("dst_length must be > 0");
-    }
-
-    int rc = snprintf(dst, dst_length, "%s=%s", attr, value);
-    if (rc < 0) {
-        log_error("failed to write to buffer");
-        return KEETO_SYSTEM_ERR;
-    }
-    return KEETO_OK;
-}
-
-int
 get_rdn_from_dn(const char *dn, char **buffer)
 {
     if (dn == NULL || buffer == NULL) {
@@ -232,6 +210,7 @@ get_rdn_from_dn(const char *dn, char **buffer)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     LDAPDN ldap_dn = NULL;
     int rc = ldap_str2dn(dn, &ldap_dn, LDAP_DN_FORMAT_LDAPV3);
     if (rc != LDAP_SUCCESS) {
@@ -255,18 +234,18 @@ cleanup:
 }
 
 struct timeval
-get_ldap_search_timeout(cfg_t *cfg)
+get_ldap_timeout(cfg_t *cfg)
 {
     if (cfg == NULL) {
         fatal("cfg == NULL");
     }
 
-    int ldap_search_timeout = cfg_getint(cfg, "ldap_search_timeout");
-    struct timeval search_timeout = {
-        .tv_sec = ldap_search_timeout,
+    int ldap_timeout_config = cfg_getint(cfg, "ldap_timeout");
+    struct timeval ldap_timeout = {
+        .tv_sec = ldap_timeout_config,
         .tv_usec = 0
     };
-    return search_timeout;
+    return ldap_timeout;
 }
 
 /* constructors */

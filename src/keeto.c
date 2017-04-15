@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -19,9 +19,11 @@
 
 #include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include <confuse.h>
@@ -33,6 +35,7 @@
 #include "keeto-error.h"
 #include "keeto-ldap.h"
 #include "keeto-log.h"
+#include "keeto-openssl.h"
 #include "keeto-util.h"
 #include "keeto-x509.h"
 
@@ -74,7 +77,6 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
     free_info(info);
     cleanup_openssl();
     closelog();
-    //CRYPTO_mem_leaks_fp(stderr);
 }
 
 static void
@@ -106,6 +108,7 @@ write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* create temporary file */
     char *template_suffix = "-XXXXXXX";
     size_t tmp_keystore_size = strlen(keystore) + strlen(template_suffix) + 1;
@@ -279,6 +282,7 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
             log_error("failed to obtain subject from certificate (%s)",
                 keeto_strerror(rc));
         }
+
         rc = post_process_key(key);
         switch (rc) {
         case KEETO_OK:
@@ -306,7 +310,6 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
     if (TAILQ_EMPTY(key_provider->keys)) {
         return KEETO_NO_KEY;
     }
-
     return KEETO_OK;
 }
 
@@ -398,7 +401,7 @@ post_process_access_profiles(struct keeto_info *info)
     if (TAILQ_EMPTY(info->access_profiles)) {
         free_access_profiles(info->access_profiles);
         info->access_profiles = NULL;
-        res = KEETO_NO_ACCESS_PROFILE;
+        res = KEETO_NO_ACCESS_PROFILE_FOR_UID;
         goto cleanup_b;
     }
     info->keystore_records = keystore_records;
@@ -421,7 +424,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         fatal("pamh or argv == NULL");
     }
 
-    /* check if argument is path to config file */
+    /* check if argument is path to readable file */
     if (argc != 1) {
         log_error("arg count != 1");
         return PAM_SERVICE_ERR;
@@ -443,6 +446,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     int rc = pam_set_data(pamh, "keeto_info", info, &cleanup);
     if (rc != PAM_SUCCESS) {
         log_error("failed to set pam data (%s)", pam_strerror(pamh, rc));
+        free_info(info);
         return PAM_SYSTEM_ERR;
     }
 
@@ -459,6 +463,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     if (rc != KEETO_OK) {
         log_error("failed to set syslog facility '%s' (%s)", syslog_facility,
             keeto_strerror(rc));
+        return PAM_SYSTEM_ERR;
     }
 
     /* retrieve uid */
@@ -511,27 +516,42 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* init openssl */
     init_openssl();
 
-    /* get access profiles from ldap */
+    int res = PAM_ABORT;
+    /*
+     * get access profiles from ldap.
+     *
+     * only remove keystore when access permissions explicitly say so.
+     */
     rc = get_access_profiles_from_ldap(info);
     switch (rc) {
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
-        log_error("system is out of memory");
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
         return PAM_BUF_ERR;
     case KEETO_LDAP_CONNECTION_ERR:
-        log_error("failed to connect to ldap");
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
         info->ldap_online = 0;
         bool ldap_strict = cfg_getint(info->cfg, "ldap_strict");
         if (ldap_strict) {
             log_info("ldap strict mode active - refusing access");
-            return PAM_AUTH_ERR;
+            return PAM_AUTHINFO_UNAVAIL;
         }
         return PAM_SUCCESS;
-    case KEETO_NO_ACCESS_PROFILE:
-        log_info("access profile list empty");
-        remove_keystore(info->ssh_keystore_location);
-        return PAM_AUTH_ERR;
+    case KEETO_NO_SSH_SERVER:
+        log_error("failed to obtain access profiles from ldap (%s)",
+            keeto_strerror(rc));
+        return PAM_AUTHINFO_UNAVAIL;
+    case KEETO_NO_ACCESS_PROFILE_FOR_SSH_SERVER:
+        log_info("no access profiles specified for ssh server");
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
+    case KEETO_NO_ACCESS_PROFILE_FOR_UID:
+        log_info("no valid access profile specified for uid '%s'", info->uid);
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
     default:
         log_error("failed to obtain access profiles from ldap (%s)",
             keeto_strerror(rc));
@@ -548,12 +568,13 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     case KEETO_OK:
         break;
     case KEETO_NO_MEMORY:
-        log_error("system is out of memory");
+        log_error("failed to post process access profiles (%s)",
+            keeto_strerror(rc));
         return PAM_BUF_ERR;
-    case KEETO_NO_ACCESS_PROFILE:
-        log_info("access profile list empty");
-        remove_keystore(info->ssh_keystore_location);
-        return PAM_AUTH_ERR;
+    case KEETO_NO_ACCESS_PROFILE_FOR_UID:
+        log_info("no valid access profile specified for uid '%s'", info->uid);
+        res = PAM_AUTH_ERR;
+        goto cleanup_keystore;
     default:
         log_error("failed to post process access profiles (%s)",
             keeto_strerror(rc));
@@ -570,8 +591,11 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to write keystore file (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
-
     return PAM_SUCCESS;
+
+cleanup_keystore:
+    remove_keystore(info->ssh_keystore_location);
+    return res;
 }
 
 PAM_EXTERN int

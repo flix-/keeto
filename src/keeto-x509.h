@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,20 +20,19 @@
 #ifndef KEETO_X509_H
 #define KEETO_X509_H
 
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
+#include <stdbool.h>
+
 #include <openssl/x509.h>
 
 #include "keeto-util.h"
 
-#define PUT_32BIT(cp, value)( \
-    (cp)[0] = (unsigned char)((value) >> 24), \
-    (cp)[1] = (unsigned char)((value) >> 16), \
-    (cp)[2] = (unsigned char)((value) >> 8), \
-    (cp)[3] = (unsigned char)(value))
+#define PUT_32BIT(cp, value) do { \
+    (cp)[0] = (unsigned char) ((value) >> 24); \
+    (cp)[1] = (unsigned char) ((value) >> 16); \
+    (cp)[2] = (unsigned char) ((value) >> 8); \
+    (cp)[3] = (unsigned char) (value); \
+} while (0)
 
-void init_openssl();
-void cleanup_openssl();
 int init_cert_store(char *cert_store_dir, bool check_crl);
 void free_cert_store();
 int add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key);
@@ -42,5 +41,6 @@ char *get_serial_from_x509(X509 *x509);
 int get_issuer_from_x509(X509 *x509, char **ret);
 int get_subject_from_x509(X509 *x509, char **ret);
 void free_x509(X509 *x509);
-#endif
+
+#endif /* KEETO_X509_H */
 

@@ -1,0 +1,44 @@
+version: '3'
+networks:
+  keeto-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.86.0/29
+services:
+  keeto-openssh:
+    image: seroland86/keeto-openssh:${VERSION}
+    depends_on:
+      - keeto-openldap
+    container_name: keeto-openssh
+    build:
+      context: keeto-openssh
+      dockerfile: Dockerfile
+      args:
+        - NAME=seroland86/keeto-openssh
+        - VERSION=${VERSION}
+        - KEETO_RPM_URL=${KEETO_RPM_URL}
+    ports:
+      - '127.0.0.1:1022:22'
+    volumes:
+      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+  keeto-openldap:
+    image: seroland86/keeto-openldap:${VERSION}
+    container_name: keeto-openldap
+    build:
+      context: keeto-openldap
+      dockerfile: Dockerfile
+      args:
+        - NAME=seroland86/keeto-openldap
+        - VERSION=${VERSION}
+    ports:
+      - '127.0.0.1:1389:389'
+      - '127.0.0.1:1636:636'
+    volumes:
+      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+

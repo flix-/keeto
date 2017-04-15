@@ -1,0 +1,31 @@
+version: '3'
+networks:
+  keeto-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.86.0/29
+services:
+  keeto-openssh:
+    image: seroland86/keeto-openssh:0.3.0-beta
+    depends_on:
+      - keeto-openldap
+    container_name: keeto-openssh
+    ports:
+      - '127.0.0.1:1022:22'
+    volumes:
+      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+  keeto-openldap:
+    image: seroland86/keeto-openldap:0.3.0-beta
+    container_name: keeto-openldap
+    ports:
+      - '127.0.0.1:1389:389'
+      - '127.0.0.1:1636:636'
+    volumes:
+      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+

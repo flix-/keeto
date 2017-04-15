@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -22,9 +22,6 @@
 
 #include <stdbool.h>
 
-#include <bits/types.h>
-#include <sys/stat.h>
-
 #include <check.h>
 
 struct keeto_file_readable_entry {
@@ -46,13 +43,6 @@ struct keeto_substitute_token_entry {
     char *exp_result;
 };
 
-struct keeto_create_ldap_search_filter_entry {
-    char *rdn;
-    char *uid;
-    size_t dst_length;
-    char *exp_result;
-};
-
 struct keeto_get_rdn_from_dn_entry {
     char *dn;
     int exp_res;
@@ -60,5 +50,6 @@ struct keeto_get_rdn_from_dn_entry {
 };
 
 Suite *make_util_suite(void);
-#endif
+
+#endif /* KEETO_CHECK_UTIL_H */
 

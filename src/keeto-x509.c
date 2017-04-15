@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,7 +20,6 @@
 #include "keeto-x509.h"
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +28,7 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
+#include <openssl/rsa.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -36,28 +36,9 @@
 
 #include "keeto-error.h"
 #include "keeto-log.h"
+#include "keeto-openssl.h"
 
 static X509_STORE *cert_store;
-
-void
-init_openssl()
-{
-    SSL_load_error_strings();
-    OpenSSL_add_all_algorithms();
-    /*
-    CRYPTO_malloc_debug_init();
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-    */
-}
-
-void
-cleanup_openssl()
-{
-    ERR_free_strings();
-    CRYPTO_cleanup_all_ex_data();
-    EVP_cleanup();
-    ERR_remove_thread_state(NULL);
-}
 
 static bool
 msb_set(unsigned char byte)
@@ -77,15 +58,22 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     RSA *rsa = EVP_PKEY_get1_RSA(pkey);
     if (rsa == NULL) {
         log_error("failed to obtain rsa key");
         return KEETO_OPENSSL_ERR;
     }
+
+    /* get exponent and modulus */
+    const BIGNUM *exponent = NULL;
+    const BIGNUM *modulus = NULL;
+    RSA_get0_key(rsa, &modulus, &exponent, NULL);
+
     /* length of keytype WITHOUT terminating null byte */
     size_t length_keytype = strlen(ssh_keytype);
-    size_t length_exponent = BN_num_bytes(rsa->e);
-    size_t length_modulus = BN_num_bytes(rsa->n);
+    size_t length_exponent = BN_num_bytes(exponent);
+    size_t length_modulus = BN_num_bytes(modulus);
     /*
      * the 4 bytes hold the length of the following value and the 2
      * extra bytes before the exponent and modulus are possibly
@@ -110,7 +98,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     blob_p += length_keytype;
 
     /* put length of exponent */
-    BN_bn2bin(rsa->e, tmp_buffer);
+    BN_bn2bin(exponent, tmp_buffer);
     if (msb_set(tmp_buffer[0])) {
         PUT_32BIT(blob_p, length_exponent + 1);
         blob_p += 4;
@@ -125,7 +113,7 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     blob_p += length_exponent;
 
     /* put length of modulus */
-    BN_bn2bin(rsa->n, tmp_buffer);
+    BN_bn2bin(modulus, tmp_buffer);
     if (msb_set(tmp_buffer[0])) {
         PUT_32BIT(blob_p, length_modulus + 1);
         blob_p += 4;
@@ -202,13 +190,14 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     EVP_PKEY *pkey = X509_get_pubkey(x509);
     if (pkey == NULL) {
         log_error("failed to extract public key from certificate");
         return KEETO_X509_ERR;
     }
-    char *ssh_keytype = NULL;
 
+    char *ssh_keytype = NULL;
     int pkey_type = EVP_PKEY_base_id(pkey);
     switch (pkey_type) {
     case EVP_PKEY_RSA:
@@ -262,7 +251,8 @@ init_cert_store(char *cert_store_dir, bool check_crl)
     }
 
     int res = KEETO_UNKNOWN_ERR;
-    /* create a new x509 store with trusted ca certs / crls */
+
+    /* create a new x509 store with trusted ca certs/crl's */
     X509_STORE *cert_store_tmp = X509_STORE_new();
     if (cert_store_tmp == NULL) {
         log_error("failed to create cert store");
@@ -323,6 +313,7 @@ validate_x509(X509 *x509, bool *ret)
     }
 
     int res = KEETO_UNKNOWN_ERR;
+
     /* validate the user certificate against the cert store */
     X509_STORE_CTX *ctx_store = X509_STORE_CTX_new();
     if (ctx_store == NULL) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -23,20 +23,17 @@
 #include "queue.h"
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <time.h>
 #include <unistd.h>
 
 #include <confuse.h>
 #include <openssl/x509.h>
 
-#include "keeto-log.h"
-
-#define KEETO_DEBUG \
-int sleepy = 1; \
-while (sleepy) { \
-    sleep(5); \
-}
+#define KEETO_DEBUG do { \
+    int sleepy = 1; \
+    while (sleepy) { \
+        sleep(5); \
+    } \
+} while (0)
 
 enum {
     KEETO_UNDEF = 0x56
@@ -113,10 +110,8 @@ bool file_readable(const char *file);
 int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
-int create_ldap_search_filter(const char *attr, const char *value, char *dst,
-    size_t dst_length);
 int get_rdn_from_dn(const char *, char **buffer);
-struct timeval get_ldap_search_timeout(cfg_t *cfg);
+struct timeval get_ldap_timeout(cfg_t *cfg);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();
@@ -141,5 +136,6 @@ void free_key(struct keeto_key *key);
 void free_keystore_options(struct keeto_keystore_options *keystore_options);
 void free_keystore_records(struct keeto_keystore_records *keystore_records);
 void free_keystore_record(struct keeto_keystore_record *keystore_record);
-#endif
+
+#endif /* KEETO_UTIL_H */
 

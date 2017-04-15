@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -20,19 +20,25 @@
 #ifndef KEETO_LOG_H
 #define KEETO_LOG_H
 
-#define log_debug(...) \
-do { \
-if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
-} while (0)
-#define fatal(...) keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define KEETO_SYSLOG_IDENTIFIER "keeto"
 
-void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#define log_debug(...) do { \
+    if (DEBUG) keeto_log_debug(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+} while (0)
+
+#define fatal(...) do { \
+    keeto_fatal(__FILE__, __func__, __LINE__, __VA_ARGS__); \
+} while (0)
+
 void keeto_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
+void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void log_critical(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void keeto_fatal(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((noreturn))
     __attribute__((format(printf, 4, 5)));
 int set_syslog_facility(const char *syslog_facility);
-#endif
+
+#endif /* KEETO_LOG_H */
 
