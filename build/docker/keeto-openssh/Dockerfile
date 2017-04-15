@@ -32,6 +32,7 @@ RUN wget ${KEETO_RPM_URL} \
 WORKDIR /etc/ssh/
 COPY config/cert_store/ cert_store/
 COPY config/keeto.conf .
+RUN chmod 600 keeto.conf
 COPY config/sshd_config .
 COPY config/sshd /etc/pam.d/
 RUN mkdir -p /run/sshd/ && ssh-keygen -A
