@@ -1,0 +1,89 @@
+# attributes
+attributetype ( 1.0.86.86.86.86.2.1.1
+    NAME 'keetoAccessProfile'
+    DESC 'reference to access profile'
+    SUP distinguishedName )
+
+attributetype ( 1.0.86.86.86.86.2.1.2
+    NAME 'keetoEnabled'
+    DESC 'enable/disable access profile'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( 1.0.86.86.86.86.2.1.3
+    NAME 'keetoKeyProvider'
+    DESC 'reference to single key provider'
+    SUP distinguishedName )
+
+attributetype ( 1.0.86.86.86.86.2.1.4
+    NAME 'keetoKeyProviderGroup'
+    DESC 'reference to group of key providers'
+    SUP distinguishedName )
+
+attributetype ( 1.0.86.86.86.86.2.1.5
+    NAME 'keetoTargetKeystore'
+    DESC 'reference to single target keystore'
+    SUP distinguishedName )
+
+attributetype ( 1.0.86.86.86.86.2.1.6
+    NAME 'keetoTargetKeystoreGroup'
+    DESC 'reference to group of target keystores'
+    SUP distinguishedName )
+
+attributetype ( 1.0.86.86.86.86.2.1.7
+    NAME 'keetoKeystoreOptions'
+    DESC 'reference to keystore options'
+    SUP distinguishedName
+    SINGLE-VALUE )
+
+attributetype ( 1.0.86.86.86.86.2.1.8
+    NAME 'keetoKeystoreOptionFrom'
+    DESC 'AKF From option'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{1024}
+    SINGLE-VALUE )
+
+attributetype ( 1.0.86.86.86.86.2.1.9
+    NAME 'keetoKeystoreOptionCommand'
+    DESC 'AKF Command option'
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{1024}
+    SINGLE-VALUE )
+
+# objectclasses
+objectclass	( 1.0.86.86.86.86.2.2.1
+    NAME 'keetoSSHServer'
+    DESC 'ssh server entry'
+    SUP top
+    STRUCTURAL
+    MUST ( cn $ uid )
+    MAY ( keetoAccessProfile $ description ) )
+
+objectclass	( 1.0.86.86.86.86.2.2.2
+    NAME 'keetoAccessProfile'
+    DESC 'access profile'
+    SUP top
+    ABSTRACT
+    MUST ( cn $ keetoEnabled )
+    MAY ( keetoKeyProvider $ keetoKeyProviderGroup $ keetoKeystoreOptions $
+        description ) )
+
+objectclass	( 1.0.86.86.86.86.2.2.3
+    NAME 'keetoDirectAccessProfile'
+    DESC 'direct access profile'
+    SUP keetoAccessProfile
+    STRUCTURAL )
+
+objectclass	( 1.0.86.86.86.86.2.2.4
+    NAME 'keetoAccessOnBehalfProfile'
+    DESC 'access on behalf profile'
+    SUP keetoAccessProfile
+    STRUCTURAL
+    MAY ( keetoTargetKeystore $ keetoTargetKeystoreGroup ) )
+
+objectclass	( 1.0.86.86.86.86.2.2.5
+    NAME 'keetoKeystoreOptions'
+    DESC 'keystore options'
+    SUP top
+    STRUCTURAL
+    MUST cn
+    MAY ( keetoKeystoreOptionFrom $ keetoKeystoreOptionCommand $ description ) )
+

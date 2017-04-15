@@ -1,6 +1,6 @@
 #!/bin/bash
 
-########################################
+#################################################
 #
 # create multi-level ca and end user
 # certificates...
@@ -9,10 +9,10 @@
 # serious ca. its for testing purposes
 # only.
 #
-# author: sebastian roland
-# date: 21.03.2017
+# author: Sebastian Roland <seroland86@gmail.com>
+# date: 2017-04-13
 #
-########################################
+#################################################
 
 ### BEGIN CONFIG ###
 

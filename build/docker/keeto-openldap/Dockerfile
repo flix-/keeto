@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:latest
 
 ARG NAME
 ARG VERSION
@@ -19,16 +19,17 @@ RUN yum -y update && yum -y install \
 # setup openldap
 WORKDIR /etc/openldap/
 COPY config/cert_store/ cert_store/
-COPY config/slapd.ldif .
-COPY schema/keeto.ldif schema/
-COPY ldif/ ldif/
 COPY config/key_store/ key_store/
+RUN chmod 600 key_store/10-ee-server-1-key.pem
+COPY ldif/ ldif/
 COPY config/DB_CONFIG /var/lib/openldap/dc\=keeto\,dc\=io/
+COPY schema/keeto-openldap-schema.ldif schema/
+COPY config/slapd.ldif .
 RUN rm -rf slapd.d/* \
     && slapadd -l slapd.ldif -F slapd.d/ -n0 -v \
     && for file in ldif/*.ldif; do slapadd -l $file -F slapd.d/ -n1 -v; done
 
-EXPOSE 389/tcp
+EXPOSE 389/tcp 636/tcp
 
-ENTRYPOINT /usr/sbin/slapd -4 -h "ldap:///" && tail -f /dev/null
+ENTRYPOINT /usr/sbin/slapd -4 -h "ldap:/// ldaps:///" && tail -f /dev/null
 

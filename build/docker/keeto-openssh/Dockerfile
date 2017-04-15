@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:latest
 
 ARG NAME
 ARG VERSION
@@ -13,16 +13,8 @@ LABEL org.label-schema.schema-version="1.0" \
 
 # install packages
 RUN yum -y update && yum -y install \
-    epel-release
-
-RUN yum -y install \
+    epel-release \
     wget \
-    pam \
-    openssl-libs \
-    openssl-perl \
-    openldap \
-    libconfuse \
-    openssh-server \
     && yum clean all
 
 # setup local users
@@ -34,12 +26,15 @@ RUN useradd -m birgit \
 
 # setup openssh / keeto
 WORKDIR /tmp/
-RUN wget ${KEETO_RPM_URL} && rpm -i $(echo ${KEETO_RPM_URL##*/})
+RUN wget ${KEETO_RPM_URL} \
+    && yum -y install --setopt=tsflags='' $(echo ${KEETO_RPM_URL##*/}) \
+    && yum clean all
 WORKDIR /etc/ssh/
 COPY config/cert_store/ cert_store/
-COPY config/keeto.conf .
-COPY config/sshd_config .
 COPY config/sshd /etc/pam.d/
+COPY config/keeto.conf .
+RUN chmod 600 keeto.conf
+COPY config/sshd_config .
 RUN mkdir -p /run/sshd/ && ssh-keygen -A
 
 EXPOSE 22/tcp

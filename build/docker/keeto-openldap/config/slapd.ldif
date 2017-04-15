@@ -67,5 +67,5 @@ include: file:///etc/openldap/schema/inetorgperson.ldif
 include: file:///etc/openldap/schema/openldap.ldif
 include: file:///etc/openldap/schema/nis.ldif
 include: file:///etc/openldap/schema/misc.ldif
-include: file:///etc/openldap/schema/keeto.ldif
+include: file:///etc/openldap/schema/keeto-openldap-schema.ldif
 

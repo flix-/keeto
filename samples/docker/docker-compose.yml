@@ -23,6 +23,7 @@ services:
     container_name: keeto-openldap
     ports:
       - '127.0.0.1:1389:389'
+      - '127.0.0.1:1636:636'
     volumes:
       - /dev/log:/dev/log
     networks:

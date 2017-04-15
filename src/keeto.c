@@ -282,6 +282,7 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
             log_error("failed to obtain subject from certificate (%s)",
                 keeto_strerror(rc));
         }
+
         rc = post_process_key(key);
         switch (rc) {
         case KEETO_OK:

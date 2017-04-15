@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -25,7 +25,7 @@
 #include "../src/keeto-log.h"
 
 /*
- *set_syslog_facility
+ * set_syslog_facility()
  */
 START_TEST
 (t_set_syslog_facility)
