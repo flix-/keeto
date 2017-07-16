@@ -49,7 +49,7 @@ attributetype ( 1.0.86.86.86.86.2.1.9
     SINGLE-VALUE )
 
 # objectclasses
-objectclass	( 1.0.86.86.86.86.2.2.1
+objectclass ( 1.0.86.86.86.86.2.2.1
     NAME 'keetoSSHServer'
     DESC 'ssh server entry'
     SUP top
@@ -57,7 +57,7 @@ objectclass	( 1.0.86.86.86.86.2.2.1
     MUST ( cn $ uid )
     MAY ( keetoAccessProfile $ description ) )
 
-objectclass	( 1.0.86.86.86.86.2.2.2
+objectclass ( 1.0.86.86.86.86.2.2.2
     NAME 'keetoAccessProfile'
     DESC 'access profile'
     SUP top
@@ -66,20 +66,20 @@ objectclass	( 1.0.86.86.86.86.2.2.2
     MAY ( keetoKeyProvider $ keetoKeyProviderGroup $ keetoKeystoreOptions $
         description ) )
 
-objectclass	( 1.0.86.86.86.86.2.2.3
+objectclass ( 1.0.86.86.86.86.2.2.3
     NAME 'keetoDirectAccessProfile'
     DESC 'direct access profile'
     SUP keetoAccessProfile
     STRUCTURAL )
 
-objectclass	( 1.0.86.86.86.86.2.2.4
+objectclass ( 1.0.86.86.86.86.2.2.4
     NAME 'keetoAccessOnBehalfProfile'
     DESC 'access on behalf profile'
     SUP keetoAccessProfile
     STRUCTURAL
     MAY ( keetoTargetKeystore $ keetoTargetKeystoreGroup ) )
 
-objectclass	( 1.0.86.86.86.86.2.2.5
+objectclass ( 1.0.86.86.86.86.2.2.5
     NAME 'keetoKeystoreOptions'
     DESC 'keystore options'
     SUP top
