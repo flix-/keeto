@@ -248,6 +248,20 @@ get_ldap_timeout(cfg_t *cfg)
     return ldap_timeout;
 }
 
+int
+hex_from_hash(unsigned char *hash, size_t hash_length, char **ret)
+{
+    *ret = "fp_md5";
+    return KEETO_OK;
+}
+
+int
+base64_from_hash(unsigned char *hash, size_t hash_length, char **ret)
+{
+    *ret = "fp_sha256";
+    return KEETO_OK;
+}
+
 /* constructors */
 struct keeto_info *
 new_info()
@@ -480,6 +494,8 @@ free_key(struct keeto_key *key)
     free_x509(key->x509);
     free(key->ssh_keytype);
     free(key->ssh_key);
+    free(key->ssh_key_fp_md5);
+    free(key->ssh_key_fp_sha256);
     free(key);
 }
 

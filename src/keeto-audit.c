@@ -180,6 +180,8 @@ print_key(struct keeto_key *key)
 
     log_string("key->ssh_keytype", key->ssh_keytype);
     log_string("key->ssh_key", key->ssh_key);
+    log_string("key->ssh_key_fp_md5", key->ssh_key_fp_md5);
+    log_string("key->ssh_key_fp_sha256", key->ssh_key_fp_sha256);
     print_x509(key->x509);
 }
 
