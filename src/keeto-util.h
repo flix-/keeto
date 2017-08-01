@@ -114,8 +114,8 @@ void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
 int get_rdn_from_dn(const char *dn, char **buffer);
 struct timeval get_ldap_timeout(cfg_t *cfg);
-int hex_from_hash(unsigned char *hash, size_t hash_length, char **ret);
-int base64_from_hash(unsigned char *hash, size_t hash_length, char **ret);
+int blob_to_hex(unsigned char *src, size_t src_length, char **ret);
+int blob_to_base64(unsigned char *src, size_t src_length, char **ret);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();

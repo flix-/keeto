@@ -41,6 +41,11 @@
 
 static X509_STORE *cert_store;
 
+enum keeto_digests {
+    KEETO_DIGEST_MD5,
+    KEETO_DIGEST_SHA256
+};
+
 static bool
 msb_set(unsigned char byte)
 {
@@ -52,119 +57,24 @@ msb_set(unsigned char byte)
 }
 
 static int
-get_ssh_key_fingerprints_from_rsa(EVP_PKEY *pkey, struct keeto_key *key)
+get_ssh_key_blob_from_rsa(char *ssh_keytype, RSA *rsa, unsigned char **ret,
+    size_t *ret_length)
 {
-    if (pkey == NULL || key == NULL) {
-        fatal("pkey or key == NULL");
+    if (ssh_keytype == NULL || rsa == NULL || ret == NULL ||
+        ret_length == NULL) {
+
+        fatal("ssh_keytype, rsa, ret or ret_length == NULL");
     }
 
-    int res = KEETO_UNKNOWN_ERR;
-
-    RSA *rsa = EVP_PKEY_get1_RSA(pkey);
-    if (rsa == NULL) {
-        log_error("failed to obtain rsa key");
-        return KEETO_OPENSSL_ERR;
-    }
-
-    /* get exponent and modulus */
-    const BIGNUM *exponent = NULL;
+    /* get modulus and exponent */
     const BIGNUM *modulus = NULL;
-    RSA_get0_key(rsa, &modulus, &exponent, NULL);
-    size_t length_exponent = BN_num_bytes(exponent);
-    size_t length_modulus = BN_num_bytes(modulus);
-
-    /* create buffer */
-    size_t buffer_size = length_exponent + length_modulus;
-    unsigned char buffer[buffer_size];
-    unsigned char *buffer_p = buffer;
-
-    /* copy exponent and modulus */
-    memcpy(buffer_p, exponent, length_exponent);
-    buffer_p += length_exponent;
-    memcpy(buffer_p, modulus, length_modulus);
-
-    /* create hash buffers */
-    const EVP_MD *md5_digest = EVP_md5();
-    const EVP_MD *sha256_digest = EVP_sha256();
-    unsigned char md5_buffer[EVP_MD_size(md5_digest)];
-    unsigned char sha256_buffer[EVP_MD_size(sha256_digest)];
-
-    /* hash */
-    int rc = EVP_Digest(buffer, sizeof buffer, md5_buffer, NULL, md5_digest,
-        NULL);
-    if (rc == 0) {
-        log_error("failed to apply md5 digest to ssh key");
-        res = KEETO_OPENSSL_ERR;
-        goto cleanup_a;
-    }
-    rc = EVP_Digest(buffer, sizeof buffer, sha256_buffer, NULL, sha256_digest,
-        NULL);
-    if (rc == 0) {
-        log_error("failed to apply sha256 digest to ssh key");
-        res = KEETO_OPENSSL_ERR;
-        goto cleanup_a;
-    }
-
-    /* get openssh fingerprint representation */
-    rc = hex_from_hash(md5_buffer, sizeof md5_buffer, &key->ssh_key_fp_md5);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        res = rc;
-        goto cleanup_a;
-    default:
-        log_error("failed to obtain hex encoded ssh key fingerprint (%s)",
-            keeto_strerror(rc));
-        res = rc;
-        goto cleanup_a;
-    }
-    rc = base64_from_hash(sha256_buffer, sizeof sha256_buffer,
-        &key->ssh_key_fp_sha256);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        res = rc;
-        goto cleanup_a;
-    default:
-        log_error("failed to obtain base64 encoded ssh key fingerprint (%s)",
-            keeto_strerror(rc));
-        res = rc;
-        goto cleanup_a;
-    }
-
-    res = KEETO_OK;
-
-cleanup_a:
-    RSA_free(rsa);
-    return res;
-}
-
-static int
-get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
-{
-    if (pkey == NULL || ssh_keytype == NULL || ret == NULL) {
-        fatal("pkey, ssh_keytype or ret == NULL");
-    }
-
-    int res = KEETO_UNKNOWN_ERR;
-
-    RSA *rsa = EVP_PKEY_get1_RSA(pkey);
-    if (rsa == NULL) {
-        log_error("failed to obtain rsa key");
-        return KEETO_OPENSSL_ERR;
-    }
-
-    /* get exponent and modulus */
     const BIGNUM *exponent = NULL;
-    const BIGNUM *modulus = NULL;
     RSA_get0_key(rsa, &modulus, &exponent, NULL);
 
     /* length of keytype WITHOUT terminating null byte */
     size_t length_keytype = strlen(ssh_keytype);
-    size_t length_exponent = BN_num_bytes(exponent);
     size_t length_modulus = BN_num_bytes(modulus);
+    size_t length_exponent = BN_num_bytes(exponent);
     /*
      * the 4 bytes hold the length of the following value and the 2
      * extra bytes before the exponent and modulus are possibly
@@ -177,7 +87,11 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     size_t length_tmp_buffer = length_modulus > length_exponent ?
         length_modulus : length_exponent;
 
-    unsigned char blob[pre_length_blob];
+    unsigned char *blob = malloc(pre_length_blob);
+    if (blob == NULL) {
+        log_error("failed to allocate memory for ssh key blob buffer");
+        return KEETO_NO_MEMORY;
+    }
     unsigned char tmp_buffer[length_tmp_buffer];
     unsigned char *blob_p = blob;
 
@@ -218,58 +132,168 @@ get_ssh_key_from_rsa(EVP_PKEY *pkey, char *ssh_keytype, char **ret)
     memcpy(blob_p, tmp_buffer, length_modulus);
     blob_p += length_modulus;
 
-    /* base64 encode blob */
+    *ret = blob;
+    *ret_length = blob_p - blob;
 
-    /* create base64 bio */
-    BIO *bio_base64 = BIO_new(BIO_f_base64());
-    if (bio_base64 == NULL) {
-        log_error("failed to create base64 bio");
-        res = KEETO_OPENSSL_ERR;
+    return KEETO_OK;
+}
+
+static int
+get_ssh_key_fingerprint_from_blob(unsigned char *blob, size_t blob_length,
+    enum keeto_digests algo, char **ret)
+{
+    if (blob == NULL || ret == NULL) {
+        fatal("blob or ret == NULL");
+    }
+
+    const EVP_MD *digest = NULL;
+    switch (algo) {
+    case KEETO_DIGEST_MD5:
+        digest = EVP_md5();
+        break;
+    case KEETO_DIGEST_SHA256:
+        digest = EVP_sha256();
+        break;
+    default:
+        return KEETO_UNKNOWN_DIGEST_ALGO;
+    }
+
+    unsigned char digest_buffer[EVP_MD_size(digest)];
+
+    /* hash */
+    int rc = EVP_Digest(blob, blob_length, digest_buffer, NULL, digest, NULL);
+    if (rc == 0) {
+        log_error("failed to apply digest to ssh key blob");
+        return KEETO_OPENSSL_ERR;
+    }
+
+    /* get openssh fingerprint representation */
+    char *fp = NULL;
+    switch (algo) {
+    case KEETO_DIGEST_MD5:
+        rc = blob_to_hex(digest_buffer, sizeof digest_buffer, &fp);
+        switch (rc) {
+        case KEETO_OK:
+            break;
+        case KEETO_NO_MEMORY:
+            return rc;
+        default:
+            log_error("failed to obtain hex encoded ssh key fingerprint (%s)",
+                keeto_strerror(rc));
+            return rc;
+        }
+        break;
+    case KEETO_DIGEST_SHA256:
+        rc = blob_to_base64(digest_buffer, sizeof digest_buffer, &fp);
+        switch (rc) {
+        case KEETO_OK:
+            break;
+        case KEETO_NO_MEMORY:
+            return rc;
+        default:
+            log_error("failed to obtain base64 encoded ssh key fingerprint (%s)",
+                keeto_strerror(rc));
+            return rc;
+        }
+        /* remove '=' at the end */
+        size_t end_of_fp = strcspn(fp, "=");
+        fp[end_of_fp] = '\0';
+        break;
+    }
+
+    *ret = fp;
+    return KEETO_OK;
+}
+
+static int
+add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
+{
+    if (ssh_keytype == NULL || rsa == NULL || key == NULL) {
+        fatal("ssh_keytype, rsa or key == NULL");
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    /* get ssh key blob needed by all upcoming operations */
+    unsigned char *blob = NULL;
+    size_t blob_length;
+
+    int rc = get_ssh_key_blob_from_rsa(ssh_keytype, rsa, &blob, &blob_length);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        return rc;
+    default:
+        log_error("failed to obtain ssh key blob from rsa (%s)",
+            keeto_strerror(rc));
+        return rc;
+    }
+
+    /* get ssh key */
+    char *ssh_key = NULL;
+    rc = blob_to_base64(blob, blob_length, &ssh_key);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        res = rc;
+        goto cleanup_a;
+    default:
+        log_error("failed to base64 encode ssh key (%s)", keeto_strerror(rc));
+        res = rc;
         goto cleanup_a;
     }
-    BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
 
-    /* create memory bio */
-    BIO *bio_mem = BIO_new(BIO_s_mem());
-    if (bio_mem == NULL) {
-        log_error("failed to create mem bio");
-        res = KEETO_OPENSSL_ERR;
+    /* get fingerprints */
+    char *ssh_key_fp_md5 = NULL;
+    rc = get_ssh_key_fingerprint_from_blob(blob, blob_length, KEETO_DIGEST_MD5,
+        &ssh_key_fp_md5);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        res = rc;
+        goto cleanup_b;
+    default:
+        log_error("failed to obtain ssh key md5 fingerprint (%s)",
+            keeto_strerror(rc));
         goto cleanup_b;
     }
-    /* create bio chain base64->mem */
-    BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
 
-    /* base64 encode blob and write to memory */
-    size_t post_length_blob = blob_p - blob;
-    BIO_write(bio_base64_mem, blob, post_length_blob);
-    int rc = BIO_flush(bio_base64_mem);
-    if (rc != 1) {
-        log_error("failed to flush bio");
-        res = KEETO_OPENSSL_ERR;
+    char *ssh_key_fp_sha256 = NULL;
+    rc = get_ssh_key_fingerprint_from_blob(blob, blob_length, KEETO_DIGEST_SHA256,
+        &ssh_key_fp_sha256);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        res = rc;
+        goto cleanup_c;
+    default:
+        log_error("failed to obtain ssh key sha256 fingerprint (%s)",
+            keeto_strerror(rc));
         goto cleanup_c;
     }
 
-    /* store base64 encoded string in var and put null terminator */
-    char *tmp_result = NULL;
-    long data_out = BIO_get_mem_data(bio_mem, &tmp_result);
-    char *ssh_key = malloc(data_out + 1);
-    if (ssh_key == NULL) {
-        log_error("failed to allocate memory for ssh key");
-        res = KEETO_NO_MEMORY;
-        goto cleanup_c;
-    }
-    memcpy(ssh_key, tmp_result, data_out);
-    ssh_key[data_out] = '\0';
-
-    *ret = ssh_key;
+    key->ssh_key_fp_md5 = ssh_key_fp_md5;
+    ssh_key_fp_md5 = NULL;
+    key->ssh_key_fp_sha256 = ssh_key_fp_sha256;
+    ssh_key_fp_sha256 = NULL;
+    key->ssh_key = ssh_key;
+    ssh_key = NULL;
     res = KEETO_OK;
 
 cleanup_c:
-    BIO_vfree(bio_mem);
+    if (ssh_key_fp_md5 != NULL) {
+        free(ssh_key_fp_md5);
+    }
 cleanup_b:
-    BIO_vfree(bio_base64);
+    if (ssh_key != NULL) {
+        free(ssh_key);
+    }
 cleanup_a:
-    RSA_free(rsa);
+    free(blob);
     return res;
 }
 
@@ -298,34 +322,30 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
             res = KEETO_NO_MEMORY;
             goto cleanup_a;
         }
-        /* get ssh key */
-        int rc = get_ssh_key_from_rsa(pkey, ssh_keytype, &key->ssh_key);
+        /* get rsa key */
+        RSA *rsa = EVP_PKEY_get1_RSA(pkey);
+        if (rsa == NULL) {
+            log_error("failed to obtain rsa key");
+            res = KEETO_OPENSSL_ERR;
+            goto cleanup_b;
+        }
+        /* add ssh key data */
+        int rc = add_ssh_key_data_from_rsa(ssh_keytype, rsa, key);
         switch (rc) {
         case KEETO_OK:
             break;
         case KEETO_NO_MEMORY:
             res = rc;
+            RSA_free(rsa);
             goto cleanup_b;
         default:
-            log_error("failed to obtain ssh key from rsa (%s)",
+            log_error("failed to obtain ssh key data from rsa (%s)",
                 keeto_strerror(rc));
             res = rc;
+            RSA_free(rsa);
             goto cleanup_b;
         }
-        /* get ssh key fingerprints */
-        rc = get_ssh_key_fingerprints_from_rsa(pkey, key);
-        switch (rc) {
-        case KEETO_OK:
-            break;
-        case KEETO_NO_MEMORY:
-            res = rc;
-            goto cleanup_b;
-        default:
-            log_error("failed to obtain ssh key fingerprints from rsa (%s)",
-                keeto_strerror(rc));
-            res = rc;
-            goto cleanup_b;
-        }
+        RSA_free(rsa);
         break;
     default:
         log_error("unsupported key type (%d)", pkey_type);
