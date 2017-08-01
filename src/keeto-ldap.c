@@ -625,7 +625,7 @@ add_keystore_options(LDAP *ldap_handle, LDAPMessage *keystore_options_entry,
     /* create and populate keeto keystore options struct */
     struct keeto_keystore_options *keystore_options = new_keystore_options();
     if (keystore_options == NULL) {
-        log_error("failed to allocate memory for keystore options");
+        log_error("failed to allocate memory for keystore options buffer");
         return KEETO_NO_MEMORY;
     }
     keystore_options->dn = ldap_get_dn(ldap_handle, keystore_options_entry);
@@ -729,7 +729,7 @@ add_key(struct berval *cert, struct keeto_keys *keys)
     /* create and populate keeto key struct */
     struct keeto_key *key = new_key();
     if (key == NULL) {
-        log_error("failed to allocate memory for key");
+        log_error("failed to allocate memory for key buffer");
         return KEETO_NO_MEMORY;
     }
 
@@ -779,7 +779,7 @@ add_keys(LDAP *ldap_handle, struct keeto_info *info,
     /* create and populate keeto keys struct */
     struct keeto_keys *keys = new_keys();
     if (keys == NULL) {
-        log_error("failed to allocate memory for keys");
+        log_error("failed to allocate memory for keys buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
@@ -865,7 +865,7 @@ add_key_provider(LDAP *ldap_handle, struct keeto_info *info,
     /* create and populate keeto key provider struct */
     struct keeto_key_provider *key_provider = new_key_provider();
     if (key_provider == NULL) {
-        log_error("failed to allocate memory for key provider");
+        log_error("failed to allocate memory for key provider buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
@@ -1009,7 +1009,7 @@ add_key_providers(LDAP *ldap_handle, struct keeto_info *info,
     /* create and populate keeto key providers struct */
     struct keeto_key_providers *key_providers = new_key_providers();
     if (key_providers == NULL) {
-        log_error("failed to allocate memory for key providers");
+        log_error("failed to allocate memory for key providers buffer");
         return KEETO_NO_MEMORY;
     }
 
@@ -1132,7 +1132,7 @@ add_access_profile(LDAP *ldap_handle, struct keeto_info *info,
     /* create and populate keeto access profile struct */
     struct keeto_access_profile *access_profile = new_access_profile();
     if (access_profile == NULL) {
-        log_error("failed to allocate memory for access profile");
+        log_error("failed to allocate memory for access profile buffer");
         return KEETO_NO_MEMORY;
     }
     access_profile->dn = ldap_get_dn(ldap_handle, access_profile_entry);
@@ -1324,7 +1324,7 @@ add_access_profiles(LDAP *ldap_handle, LDAPMessage *ssh_server_entry,
     /* create and populate keeto access profiles struct */
     struct keeto_access_profiles *access_profiles = new_access_profiles();
     if (access_profiles == NULL) {
-        log_error("failed to allocate memory for access profiles");
+        log_error("failed to allocate memory for access profiles buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
@@ -1441,7 +1441,7 @@ add_ssh_server_entry(LDAP *ldap_handle, struct keeto_info *info,
     /* create and populate keeto ssh server struct */
     struct keeto_ssh_server *ssh_server = new_ssh_server();
     if (ssh_server == NULL) {
-        log_error("failed to allocate memory for ssh server");
+        log_error("failed to allocate memory for ssh server buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }

@@ -258,15 +258,15 @@ blob_to_hex(unsigned char *src, size_t src_length, char **ret)
     size_t fp_buffer_length = src_length * 3;
     char *fp = malloc(fp_buffer_length);
     if (fp == NULL) {
-        log_error("failed to allocate memory for hex fingerprint buffer");
+        log_error("failed to allocate memory for hex buffer");
         return KEETO_NO_MEMORY;
     }
-    fp[0] = 'T';
-    fp[1] = 'O';
-    fp[2] = 'D';
-    fp[3] = 'O';
-    fp[4] = '\0';
 
+    char *fp_ptr = fp;
+    for (int i = 0; i < src_length; i++) {
+        fp_ptr += snprintf(fp_ptr, 4, "%02x%s", src[i], i < (src_length - 1) ?
+            ":" : "");
+    }
     *ret = fp;
 
     return KEETO_OK;
@@ -316,7 +316,7 @@ blob_to_base64(unsigned char *src, size_t src_length, char **ret)
 
     char *result = malloc(data_out + 1);
     if (result == NULL) {
-        log_error("failed to allocate memory for base64 output");
+        log_error("failed to allocate memory for base64 buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_b;
     }

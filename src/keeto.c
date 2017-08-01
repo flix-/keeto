@@ -205,7 +205,7 @@ add_keystore_record(struct keeto_key_provider *key_provider,
 
     struct keeto_keystore_record *keystore_record = new_keystore_record();
     if (keystore_record == NULL) {
-        log_error("failed to allocate memory for keystore record");
+        log_error("failed to allocate memory for keystore record buffer");
         return KEETO_NO_MEMORY;
     }
 
@@ -374,7 +374,7 @@ post_process_access_profiles(struct keeto_info *info)
 
     struct keeto_keystore_records *keystore_records = new_keystore_records();
     if (keystore_records == NULL) {
-        log_error("failed to allocate memory for keystore records");
+        log_error("failed to allocate memory for keystore records buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
@@ -438,7 +438,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     /* initialize info object */
     struct keeto_info *info = new_info();
     if (info == NULL) {
-        log_error("failed to allocate memory for info");
+        log_error("failed to allocate memory for info buffer");
         return PAM_BUF_ERR;
     }
 

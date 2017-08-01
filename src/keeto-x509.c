@@ -258,6 +258,7 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
     default:
         log_error("failed to obtain ssh key md5 fingerprint (%s)",
             keeto_strerror(rc));
+        res = rc;
         goto cleanup_b;
     }
 
@@ -273,6 +274,7 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
     default:
         log_error("failed to obtain ssh key sha256 fingerprint (%s)",
             keeto_strerror(rc));
+        res = rc;
         goto cleanup_c;
     }
 
@@ -524,7 +526,7 @@ get_x509_name_as_string(X509_NAME *x509_name, char **ret)
     }
     char *name = malloc(length + 1);
     if (name == NULL) {
-        log_error("failed to allocate memory for x509 name");
+        log_error("failed to allocate memory for x509 name buffer");
         res = KEETO_NO_MEMORY;
         goto cleanup_a;
     }
