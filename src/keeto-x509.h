@@ -26,6 +26,11 @@
 
 #include "keeto-util.h"
 
+enum keeto_digests {
+    KEETO_DIGEST_MD5,
+    KEETO_DIGEST_SHA256
+};
+
 #define PUT_32BIT(cp, value) do { \
     (cp)[0] = (unsigned char) ((value) >> 24); \
     (cp)[1] = (unsigned char) ((value) >> 16); \

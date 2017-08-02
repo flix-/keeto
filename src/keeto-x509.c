@@ -41,11 +41,6 @@
 
 static X509_STORE *cert_store;
 
-enum keeto_digests {
-    KEETO_DIGEST_MD5,
-    KEETO_DIGEST_SHA256
-};
-
 static bool
 msb_set(unsigned char byte)
 {
