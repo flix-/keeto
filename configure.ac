@@ -19,13 +19,14 @@ AM_PROG_CC_C_O
 AC_ARG_ENABLE([debug],
 [  --enable-debug          Turn on debugging],
 [case "${enableval}" in
-  yes) debug=true ;;
-  no)  debug=false ;;
+  yes) debug="true" ;;
+  no)  debug="false" ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
 esac],
 [debug=false])
-AS_IF([test "x$debug" = xtrue], [AC_DEFINE(DEBUG, 1)], [AC_DEFINE(DEBUG, 0)])
-AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
+
+AS_IF([test "x${debug}" = "xtrue"], [AC_DEFINE(DEBUG, 1)], [AC_DEFINE(DEBUG, 0)])
+AM_CONDITIONAL([DEBUG], [test "x${debug}" = "xtrue"])
 
 # checks for libraries.
 PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
@@ -52,7 +53,10 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
     -llber ${libssl_LIBS} ${libcrypto_LIBS}"])
 
 # set compiler flags
-AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])
+AS_IF([test "x${debug}" = "xtrue"],
+    AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors -ggdb -O0"]),
+    AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])
+)
 
 # checks for header files.
 
