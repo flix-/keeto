@@ -38,9 +38,9 @@ log_keeto_audit(struct keeto_info *info)
 
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, info->keystore_records, next) {
-        log_raw("%s:%s:%s", PREFIX_SSH_KEY_FP_MD5, keystore_record->uid,
+        log_raw("%s;%s;%s", PREFIX_SSH_KEY_FP_MD5, keystore_record->uid,
             keystore_record->ssh_key_fp_md5);
-        log_raw("%s:%s:%s", PREFIX_SSH_KEY_FP_SHA256, keystore_record->uid,
+        log_raw("%s;%s;%s", PREFIX_SSH_KEY_FP_SHA256, keystore_record->uid,
             keystore_record->ssh_key_fp_sha256);
     }
 }
