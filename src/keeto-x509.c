@@ -273,10 +273,10 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
         goto cleanup_c;
     }
 
-    key->ssh_key_fp_md5 = ssh_key_fp_md5;
-    ssh_key_fp_md5 = NULL;
     key->ssh_key_fp_sha256 = ssh_key_fp_sha256;
     ssh_key_fp_sha256 = NULL;
+    key->ssh_key_fp_md5 = ssh_key_fp_md5;
+    ssh_key_fp_md5 = NULL;
     key->ssh_key = ssh_key;
     ssh_key = NULL;
     res = KEETO_OK;

@@ -212,6 +212,8 @@ add_keystore_record(struct keeto_key_provider *key_provider,
     keystore_record->uid = key_provider->uid;
     keystore_record->ssh_keytype = key->ssh_keytype;
     keystore_record->ssh_key = key->ssh_key;
+    keystore_record->ssh_key_fp_md5 = key->ssh_key_fp_md5;
+    keystore_record->ssh_key_fp_sha256 = key->ssh_key_fp_sha256;
     if (keystore_options != NULL) {
         keystore_record->command_option = keystore_options->command_option;
         keystore_record->from_option = keystore_options->from_option;

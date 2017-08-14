@@ -37,8 +37,8 @@ static int keeto_syslog_facility = LOG_LOCAL1;
 static void
 keeto_log(int level, char *prefix, const char *fmt, va_list ap)
 {
-    if (prefix == NULL || fmt == NULL) {
-        fatal("prefix or fmt == NULL");
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
     }
 
     static bool initialized = false;
@@ -48,7 +48,11 @@ keeto_log(int level, char *prefix, const char *fmt, va_list ap)
     }
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    syslog(keeto_syslog_facility | level, "%s %s\n", prefix, buffer);
+    if (prefix == NULL) {
+        syslog(keeto_syslog_facility | level, "%s\n", buffer);
+    } else {
+        syslog(keeto_syslog_facility | level, "%s %s\n", prefix, buffer);
+    }
 }
 
 void
@@ -65,6 +69,19 @@ keeto_log_debug(const char *filename, const char *function, int line,
     va_list ap;
     va_start(ap, fmt);
     keeto_log(LOG_DEBUG, prefix, fmt, ap);
+    va_end(ap);
+}
+
+void
+log_raw(const char *fmt, ...)
+{
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
+    va_list ap;
+    va_start(ap, fmt);
+    keeto_log(LOG_INFO, NULL, fmt, ap);
     va_end(ap);
 }
 

@@ -53,6 +53,8 @@ struct keeto_keystore_record {
     char *uid;
     char *ssh_keytype;
     char *ssh_key;
+    char *ssh_key_fp_md5;
+    char *ssh_key_fp_sha256;
     char *command_option;
     char *from_option;
     SIMPLEQ_ENTRY(keeto_keystore_record) next;

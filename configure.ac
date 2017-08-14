@@ -15,8 +15,17 @@ AC_PROG_CC
 # add for legacy reasons.
 AM_PROG_CC_C_O
 
-# define preprocessor symbols.
-AC_DEFINE(DEBUG, 0)
+# enable/disable debug build
+AC_ARG_ENABLE([debug],
+[  --enable-debug          Turn on debugging],
+[case "${enableval}" in
+  yes) debug=true ;;
+  no)  debug=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=false])
+AS_IF([test "x$debug" = xtrue], [AC_DEFINE(DEBUG, 1)], [AC_DEFINE(DEBUG, 0)])
+AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 
 # checks for libraries.
 PKG_CHECK_MODULES([libcheck], [check >= 0.9.9], [],
@@ -36,6 +45,8 @@ AC_SUBST([LIBS], [ ])
 AC_SUBST([LIBADD_BASE], ["-lpam ${libconfuse_LIBS} -lldap -llber \
     ${libssl_LIBS} ${libcrypto_LIBS}"])
 AC_SUBST([LIBADD_AUDIT], ["-lpam ${libconfuse_LIBS} -lldap -llber \
+    ${libssl_LIBS} ${libcrypto_LIBS}"])
+AC_SUBST([LIBADD_DEBUG], ["-lpam ${libconfuse_LIBS} -lldap -llber \
     ${libssl_LIBS} ${libcrypto_LIBS}"])
 AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
     -llber ${libssl_LIBS} ${libcrypto_LIBS}"])

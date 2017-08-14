@@ -32,6 +32,7 @@
 
 void keeto_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
+void log_raw(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_critical(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
