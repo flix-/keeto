@@ -23,7 +23,7 @@ AC_ARG_ENABLE([debug],
   no)  debug="false" ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
 esac],
-[debug=false])
+[debug="false"])
 
 AS_IF([test "x${debug}" = "xtrue"], [AC_DEFINE(DEBUG, 1)], [AC_DEFINE(DEBUG, 0)])
 AM_CONDITIONAL([DEBUG], [test "x${debug}" = "xtrue"])
