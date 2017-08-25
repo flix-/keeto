@@ -1,0 +1,87 @@
+<patterndb version='5' pub_date='2017-07-05'>
+    <ruleset name='keeto-openssh' id='61107edc18a2b9d64e8b9e72ede28cde'>
+        <pattern>sshd</pattern>
+        <rules>
+            <rule provider='seroland86@gmail.com' id='openssh-connect' class='system'>
+                <patterns>
+                    <pattern>Connection from @ESTRING:SSH_CLIENT_ADDR: @port @ESTRING:SSH_CLIENT_PORT: @@ANYSTRING@</pattern>
+                </patterns>
+                <values>
+                    <value name="SSH_EVENT">SSH_CONNECT</value>
+                </values>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Connection from 127.0.0.1 port 52230 on 127.0.0.1 port 22</test_message>
+                        <test_values>
+                            <test_value name="SSH_EVENT">SSH_CONNECT</test_value>
+                            <test_value name="SSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="SSH_CLIENT_PORT">52230</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+
+            <rule provider='seroland86@gmail.com' id='openssh-publickey-auth' class='system'>
+                <patterns>
+                    <pattern>@ESTRING:SSH_AUTH_RESULT: @publickey for @ESTRING:SSH_USERNAME: @from @ESTRING:SSH_CLIENT_ADDR: @port @ESTRING:SSH_CLIENT_PORT: @@ESTRING:::@ @ESTRING:: @@ESTRING:SSH_HASH_ALGO::@@ANYSTRING:SSH_FINGERPRINT@</pattern>
+                </patterns>
+                <values>
+                    <value name="SSH_EVENT">$(if ("${SSH_AUTH_RESULT}" eq "Accepted") "SSH_AUTH_SUCCESS" "SSH_AUTH_FAILURE")</value>
+                </values>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Accepted publickey for keeto from 127.0.0.1 port 52266 ssh2: RSA SHA256:pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_message>
+                        <test_values>
+                            <test_value name="SSH_EVENT">SSH_AUTH_SUCCESS</test_value>
+                            <test_value name="SSH_USERNAME">keeto</test_value>
+                            <test_value name="SSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="SSH_CLIENT_PORT">52266</test_value>
+                            <test_value name="SSH_HASH_ALGO">SHA256</test_value>
+                            <test_value name="SSH_FINGERPRINT">pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_value>
+                        </test_values>
+                    </example>
+                    <example>
+                        <test_message program="sshd">Failed publickey for keeto from 127.0.0.1 port 52266 ssh2: RSA SHA256:pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_message>
+                        <test_values>
+                            <test_value name="SSH_EVENT">SSH_AUTH_FAILURE</test_value>
+                            <test_value name="SSH_USERNAME">keeto</test_value>
+                            <test_value name="SSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="SSH_CLIENT_PORT">52266</test_value>
+                            <test_value name="SSH_HASH_ALGO">SHA256</test_value>
+                            <test_value name="SSH_FINGERPRINT">pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+
+            <rule provider='seroland86@gmail.com' id='openssh-disconnect' class='system'>
+                <patterns>
+                    <pattern>Connection closed by authenticating user @ESTRING:: @@ESTRING:SSH_CLIENT_ADDR: @port @ESTRING:SSH_CLIENT_PORT: @[preauth]</pattern>
+                    <pattern>Disconnected from user @ESTRING:: @@ESTRING:SSH_CLIENT_ADDR: @port @ANYSTRING:SSH_CLIENT_PORT@</pattern>
+                </patterns>
+                <values>
+                    <value name="SSH_EVENT">SSH_DISCONNECT</value>
+                </values>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Connection closed by authenticating user keeto 127.0.0.1 port 52234 [preauth]</test_message>
+                        <test_values>
+                            <test_value name="SSH_EVENT">SSH_DISCONNECT</test_value>
+                            <test_value name="SSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="SSH_CLIENT_PORT">52234</test_value>
+                        </test_values>
+                    </example>
+                    <example>
+                        <test_message program="sshd">Disconnected from user keeto 127.0.0.1 port 35268</test_message>
+                        <test_values>
+                            <test_value name="SSH_EVENT">SSH_DISCONNECT</test_value>
+                            <test_value name="SSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="SSH_CLIENT_PORT">35268</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+        </rules>
+    </ruleset>
+</patterndb>
+

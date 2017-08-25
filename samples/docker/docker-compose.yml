@@ -10,12 +10,12 @@ services:
   keeto-openssh:
     image: seroland86/keeto-openssh:0.3.0-beta
     depends_on:
+      - keeto-mariadb
+      - keeto-syslog-ng
       - keeto-openldap
     container_name: keeto-openssh
     ports:
       - '127.0.0.1:1022:22'
-    volumes:
-      - /dev/log:/dev/log
     networks:
       - keeto-net
   keeto-openldap:
@@ -24,8 +24,22 @@ services:
     ports:
       - '127.0.0.1:1389:389'
       - '127.0.0.1:1636:636'
-    volumes:
-      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+  keeto-syslog-ng:
+    image: seroland86/keeto-syslog-ng:0.3.0-beta
+    depends_on:
+      - keeto-mariadb
+    container_name: keeto-syslog-ng
+    ports:
+      - '127.0.0.1:1601:601'
+    networks:
+      - keeto-net
+  keeto-mariadb:
+    image: seroland86/keeto-mariadb:0.3.0-beta
+    container_name: keeto-mariadb
+    ports:
+      - '127.0.0.1:13306:3306'
     networks:
       - keeto-net
 

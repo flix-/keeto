@@ -2,7 +2,6 @@ FROM centos:latest
 
 ARG NAME
 ARG VERSION
-ARG KEETO_RPM_URL
 
 # metadata
 LABEL org.label-schema.schema-version="1.0" \
@@ -21,34 +20,20 @@ RUN wget https://copr.fedorainfracloud.org/coprs/czanik/syslog-ng311/repo/epel-7
 
 RUN yum -y install \
     syslog-ng \
+    syslog-ng-java \
     && yum clean all
 
 # setup syslog-ng
 WORKDIR /etc/syslog-ng/
 COPY config/syslog-ng.conf .
-COPY config/keeto-sshd.xml patterndb.d/
+COPY destinations/ destinations/
 
-# setup local users
-RUN useradd -m birgit \
-    && useradd -m wolfgang \
-    && useradd -m keeto \
-    && useradd -m opendj \
-    && useradd -m slapd
+RUN mkdir -p /usr/share/java/
+COPY lib/mariadb-java-client-2.1.0.jar /usr/share/java/
+ENV LD_LIBRARY_PATH="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.141-1.b16.el7_3.x86_64/jre/lib/amd64/server:$LD_LIBRARY_PATH"
 
-# setup openssh / keeto
-WORKDIR /tmp/
-RUN wget ${KEETO_RPM_URL} \
-    && yum -y install --setopt=tsflags='' $(echo ${KEETO_RPM_URL##*/}) \
-    && yum clean all
-WORKDIR /etc/ssh/
-COPY config/cert_store/ cert_store/
-COPY config/sshd /etc/pam.d/
-COPY config/keeto.conf .
-RUN chmod 600 keeto.conf
-COPY config/sshd_config .
-RUN mkdir -p /run/sshd/ && ssh-keygen -A
+EXPOSE 601/tcp
 
-EXPOSE 22/tcp
-
-ENTRYPOINT ["/usr/sbin/sshd", "-D"]
+#ENTRYPOINT ["/usr/sbin/syslog-ng", "--no-caps", "-F"]
+ENTRYPOINT ["/usr/sbin/syslog-ng", "--no-caps", "-Fd"]
 
