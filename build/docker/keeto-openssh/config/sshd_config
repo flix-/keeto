@@ -97,6 +97,13 @@ ChallengeResponseAuthentication yes
 UsePAM yes
 AuthenticationMethods keyboard-interactive:pam,publickey
 
+#FingerprintHash MD5
+#FingerprintHash RIPEMD160
+#FingerprintHash SHA1
+FingerprintHash SHA256
+#FingerprintHash SHA384
+#FingerprintHash SHA512
+
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no

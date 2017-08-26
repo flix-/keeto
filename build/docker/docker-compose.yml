@@ -9,6 +9,8 @@ services:
         - NAME=seroland86/keeto-openssh
         - VERSION=${VERSION}
         - KEETO_RPM_URL=${KEETO_RPM_URL}
+        - OPENSSH_SRC_URL=${OPENSSH_SRC_URL}
+        - SYSLOG_NG_REPO_URL=${SYSLOG_NG_REPO_URL}
   keeto-openldap:
     image: seroland86/keeto-openldap:${VERSION}
     build:

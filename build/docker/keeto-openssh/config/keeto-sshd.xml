@@ -1,4 +1,4 @@
-<patterndb version='5' pub_date='2017-07-05'>
+<patterndb version='5' pub_date='2017-08-25'>
     <ruleset name='keeto-openssh' id='61107edc18a2b9d64e8b9e72ede28cde'>
         <pattern>sshd</pattern>
         <rules>

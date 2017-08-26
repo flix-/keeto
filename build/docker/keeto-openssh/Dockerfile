@@ -3,6 +3,8 @@ FROM centos:latest
 ARG NAME
 ARG VERSION
 ARG KEETO_RPM_URL
+ARG OPENSSH_SRC_URL
+ARG SYSLOG_NG_REPO_URL
 
 # metadata
 LABEL org.label-schema.schema-version="1.0" \
@@ -14,10 +16,15 @@ LABEL org.label-schema.schema-version="1.0" \
 # install packages
 RUN yum -y update && yum -y install \
     epel-release \
-    wget
+    gcc \
+    make \
+    openssl-devel \
+    pam-devel \
+    wget \
+    zlib-devel
 
 WORKDIR /etc/yum.repos.d/
-RUN wget https://copr.fedorainfracloud.org/coprs/czanik/syslog-ng311/repo/epel-7/czanik-syslog-ng311-epel-7.repo
+RUN wget ${SYSLOG_NG_REPO_URL}
 
 RUN yum -y install \
     syslog-ng \
@@ -29,7 +36,8 @@ COPY config/syslog-ng.conf .
 COPY config/keeto-sshd.xml patterndb.d/
 
 # setup local users
-RUN useradd -m birgit \
+RUN useradd -M sshd \
+    && useradd -m birgit \
     && useradd -m wolfgang \
     && useradd -m keeto \
     && useradd -m opendj \
@@ -40,15 +48,32 @@ WORKDIR /tmp/
 RUN wget ${KEETO_RPM_URL} \
     && yum -y install --setopt=tsflags='' $(echo ${KEETO_RPM_URL##*/}) \
     && yum clean all
+
+# remove openssh-server config file (openssh-server has been installed as dependency)
+RUN rm -f /etc/ssh/sshd_config
+
+# compile latest openssh
+RUN wget ${OPENSSH_SRC_URL} \
+    && tar xvfz openssh-*.tar.gz \
+    && cd openssh-* \
+    && ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam \
+    && make \
+    && make install \
+    && mkdir -p /run/sshd/
+
+# copy keeto config
 WORKDIR /etc/ssh/
 COPY config/cert_store/ cert_store/
 COPY config/sshd /etc/pam.d/
 COPY config/keeto.conf .
 RUN chmod 600 keeto.conf
 COPY config/sshd_config .
-RUN mkdir -p /run/sshd/ && ssh-keygen -A
+
+# setup entry point
+COPY config/entry_point.sh /
+RUN chmod 755 /entry_point.sh
 
 EXPOSE 22/tcp
 
-ENTRYPOINT ["/usr/sbin/sshd", "-D"]
+ENTRYPOINT ["/entry_point.sh"]
 
