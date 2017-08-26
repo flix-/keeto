@@ -30,6 +30,9 @@ RUN yum -y install \
     syslog-ng \
     && yum clean all
 
+# set timezone
+RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
 # setup syslog-ng
 WORKDIR /etc/syslog-ng/
 COPY config/syslog-ng.conf .

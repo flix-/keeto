@@ -31,8 +31,6 @@ services:
     depends_on:
       - keeto-mariadb
     container_name: keeto-syslog-ng
-    ports:
-      - '127.0.0.1:1601:601'
     networks:
       - keeto-net
   keeto-mariadb:

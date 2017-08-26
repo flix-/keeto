@@ -16,6 +16,9 @@ RUN yum -y update && yum -y install \
     openldap-servers \
     && yum clean all
 
+# set timezone
+RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
 # setup openldap
 WORKDIR /etc/openldap/
 COPY config/cert_store/ cert_store/
