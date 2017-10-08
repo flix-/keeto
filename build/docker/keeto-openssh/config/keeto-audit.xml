@@ -1,0 +1,128 @@
+<patterndb version='5' pub_date='2017-10-08'>
+    <ruleset name='keeto_audit' id='fd8bb96b5aebe9d8630d5dbef7616b9a'>
+        <patterns>
+            <pattern>sshd</pattern>
+            <pattern>keeto</pattern>
+        </patterns>
+        <rules>
+            <rule provider='seroland86@gmail.com' id='4b7b23fc51bc6e268154534391985d2f' class='system'>
+                <patterns>
+                    <pattern>Connection from @ESTRING:OPENSSH_CLIENT_ADDR: @port @ESTRING:OPENSSH_CLIENT_PORT: @@ANYSTRING@</pattern>
+                </patterns>
+                <values>
+                    <value name="KEETO_AUDIT_EVENT">OPENSSH_CONNECT</value>
+                </values>
+                <tags>
+                    <tag>keeto_audit</tag>
+                </tags>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Connection from 127.0.0.1 port 52230 on 127.0.0.1 port 22</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">OPENSSH_CONNECT</test_value>
+                            <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="OPENSSH_CLIENT_PORT">52230</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+
+            <rule provider='seroland86@gmail.com' id='c9deecf7cc00206a4ea156679aeb926a' class='system'>
+                <patterns>
+                    <pattern>@ESTRING:KEETO_AUDIT_EVENT:;@@ESTRING:OPENSSH_USERNAME:;@@ESTRING:OPENSSH_HASH_ALGO:;@@ANYSTRING:OPENSSH_FINGERPRINT@</pattern>
+                </patterns>
+                <tags>
+                    <tag>keeto_audit</tag>
+                </tags>
+                <examples>
+                    <example>
+                        <test_message program="keeto">KEETO_FINGERPRINT;keeto;SHA256;pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">KEETO_FINGERPRINT</test_value>
+                            <test_value name="OPENSSH_USERNAME">keeto</test_value>
+                            <test_value name="OPENSSH_HASH_ALGO">SHA256</test_value>
+                            <test_value name="OPENSSH_FINGERPRINT">pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_value>
+                        </test_values>
+                    </example>
+                    <example>
+                        <test_message program="keeto">KEETO_FINGERPRINT;keeto;MD5;0f:43:bb:ce:c4:d3:29:51:75:fb:e1:65:e7:5a:61:67</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">KEETO_FINGERPRINT</test_value>
+                            <test_value name="OPENSSH_USERNAME">keeto</test_value>
+                            <test_value name="OPENSSH_HASH_ALGO">MD5</test_value>
+                            <test_value name="OPENSSH_FINGERPRINT">0f:43:bb:ce:c4:d3:29:51:75:fb:e1:65:e7:5a:61:67</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+
+            <rule provider='seroland86@gmail.com' id='b6e6675a70e5e0c1b0f1c67e8c2c259a' class='system'>
+                <patterns>
+                    <pattern>@ESTRING:OPENSSH_AUTH_RESULT: @publickey for @ESTRING:OPENSSH_USERNAME: @from @ESTRING:OPENSSH_CLIENT_ADDR: @port @ESTRING:OPENSSH_CLIENT_PORT: @@ESTRING:::@ @ESTRING:: @@ESTRING:OPENSSH_HASH_ALGO::@@ANYSTRING:OPENSSH_FINGERPRINT@</pattern>
+                </patterns>
+                <values>
+                    <value name="KEETO_AUDIT_EVENT">$(if ("${OPENSSH_AUTH_RESULT}" eq "Accepted") "OPENSSH_AUTH_SUCCESS" "OPENSSH_AUTH_FAILURE")</value>
+                </values>
+                <tags>
+                    <tag>keeto_audit</tag>
+                </tags>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Accepted publickey for keeto from 127.0.0.1 port 52266 ssh2: RSA SHA256:pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">OPENSSH_AUTH_SUCCESS</test_value>
+                            <test_value name="OPENSSH_USERNAME">keeto</test_value>
+                            <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="OPENSSH_CLIENT_PORT">52266</test_value>
+                            <test_value name="OPENSSH_HASH_ALGO">SHA256</test_value>
+                            <test_value name="OPENSSH_FINGERPRINT">pkzLumO2hKnHMbFfvX2qVIyu7OIL5vQ/4ZXmzzfuMQk</test_value>
+                        </test_values>
+                    </example>
+                    <example>
+                        <test_message program="sshd">Failed publickey for keeto from 127.0.0.1 port 46118 ssh2: RSA MD5:0f:43:bb:ce:c4:d3:29:51:75:fb:e1:65:e7:5a:61:67</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">OPENSSH_AUTH_FAILURE</test_value>
+                            <test_value name="OPENSSH_USERNAME">keeto</test_value>
+                            <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="OPENSSH_CLIENT_PORT">46118</test_value>
+                            <test_value name="OPENSSH_HASH_ALGO">MD5</test_value>
+                            <test_value name="OPENSSH_FINGERPRINT">0f:43:bb:ce:c4:d3:29:51:75:fb:e1:65:e7:5a:61:67</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+
+            <rule provider='seroland86@gmail.com' id='9f058e6344e58e5bed0b1e0e3c6de273' class='system'>
+                <patterns>
+                    <pattern>Connection closed by authenticating user @ESTRING:: @@ESTRING:OPENSSH_CLIENT_ADDR: @port @ESTRING:OPENSSH_CLIENT_PORT: @[preauth]</pattern>
+                    <pattern>Disconnected from user @ESTRING:: @@ESTRING:OPENSSH_CLIENT_ADDR: @port @ANYSTRING:OPENSSH_CLIENT_PORT@</pattern>
+                </patterns>
+                <values>
+                    <value name="KEETO_AUDIT_EVENT">OPENSSH_DISCONNECT</value>
+                </values>
+                <tags>
+                    <tag>keeto_audit</tag>
+                </tags>
+                <examples>
+                    <example>
+                        <test_message program="sshd">Connection closed by authenticating user keeto 127.0.0.1 port 52234 [preauth]</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">OPENSSH_DISCONNECT</test_value>
+                            <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="OPENSSH_CLIENT_PORT">52234</test_value>
+                        </test_values>
+                    </example>
+                    <example>
+                        <test_message program="sshd">Disconnected from user keeto 127.0.0.1 port 35268</test_message>
+                        <test_values>
+                            <test_value name="KEETO_AUDIT_EVENT">OPENSSH_DISCONNECT</test_value>
+                            <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
+                            <test_value name="OPENSSH_CLIENT_PORT">35268</test_value>
+                        </test_values>
+                    </example>
+                </examples>
+            </rule>
+        </rules>
+    </ruleset>
+</patterndb>
+

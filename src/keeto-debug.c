@@ -343,7 +343,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     struct keeto_info *info = NULL;
-    int rc = pam_get_data(pamh, "keeto_info", (const void **) &info);
+    int rc = pam_get_data(pamh, "keeto_info", (const void **)&info);
     if (rc != PAM_SUCCESS) {
         log_error("failed to get pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;

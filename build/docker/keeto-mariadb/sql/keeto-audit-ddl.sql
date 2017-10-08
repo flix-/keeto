@@ -6,10 +6,10 @@ client_addr TEXT NOT NULL,
 client_port MEDIUMINT NOT NULL
 );
 
-CREATE TABLE openssh_fingerprint (
+CREATE TABLE keeto_fingerprint (
+username TEXT NOT NULL,
 hash_algo ENUM('MD5', 'SHA256'),
-fingerprint TEXT NOT NULL,
-username TEXT NOT NULL
+fingerprint TEXT NOT NULL
 );
 
 CREATE TABLE openssh_auth (

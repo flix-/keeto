@@ -36,7 +36,7 @@ RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 # setup syslog-ng
 WORKDIR /etc/syslog-ng/
 COPY config/syslog-ng.conf .
-COPY config/keeto-sshd.xml patterndb.d/
+COPY config/keeto-audit.xml patterndb.d/
 
 # setup local users
 RUN useradd -M sshd \

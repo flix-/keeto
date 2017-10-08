@@ -26,8 +26,7 @@
 #include "keeto-log.h"
 #include "keeto-util.h"
 
-#define PREFIX_SSH_KEY_FP_MD5 "KEETO_SSH_KEY_FP_MD5"
-#define PREFIX_SSH_KEY_FP_SHA256 "KEETO_SSH_KEY_FP_SHA256"
+#define KEETO_AUDIT_EVENT_FP "KEETO_FINGERPRINT"
 
 static void
 log_keeto_audit(struct keeto_info *info)
@@ -38,9 +37,9 @@ log_keeto_audit(struct keeto_info *info)
 
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, info->keystore_records, next) {
-        log_raw("%s;%s;%s", PREFIX_SSH_KEY_FP_MD5, keystore_record->uid,
+        log_raw("%s;%s;MD5;%s", KEETO_AUDIT_EVENT_FP, keystore_record->uid,
             keystore_record->ssh_key_fp_md5);
-        log_raw("%s;%s;%s", PREFIX_SSH_KEY_FP_SHA256, keystore_record->uid,
+        log_raw("%s;%s;SHA256;%s", KEETO_AUDIT_EVENT_FP, keystore_record->uid,
             keystore_record->ssh_key_fp_sha256);
     }
 }
@@ -53,7 +52,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     }
 
     struct keeto_info *info = NULL;
-    int rc = pam_get_data(pamh, "keeto_info", (const void **) &info);
+    int rc = pam_get_data(pamh, "keeto_info", (const void **)&info);
     if (rc != PAM_SUCCESS) {
         log_error("failed to get pam data (%s)", pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
