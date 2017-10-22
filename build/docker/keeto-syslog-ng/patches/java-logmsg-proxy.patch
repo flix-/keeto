@@ -1,0 +1,19 @@
+--- modules/java/proxies/java-logmsg-proxy.c.orig	2017-09-20 21:02:23.000000000 +0200
++++ modules/java/proxies/java-logmsg-proxy.c	2017-10-22 00:01:20.727960736 +0200
+@@ -49,6 +49,7 @@
+ {
+   LogMessage *msg = (LogMessage *)handle;
+   const gchar *value;
++  gssize value_len;
+ 
+   const char *name_str = (*env)->GetStringUTFChars(env, name, NULL);
+   if (name_str == NULL)
+@@ -56,7 +57,7 @@
+       return NULL;
+     }
+ 
+-  value = log_msg_get_value_by_name(msg, name_str, NULL);
++  value = log_msg_get_value_by_name(msg, name_str, &value_len);
+ 
+   (*env)->ReleaseStringUTFChars(env, name, name_str);
+ 
