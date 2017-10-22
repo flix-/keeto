@@ -1,6 +1,15 @@
---- modules/java/proxies/java-logmsg-proxy.c.orig	2017-09-20 21:02:23.000000000 +0200
-+++ modules/java/proxies/java-logmsg-proxy.c	2017-10-22 00:01:20.727960736 +0200
-@@ -49,6 +49,7 @@
+--- syslog-ng-3.12.1/modules/java/proxies/java-logmsg-proxy.c.orig	2017-10-22 12:30:34.579221716 +0200
++++ syslog-ng-3.12.1/modules/java/proxies/java-logmsg-proxy.c	2017-10-22 12:46:06.196805023 +0200
+@@ -27,6 +27,8 @@
+ #include "messages.h"
+ #include "logmsg/logmsg.h"
+ 
++#include <string.h>
++
+ 
+ #define LOG_MESSAGE "org.syslog_ng.LogMessage"
+ 
+@@ -49,6 +51,7 @@
  {
    LogMessage *msg = (LogMessage *)handle;
    const gchar *value;
@@ -8,7 +17,7 @@
  
    const char *name_str = (*env)->GetStringUTFChars(env, name, NULL);
    if (name_str == NULL)
-@@ -56,7 +57,7 @@
+@@ -56,13 +59,16 @@
        return NULL;
      }
  
@@ -17,3 +26,13 @@
  
    (*env)->ReleaseStringUTFChars(env, name, name_str);
  
+   if (value)
+     {
+-      return (*env)->NewStringUTF(env, value);
++      gchar stripped_value[value_len + 1];
++      memcpy(stripped_value, value, value_len);
++      stripped_value[value_len] = '\0';
++      return (*env)->NewStringUTF(env, stripped_value);
+     }
+   else
+     {
