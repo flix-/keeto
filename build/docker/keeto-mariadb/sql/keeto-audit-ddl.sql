@@ -15,7 +15,7 @@ fingerprint TEXT NOT NULL
 CREATE TABLE openssh_auth (
 session_id BIGINT UNSIGNED NOT NULL,
 timestamp DATETIME NOT NULL,
-event ENUM('SSH_AUTH_FAILURE', 'SSH_AUTH_SUCCESS'),
+event ENUM('OPENSSH_AUTH_FAILURE', 'OPENSSH_AUTH_SUCCESS'),
 username TEXT NOT NULL,
 hash_algo ENUM('MD5', 'SHA256'),
 fingerprint TEXT NOT NULL,

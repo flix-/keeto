@@ -1,4 +1,4 @@
-version: '3'
+version: '3.3'
 services:
   keeto-openssh:
     image: seroland86/keeto-openssh:${VERSION}
@@ -6,33 +6,46 @@ services:
       context: keeto-openssh
       dockerfile: Dockerfile
       args:
-        - NAME=seroland86/keeto-openssh
-        - VERSION=${VERSION}
         - KEETO_RPM_URL=${KEETO_RPM_URL}
         - OPENSSH_SRC_URL=${OPENSSH_SRC_URL}
         - SYSLOG_NG_REPO_URL=${SYSLOG_NG_REPO_URL}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-openssh"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
   keeto-openldap:
     image: seroland86/keeto-openldap:${VERSION}
     build:
       context: keeto-openldap
       dockerfile: Dockerfile
-      args:
-        - NAME=seroland86/keeto-openldap
-        - VERSION=${VERSION}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-openldap"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
   keeto-syslog-ng:
     image: seroland86/keeto-syslog-ng:${VERSION}
     build:
       context: keeto-syslog-ng
       dockerfile: Dockerfile
-      args:
-        - NAME=seroland86/keeto-syslog-ng
-        - VERSION=${VERSION}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-syslog-ng"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
   keeto-mariadb:
     image: seroland86/keeto-mariadb:${VERSION}
     build:
       context: keeto-mariadb
       dockerfile: Dockerfile
-      args:
-        - NAME=seroland86/keeto-mariadb
-        - VERSION=${VERSION}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-mariadb"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
 
