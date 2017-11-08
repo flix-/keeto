@@ -42,6 +42,7 @@ services:
   keeto-mariadb:
     image: seroland86/keeto-mariadb:${VERSION}
     container_name: keeto-mariadb
+    command: --default-time-zone=+00:00
     hostname: keeto-mariadb
     domainname: ${DOMAINNAME}
     ports:
