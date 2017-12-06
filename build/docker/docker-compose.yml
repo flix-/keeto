@@ -31,6 +31,8 @@ services:
     build:
       context: keeto-syslog-ng
       dockerfile: Dockerfile
+      args:
+        - SYSLOG_NG_REPO_URL=${SYSLOG_NG_REPO_URL}
       labels:
         org.label-schema.schema-version: "1.0"
         org.label-schema.name: "seroland86/keeto-syslog-ng"
