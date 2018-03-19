@@ -1,4 +1,4 @@
-<patterndb version='5' pub_date='2017-10-08'>
+<patterndb version='5' pub_date='2018-03-19'>
     <ruleset name='keeto_audit' id='fd8bb96b5aebe9d8630d5dbef7616b9a'>
         <patterns>
             <pattern>sshd</pattern>
@@ -7,7 +7,7 @@
         <rules>
             <rule provider='seroland86@gmail.com' id='4b7b23fc51bc6e268154534391985d2f' class='system'>
                 <patterns>
-                    <pattern>Connection from @ESTRING:OPENSSH_CLIENT_ADDR: @port @ESTRING:OPENSSH_CLIENT_PORT: @@ANYSTRING@</pattern>
+                    <pattern>Connection from @ESTRING:OPENSSH_CLIENT_ADDR: @port @ESTRING:OPENSSH_CLIENT_PORT: @on @ESTRING:: @port @ANYSTRING:OPENSSH_SERVER_PORT@</pattern>
                 </patterns>
                 <values>
                     <value name="KEETO_AUDIT_EVENT">OPENSSH_CONNECT</value>
@@ -22,6 +22,7 @@
                             <test_value name="KEETO_AUDIT_EVENT">OPENSSH_CONNECT</test_value>
                             <test_value name="OPENSSH_CLIENT_ADDR">127.0.0.1</test_value>
                             <test_value name="OPENSSH_CLIENT_PORT">52230</test_value>
+                            <test_value name="OPENSSH_SERVER_PORT">22</test_value>
                         </test_values>
                     </example>
                 </examples>
