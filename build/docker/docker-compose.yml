@@ -1,44 +1,53 @@
-version: '3'
-networks:
-  keeto-net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.86.0/29
+version: '3.3'
 services:
   keeto-openssh:
     image: seroland86/keeto-openssh:${VERSION}
-    depends_on:
-      - keeto-openldap
-    container_name: keeto-openssh
     build:
       context: keeto-openssh
       dockerfile: Dockerfile
       args:
-        - NAME=seroland86/keeto-openssh
-        - VERSION=${VERSION}
         - KEETO_RPM_URL=${KEETO_RPM_URL}
-    ports:
-      - '127.0.0.1:1022:22'
-    volumes:
-      - /dev/log:/dev/log
-    networks:
-      - keeto-net
+        - OPENSSH_SRC_URL=${OPENSSH_SRC_URL}
+        - SYSLOG_NG_REPO_URL=${SYSLOG_NG_REPO_URL}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-openssh"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
   keeto-openldap:
     image: seroland86/keeto-openldap:${VERSION}
-    container_name: keeto-openldap
     build:
       context: keeto-openldap
       dockerfile: Dockerfile
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-openldap"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
+  keeto-syslog-ng:
+    image: seroland86/keeto-syslog-ng:${VERSION}
+    build:
+      context: keeto-syslog-ng
+      dockerfile: Dockerfile
       args:
-        - NAME=seroland86/keeto-openldap
-        - VERSION=${VERSION}
-    ports:
-      - '127.0.0.1:1389:389'
-      - '127.0.0.1:1636:636'
-    volumes:
-      - /dev/log:/dev/log
-    networks:
-      - keeto-net
+        - SYSLOG_NG_REPO_URL=${SYSLOG_NG_REPO_URL}
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-syslog-ng"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
+  keeto-mariadb:
+    image: seroland86/keeto-mariadb:${VERSION}
+    build:
+      context: keeto-mariadb
+      dockerfile: Dockerfile
+      labels:
+        org.label-schema.schema-version: "1.0"
+        org.label-schema.name: "seroland86/keeto-mariadb"
+        org.label-schema.version: "${VERSION}"
+        org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
+        org.label-schema.url: "https://keeto.io"
 

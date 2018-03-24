@@ -53,6 +53,8 @@ struct keeto_keystore_record {
     char *uid;
     char *ssh_keytype;
     char *ssh_key;
+    char *ssh_key_fp_md5;
+    char *ssh_key_fp_sha256;
     char *command_option;
     char *from_option;
     SIMPLEQ_ENTRY(keeto_keystore_record) next;
@@ -69,6 +71,8 @@ struct keeto_key {
     X509 *x509;
     char *ssh_keytype;
     char *ssh_key;
+    char *ssh_key_fp_md5;
+    char *ssh_key_fp_sha256;
     TAILQ_ENTRY(keeto_key) next;
 };
 
@@ -110,8 +114,10 @@ bool file_readable(const char *file);
 int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
-int get_rdn_from_dn(const char *, char **buffer);
+int get_rdn_from_dn(const char *dn, char **buffer);
 struct timeval get_ldap_timeout(cfg_t *cfg);
+int blob_to_hex(unsigned char *src, size_t src_length, char **ret);
+int blob_to_base64(unsigned char *src, size_t src_length, char **ret);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();

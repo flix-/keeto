@@ -23,9 +23,16 @@
 #include <stdbool.h>
 #include <check.h>
 
+#include "../src/keeto-x509.h"
+
 struct keeto_validate_x509_entry {
     char *file;
     bool exp_result;
+};
+
+struct keeto_get_ssh_key_fp_entry {
+    char *digest;
+    enum keeto_digests algo;
 };
 
 Suite *make_x509_suite(void);

@@ -97,6 +97,9 @@ ChallengeResponseAuthentication yes
 UsePAM yes
 AuthenticationMethods keyboard-interactive:pam,publickey
 
+#FingerprintHash md5
+FingerprintHash sha256
+
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
@@ -112,7 +115,7 @@ AuthenticationMethods keyboard-interactive:pam,publickey
 Compression no
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
-#UseDNS yes
+#UseDNS no
 PidFile /run/sshd/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no

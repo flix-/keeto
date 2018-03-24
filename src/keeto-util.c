@@ -248,6 +248,91 @@ get_ldap_timeout(cfg_t *cfg)
     return ldap_timeout;
 }
 
+int
+blob_to_hex(unsigned char *src, size_t src_length, char **ret)
+{
+    if (src == NULL || ret == NULL) {
+        fatal("src or ret == NULL");
+    }
+
+    size_t fp_buffer_length = src_length * 3;
+    char *fp = malloc(fp_buffer_length);
+    if (fp == NULL) {
+        log_error("failed to allocate memory for hex buffer");
+        return KEETO_NO_MEMORY;
+    }
+
+    char *fp_ptr = fp;
+    for (int i = 0; i < src_length; i++) {
+        fp_ptr += snprintf(fp_ptr, 4, "%02x%s", src[i], i < (src_length - 1) ?
+            ":" : "");
+    }
+    *ret = fp;
+
+    return KEETO_OK;
+}
+
+int
+blob_to_base64(unsigned char *src, size_t src_length, char **ret)
+{
+    if (src == NULL || ret == NULL) {
+        fatal("src or ret == NULL");
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    /* base64 encode blob */
+
+    /* create base64 bio */
+    BIO *bio_base64 = BIO_new(BIO_f_base64());
+    if (bio_base64 == NULL) {
+        log_error("failed to create base64 bio");
+        return KEETO_OPENSSL_ERR;
+    }
+    BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
+
+    /* create memory bio */
+    BIO *bio_mem = BIO_new(BIO_s_mem());
+    if (bio_mem == NULL) {
+        log_error("failed to create mem bio");
+        res = KEETO_OPENSSL_ERR;
+        goto cleanup_a;
+    }
+    /* create bio chain base64->mem */
+    BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
+
+    /* write */
+    BIO_write(bio_base64_mem, src, src_length);
+    int rc = BIO_flush(bio_base64_mem);
+    if (rc != 1) {
+        log_error("failed to flush bio");
+        res = KEETO_OPENSSL_ERR;
+        goto cleanup_b;
+    }
+
+    /* store base64 encoded string in var and put null terminator */
+    unsigned char *bio_buffer = NULL;
+    long data_out = BIO_get_mem_data(bio_mem, &bio_buffer);
+
+    char *result = malloc(data_out + 1);
+    if (result == NULL) {
+        log_error("failed to allocate memory for base64 buffer");
+        res = KEETO_NO_MEMORY;
+        goto cleanup_b;
+    }
+    memcpy(result, bio_buffer, data_out);
+    result[data_out] = '\0';
+
+    *ret = result;
+    res = KEETO_OK;
+
+cleanup_b:
+    BIO_vfree(bio_mem);
+cleanup_a:
+    BIO_vfree(bio_base64);
+    return res;
+}
+
 /* constructors */
 struct keeto_info *
 new_info()
@@ -480,6 +565,8 @@ free_key(struct keeto_key *key)
     free_x509(key->x509);
     free(key->ssh_keytype);
     free(key->ssh_key);
+    free(key->ssh_key_fp_md5);
+    free(key->ssh_key_fp_sha256);
     free(key);
 }
 

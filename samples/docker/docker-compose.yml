@@ -8,24 +8,45 @@ networks:
         - subnet: 192.168.86.0/29
 services:
   keeto-openssh:
-    image: seroland86/keeto-openssh:0.3.0-beta
+    image: seroland86/keeto-openssh:${VERSION}
     depends_on:
+      - keeto-mariadb
+      - keeto-syslog-ng
       - keeto-openldap
     container_name: keeto-openssh
+    hostname: keeto-openssh
+    domainname: ${DOMAINNAME}
     ports:
       - '127.0.0.1:1022:22'
-    volumes:
-      - /dev/log:/dev/log
     networks:
       - keeto-net
   keeto-openldap:
-    image: seroland86/keeto-openldap:0.3.0-beta
+    image: seroland86/keeto-openldap:${VERSION}
     container_name: keeto-openldap
+    hostname: keeto-openldap
+    domainname: ${DOMAINNAME}
     ports:
       - '127.0.0.1:1389:389'
       - '127.0.0.1:1636:636'
-    volumes:
-      - /dev/log:/dev/log
+    networks:
+      - keeto-net
+  keeto-syslog-ng:
+    image: seroland86/keeto-syslog-ng:${VERSION}
+    depends_on:
+      - keeto-mariadb
+    container_name: keeto-syslog-ng
+    hostname: keeto-syslog-ng
+    domainname: ${DOMAINNAME}
+    networks:
+      - keeto-net
+  keeto-mariadb:
+    image: seroland86/keeto-mariadb:${VERSION}
+    container_name: keeto-mariadb
+    command: --default-time-zone=+00:00
+    hostname: keeto-mariadb
+    domainname: ${DOMAINNAME}
+    ports:
+      - '127.0.0.1:13306:3306'
     networks:
       - keeto-net
 

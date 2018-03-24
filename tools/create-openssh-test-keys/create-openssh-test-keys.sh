@@ -10,7 +10,7 @@ TMPDIR='openssh-keys-temp'
 DSTDIR='openssh-keys'
 ONELINER='ssh-rsa.txt'
 
-AMOUNT=49
+AMOUNT=50
 KEYSIZES=(1024 2048 4096)
 
 mkdir ${TMPDIR}
@@ -19,7 +19,7 @@ mkdir ${DSTDIR}
 
 for keysize in "${KEYSIZES[@]}"
 do
-    for i in $(seq -w 0 $AMOUNT)
+    for i in $(seq -w $AMOUNT)
     do
         FILENAME="ssh-${keysize}-${i}"
         ${SSHKEYGEN} -b ${keysize} -C "" -P "" -f ${TMPDIR}/${FILENAME}

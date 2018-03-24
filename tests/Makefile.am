@@ -24,6 +24,7 @@ keeto_check_LDADD = ${LDADD_CHECK}
 keeto_check_CPPFLAGS = -DCONFIGSDIR="\"${srcdir}/configs\"" \
                        -DFILEREADABLEDIR="\"${srcdir}/file_readable\"" \
                        -DKEYSTORERECORDSDIR="\"${srcdir}/keystore_records\"" \
+                       -DFINGERPRINTSDIR="\"${srcdir}/fingerprints\"" \
                        -DX509CERTSDIR="\"${srcdir}/certificates\"" \
                        -DCERTSTOREDIR="\"${srcdir}/cert_store\""
 
