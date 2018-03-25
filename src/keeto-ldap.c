@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -160,7 +160,7 @@ get_attr_values_as_string(LDAP *ldap_handle, LDAPMessage *entry, char *attr,
         goto cleanup_a;
     }
 
-    char **values_string = malloc(sizeof(char *) * (count + 1));
+    char **values_string = malloc(sizeof (char *) * (count + 1));
     if (values_string == NULL) {
         log_error("failed to allocate memory for attribute value buffer");
         res = KEETO_NO_MEMORY;
@@ -1614,8 +1614,8 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
      * config.
      *
      * this option is only supported when libldap is linked against
-     * openssl! in case of failure a critical warning will be logged
-     * and execution flow continues. failing with an error would break
+     * openssl! in case of failure a warning will be logged and
+     * execution flow continues. failing with an error would break
      * support with major distros that haven't linked libldap against
      * openssl.
      */
@@ -1624,7 +1624,7 @@ set_ldap_options(LDAP *ldap_handle, struct keeto_info *info)
         const int crl_check = LDAP_OPT_X_TLS_CRL_ALL;
         rc = ldap_set_option(ldap_handle, LDAP_OPT_X_TLS_CRLCHECK, &crl_check);
         if (rc != LDAP_OPT_SUCCESS) {
-            log_critical("failed to set ldap option: key 'LDAP_OPT_X_TLS_CRLCHECK', "
+            log_warn("failed to set ldap option: key 'LDAP_OPT_X_TLS_CRLCHECK', "
                 "value '%d'", crl_check);
         }
     }

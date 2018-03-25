@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -29,7 +29,9 @@
 #include <confuse.h>
 
 #define PAM_SM_AUTH
+#define PAM_SM_SESSION
 #include <security/pam_modules.h>
+#include <security/pam_appl.h>
 
 #include "keeto-config.h"
 #include "keeto-error.h"
@@ -304,7 +306,7 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
         case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key (%s)", keeto_strerror(rc));
+            log_info("removing key (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(key_provider->keys, key, next);
             free_key(key);
         }
@@ -341,7 +343,7 @@ post_process_access_profile(struct keeto_access_profile *access_profile,
         case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key provider (%s)", keeto_strerror(rc));
+            log_info("removing key provider (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(access_profile->key_providers, key_provider, next);
             free_key_provider(key_provider);
         }
@@ -395,7 +397,7 @@ post_process_access_profiles(struct keeto_info *info)
             res = rc;
             goto cleanup_b;
         default:
-            log_error("removing access profile (%s)", keeto_strerror(rc));
+            log_info("removing access profile (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(info->access_profiles, access_profile, next);
             free_access_profile(access_profile);
         }
@@ -419,6 +421,7 @@ cleanup_a:
     return res;
 }
 
+/* PAM authentication management */
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
@@ -593,6 +596,33 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to write keystore file (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
+
+    /* export key_uid_info to environment */
+    bool export_real_uid = cfg_getint(info->cfg, "export_real_uid");
+    if (!export_real_uid) {
+        return PAM_SUCCESS;
+    }
+    char *key_uid_info = NULL;
+    rc = create_key_uid_info(info->keystore_records, &key_uid_info);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        log_error("failed to create key_uid_info (%s)", keeto_strerror(rc));
+        return PAM_BUF_ERR;
+    default:
+        log_error("failed to create key_uid_info (%s)", keeto_strerror(rc));
+        return PAM_SERVICE_ERR;
+    }
+    log_debug("key_uid_info: %s", key_uid_info);
+    rc = pam_putenv(pamh, key_uid_info);
+    free(key_uid_info);
+    if (rc != PAM_SUCCESS) {
+        log_error("failed to put environment variable (%s)",
+            pam_strerror(pamh, rc));
+        return PAM_SYSTEM_ERR;
+    }
+
     return PAM_SUCCESS;
 
 cleanup_keystore:
@@ -602,6 +632,49 @@ cleanup_keystore:
 
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
+{
+    return PAM_SUCCESS;
+}
+
+/* PAM session management */
+PAM_EXTERN int
+pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
+{
+    if (pamh == NULL) {
+        log_debug("pamh == NULL");
+        return PAM_SYSTEM_ERR;
+    }
+
+    const char *key_uid_info = pam_getenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
+    if (key_uid_info == NULL) {
+        log_debug("key_uid_info == NULL");
+        return PAM_SUCCESS;
+    }
+    log_debug("key_uid_info: %s", key_uid_info);
+    const char *ssh_auth_info = pam_getenv(pamh, PAM_ENV_NAME_SSH_AUTH_INFO);
+    if (ssh_auth_info == NULL) {
+        log_debug("ssh_auth_info == NULL");
+        goto cleanup;
+    }
+    log_debug("ssh_auth_info: %s", ssh_auth_info);
+
+    // TODO: export real user id
+
+cleanup:
+    log_debug("removing %s from environment", PAM_ENV_NAME_KEY_UID_INFO);
+    int rc = pam_putenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
+    if (rc == PAM_SUCCESS) {
+        log_debug("successfully removed %s from environment",
+            PAM_ENV_NAME_KEY_UID_INFO);
+    } else {
+        log_debug("failed to remove %s from environment (%s)",
+            PAM_ENV_NAME_KEY_UID_INFO, pam_strerror(pamh, rc));
+    }
+    return PAM_SUCCESS;
+}
+
+PAM_EXTERN int
+pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
     return PAM_SUCCESS;
 }

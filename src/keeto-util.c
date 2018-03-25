@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -331,6 +331,56 @@ cleanup_b:
 cleanup_a:
     BIO_vfree(bio_base64);
     return res;
+}
+
+int
+create_key_uid_info(struct keeto_keystore_records *keystore_records, char **ret)
+{
+    if (keystore_records == NULL || ret == NULL) {
+        fatal("keystore_records or ret == NULL");
+    }
+    if (SIMPLEQ_EMPTY(keystore_records)) {
+        fatal("keystore_records is empty");
+    }
+
+    char *env_name = PAM_ENV_NAME_KEY_UID_INFO;
+    size_t buffer_size = strlen(env_name) + 1;
+    struct keeto_keystore_record *keystore_record = NULL;
+    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        char *ssh_keytype = keystore_record->ssh_keytype;
+        if (ssh_keytype == NULL) {
+            fatal("ssh_keytype == NULL");
+        }
+        buffer_size += strlen(ssh_keytype);
+        char *ssh_key = keystore_record->ssh_key;
+        if (ssh_key == NULL) {
+            fatal("ssh_key == NULL");
+        }
+        buffer_size += strlen(ssh_key);
+        char *uid = keystore_record->uid;
+        if (uid == NULL) {
+            fatal("uid == NULL");
+        }
+        buffer_size += strlen(uid);
+        buffer_size += 3;
+    }
+    char *buffer = malloc(buffer_size);
+    if (buffer == NULL) {
+        log_error("failed to allocate memory for key_uid_info buffer");
+        return KEETO_NO_MEMORY;
+    }
+
+    char *buffer_ptr = buffer;
+    buffer_ptr += sprintf(buffer_ptr, "%s=", env_name);
+    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        buffer_ptr += sprintf(buffer_ptr, "%s:%s:%s,",
+            keystore_record->ssh_keytype, keystore_record->ssh_key,
+            keystore_record->uid);
+    }
+    *(buffer_ptr - 1) = '\0';
+    *ret = buffer;
+
+    return KEETO_OK;
 }
 
 /* constructors */

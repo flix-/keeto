@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -37,6 +37,7 @@ static char *config_neg_lt[] = {
     CONFIGSDIR "/cert_store_dir_neg.conf",
     CONFIGSDIR "/check_crl_neg.conf",
     CONFIGSDIR "/uid_regex_neg.conf",
+    CONFIGSDIR "/export_real_uid_neg.conf",
 };
 
 /*

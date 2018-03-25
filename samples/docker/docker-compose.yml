@@ -37,6 +37,8 @@ services:
     container_name: keeto-syslog-ng
     hostname: keeto-syslog-ng
     domainname: ${DOMAINNAME}
+    ports:
+      - '127.0.0.1:1601:601'
     networks:
       - keeto-net
   keeto-mariadb:

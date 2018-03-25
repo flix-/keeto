@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -99,6 +99,19 @@ log_info(const char *fmt, ...)
 }
 
 void
+log_warn(const char *fmt, ...)
+{
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
+    va_list ap;
+    va_start(ap, fmt);
+    keeto_log(LOG_WARNING, "[W]", fmt, ap);
+    va_end(ap);
+}
+
+void
 log_error(const char *fmt, ...)
 {
     if (fmt == NULL) {
@@ -108,19 +121,6 @@ log_error(const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
     keeto_log(LOG_ERR, "[E]", fmt, ap);
-    va_end(ap);
-}
-
-void
-log_critical(const char *fmt, ...)
-{
-    if (fmt == NULL) {
-        fatal("fmt == NULL");
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    keeto_log(LOG_CRIT, "[C]", fmt, ap);
     va_end(ap);
 }
 

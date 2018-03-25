@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -27,6 +27,9 @@
 
 #include <confuse.h>
 #include <openssl/x509.h>
+
+#define PAM_ENV_NAME_KEY_UID_INFO "KEETO_KEY_UID_INFO"
+#define PAM_ENV_NAME_SSH_AUTH_INFO "SSH_AUTH_INFO_0"
 
 #define KEETO_DEBUG do { \
     int sleepy = 1; \
@@ -118,6 +121,8 @@ int get_rdn_from_dn(const char *dn, char **buffer);
 struct timeval get_ldap_timeout(cfg_t *cfg);
 int blob_to_hex(unsigned char *src, size_t src_length, char **ret);
 int blob_to_base64(unsigned char *src, size_t src_length, char **ret);
+int create_key_uid_info(struct keeto_keystore_records *keystore_records,
+    char **ret);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();
