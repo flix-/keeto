@@ -364,7 +364,7 @@ create_key_uid_info(struct keeto_keystore_records *keystore_records, char **ret)
         buffer_size += strlen(uid);
         buffer_size += 3;
     }
-    char *buffer = malloc(buffer_size);
+    char *buffer = malloc(buffer_size + 1);
     if (buffer == NULL) {
         log_error("failed to allocate memory for key_uid_info buffer");
         return KEETO_NO_MEMORY;

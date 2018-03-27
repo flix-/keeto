@@ -618,8 +618,8 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
     rc = pam_putenv(pamh, key_uid_info);
     free(key_uid_info);
     if (rc != PAM_SUCCESS) {
-        log_error("failed to put environment variable (%s)",
-            pam_strerror(pamh, rc));
+        log_error("failed to put environment variable %s (%s)",
+            PAM_ENV_NAME_KEY_UID_INFO, pam_strerror(pamh, rc));
         return PAM_SYSTEM_ERR;
     }
 
