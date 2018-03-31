@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -40,7 +40,7 @@ enum keeto_digests {
 
 int init_cert_store(char *cert_store_dir, bool check_crl);
 void free_cert_store();
-int add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key);
+int add_key_data_from_x509(X509 *x509, struct keeto_key *key);
 int validate_x509(X509 *x509, bool *valid);
 char *get_serial_from_x509(X509 *x509);
 int get_issuer_from_x509(X509 *x509, char **ret);

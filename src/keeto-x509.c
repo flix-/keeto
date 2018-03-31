@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -166,7 +166,7 @@ get_ssh_key_fingerprint_from_blob(unsigned char *blob, size_t blob_length,
     char *fp = NULL;
     switch (algo) {
     case KEETO_DIGEST_MD5:
-        rc = blob_to_hex(digest_buffer, sizeof digest_buffer, &fp);
+        rc = blob_to_hex(digest_buffer, sizeof digest_buffer, ":", &fp);
         switch (rc) {
         case KEETO_OK:
             break;
@@ -201,10 +201,11 @@ get_ssh_key_fingerprint_from_blob(unsigned char *blob, size_t blob_length,
 }
 
 static int
-add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
+add_key_data_from_rsa(RSA *rsa, struct keeto_ssh_key *ssh_key,
+    struct keeto_key *key)
 {
-    if (ssh_keytype == NULL || rsa == NULL || key == NULL) {
-        fatal("ssh_keytype, rsa or key == NULL");
+    if (rsa == NULL || ssh_key == NULL || key == NULL) {
+        fatal("rsa, ssh_key or key == NULL");
     }
 
     int res = KEETO_UNKNOWN_ERR;
@@ -213,7 +214,7 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
     unsigned char *blob = NULL;
     size_t blob_length;
 
-    int rc = get_ssh_key_blob_from_rsa(ssh_keytype, rsa, &blob, &blob_length);
+    int rc = get_ssh_key_blob_from_rsa(ssh_key->keytype, rsa, &blob, &blob_length);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -226,8 +227,8 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
     }
 
     /* get ssh key */
-    char *ssh_key = NULL;
-    rc = blob_to_base64(blob, blob_length, &ssh_key);
+    char *tmp_ssh_key = NULL;
+    rc = blob_to_base64(blob, blob_length, &tmp_ssh_key);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -272,13 +273,12 @@ add_ssh_key_data_from_rsa(char *ssh_keytype, RSA *rsa, struct keeto_key *key)
         res = rc;
         goto cleanup_c;
     }
-
     key->ssh_key_fp_sha256 = ssh_key_fp_sha256;
     ssh_key_fp_sha256 = NULL;
     key->ssh_key_fp_md5 = ssh_key_fp_md5;
     ssh_key_fp_md5 = NULL;
-    key->ssh_key = ssh_key;
-    ssh_key = NULL;
+    ssh_key->key = tmp_ssh_key;
+    tmp_ssh_key = NULL;
     res = KEETO_OK;
 
 cleanup_c:
@@ -286,8 +286,8 @@ cleanup_c:
         free(ssh_key_fp_md5);
     }
 cleanup_b:
-    if (ssh_key != NULL) {
-        free(ssh_key);
+    if (tmp_ssh_key != NULL) {
+        free(tmp_ssh_key);
     }
 cleanup_a:
     free(blob);
@@ -295,7 +295,7 @@ cleanup_a:
 }
 
 int
-add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
+add_key_data_from_x509(X509 *x509, struct keeto_key *key)
 {
     if (x509 == NULL || key == NULL) {
         fatal("x509 or key == NULL");
@@ -309,15 +309,20 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
         return KEETO_X509_ERR;
     }
 
-    char *ssh_keytype = NULL;
+    struct keeto_ssh_key *ssh_key = new_ssh_key();
+    if (ssh_key == NULL) {
+        log_error("failed to allocate memory for ssh key buffer");
+        res = KEETO_NO_MEMORY;
+        goto cleanup_a;
+    }
     int pkey_type = EVP_PKEY_base_id(pkey);
     switch (pkey_type) {
     case EVP_PKEY_RSA:
-        ssh_keytype = strdup("ssh-rsa");
-        if (ssh_keytype == NULL) {
+        ssh_key->keytype = strdup("ssh-rsa");
+        if (ssh_key->keytype == NULL) {
             log_error("failed to duplicate ssh keytype");
             res = KEETO_NO_MEMORY;
-            goto cleanup_a;
+            goto cleanup_b;
         }
         /* get rsa key */
         RSA *rsa = EVP_PKEY_get1_RSA(pkey);
@@ -326,8 +331,8 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
             res = KEETO_OPENSSL_ERR;
             goto cleanup_b;
         }
-        /* add ssh key data */
-        int rc = add_ssh_key_data_from_rsa(ssh_keytype, rsa, key);
+        /* add key data */
+        int rc = add_key_data_from_rsa(rsa, ssh_key, key);
         switch (rc) {
         case KEETO_OK:
             break;
@@ -349,13 +354,13 @@ add_ssh_key_data_from_x509(X509 *x509, struct keeto_key *key)
         res = KEETO_UNSUPPORTED_KEY_TYPE;
         goto cleanup_a;
     }
-    key->ssh_keytype = ssh_keytype;
-    ssh_keytype = NULL;
+    key->ssh_key = ssh_key;
+    ssh_key = NULL;
     res = KEETO_OK;
 
 cleanup_b:
-    if (ssh_keytype != NULL) {
-        free(ssh_keytype);
+    if (ssh_key != NULL) {
+        free_ssh_key(ssh_key);
     }
 cleanup_a:
     EVP_PKEY_free(pkey);

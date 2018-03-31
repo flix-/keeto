@@ -212,8 +212,8 @@ add_keystore_record(struct keeto_key_provider *key_provider,
     }
 
     keystore_record->uid = key_provider->uid;
-    keystore_record->ssh_keytype = key->ssh_keytype;
-    keystore_record->ssh_key = key->ssh_key;
+    keystore_record->ssh_keytype = key->ssh_key->keytype;
+    keystore_record->ssh_key = key->ssh_key->key;
     keystore_record->ssh_key_fp_md5 = key->ssh_key_fp_md5;
     keystore_record->ssh_key_fp_sha256 = key->ssh_key_fp_sha256;
     if (keystore_options != NULL) {
@@ -244,7 +244,7 @@ post_process_key(struct keeto_key *key)
     }
 
     /* add ssh key data */
-    rc = add_ssh_key_data_from_x509(key->x509, key);
+    rc = add_key_data_from_x509(key->x509, key);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -645,24 +645,79 @@ pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SYSTEM_ERR;
     }
 
+    int res = PAM_SERVICE_ERR;
+
     const char *key_uid_info = pam_getenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
     if (key_uid_info == NULL) {
         log_debug("key_uid_info == NULL");
         return PAM_SUCCESS;
     }
-    log_debug("key_uid_info: %s", key_uid_info);
     const char *ssh_auth_info = pam_getenv(pamh, PAM_ENV_NAME_SSH_AUTH_INFO);
     if (ssh_auth_info == NULL) {
         log_debug("ssh_auth_info == NULL");
-        goto cleanup;
+        res = PAM_SUCCESS;
+        goto cleanup_a;
     }
-    log_debug("ssh_auth_info: %s", ssh_auth_info);
 
-    // TODO: export real user id
+    struct keeto_ssh_key *ssh_key = new_ssh_key();
+    if (ssh_key == NULL) {
+        log_debug("failed to allocate memory for ssh_key");
+        res = PAM_BUF_ERR;
+        goto cleanup_a;
+    }
+    int rc = get_ssh_key_from_auth_info(ssh_auth_info, ssh_key);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        log_error("failed to get ssh key from auth_info (%s)",
+            keeto_strerror(rc));
+        res = PAM_BUF_ERR;
+        goto cleanup_b;
+    default:
+        log_error("failed to get ssh key from auth_info (%s)",
+            keeto_strerror(rc));
+        res = PAM_SERVICE_ERR;
+        goto cleanup_b;
+    }
 
-cleanup:
+    char *real_username = NULL;
+    rc = get_uid_from_key_uid_info(key_uid_info, ssh_key, &real_username);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        log_error("failed to get real username from key_uid_info");
+        res = PAM_BUF_ERR;
+        goto cleanup_b;
+    default:
+        log_error("failed to get real username from key_uid_info");
+        res = PAM_SERVICE_ERR;
+        goto cleanup_b;
+    }
+    size_t env_buffer_size = strlen(PAM_ENV_NAME_REAL_USERNAME);    // env_name
+    env_buffer_size += 1;                                           // '='
+    env_buffer_size += strlen(real_username);                       // real_username
+    {
+        char env_buffer[env_buffer_size + 1];
+        snprintf(env_buffer, sizeof env_buffer, "%s=%s", PAM_ENV_NAME_REAL_USERNAME,
+            real_username);
+        rc = pam_putenv(pamh, env_buffer);
+        free(real_username);
+        if (rc != PAM_SUCCESS) {
+            log_error("failed to put environment variable %s (%s)",
+                PAM_ENV_NAME_REAL_USERNAME, pam_strerror(pamh, rc));
+            return PAM_SYSTEM_ERR;
+        }
+    }
+
+    res = KEETO_OK;
+
+cleanup_b:
+    free_ssh_key(ssh_key);
+cleanup_a:
     log_debug("removing %s from environment", PAM_ENV_NAME_KEY_UID_INFO);
-    int rc = pam_putenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
+    rc = pam_putenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
     if (rc == PAM_SUCCESS) {
         log_debug("successfully removed %s from environment",
             PAM_ENV_NAME_KEY_UID_INFO);
@@ -670,7 +725,7 @@ cleanup:
         log_debug("failed to remove %s from environment (%s)",
             PAM_ENV_NAME_KEY_UID_INFO, pam_strerror(pamh, rc));
     }
-    return PAM_SUCCESS;
+    return res;
 }
 
 PAM_EXTERN int

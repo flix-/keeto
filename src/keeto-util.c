@@ -151,7 +151,6 @@ check_uid(char *regex, const char *uid, bool *uid_valid)
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
-
     if (rc == 0) {
         *uid_valid = true;
     } else {
@@ -249,25 +248,29 @@ get_ldap_timeout(cfg_t *cfg)
 }
 
 int
-blob_to_hex(unsigned char *src, size_t src_length, char **ret)
+blob_to_hex(unsigned char *src, size_t src_len, char *delimiter, char **ret)
 {
-    if (src == NULL || ret == NULL) {
-        fatal("src or ret == NULL");
+    if (src == NULL || delimiter == NULL || ret == NULL) {
+        fatal("src, delimiter or ret == NULL");
+    }
+    if (src_len == 0) {
+        return KEETO_OK;
     }
 
-    size_t fp_buffer_length = src_length * 3;
-    char *fp = malloc(fp_buffer_length);
-    if (fp == NULL) {
+    size_t delimiter_len = strlen(delimiter);
+    size_t dst_len = ((src_len - 1) * (2 + delimiter_len)) + 3;
+    char *dst = malloc(dst_len);
+    if (dst == NULL) {
         log_error("failed to allocate memory for hex buffer");
         return KEETO_NO_MEMORY;
     }
 
-    char *fp_ptr = fp;
-    for (int i = 0; i < src_length; i++) {
-        fp_ptr += snprintf(fp_ptr, 4, "%02x%s", src[i], i < (src_length - 1) ?
-            ":" : "");
+    char *dst_ptr = dst;
+    for (int i = 0; i < src_len; i++) {
+        dst_ptr += sprintf(dst_ptr, "%02x%s", src[i], i < (src_len - 1) ?
+            delimiter : "");
     }
-    *ret = fp;
+    *ret = dst;
 
     return KEETO_OK;
 }
@@ -277,6 +280,9 @@ blob_to_base64(unsigned char *src, size_t src_length, char **ret)
 {
     if (src == NULL || ret == NULL) {
         fatal("src or ret == NULL");
+    }
+    if (src_length == 0) {
+        return KEETO_OK;
     }
 
     int res = KEETO_UNKNOWN_ERR;
@@ -333,6 +339,28 @@ cleanup_a:
     return res;
 }
 
+static int
+hex_digest_ssh_key(const EVP_MD *digest, struct keeto_ssh_key *ssh_key,
+    char **ret)
+{
+    if (digest == NULL || ssh_key == NULL || ret == NULL) {
+        fatal("digest, ssh_key or ret == NULL");
+    }
+
+    size_t digest_input_len = strlen(ssh_key->keytype) + strlen(ssh_key->key);
+    char digest_input[digest_input_len + 1];
+    sprintf(digest_input, "%s%s", ssh_key->keytype, ssh_key->key);
+
+    unsigned char digest_buf[EVP_MD_size(digest)];
+    int rc = EVP_Digest(digest_input, sizeof digest_input, digest_buf, NULL,
+        digest, NULL);
+    if (rc == 0) {
+        log_error("failed to apply digest to ssh key");
+        return KEETO_OPENSSL_ERR;
+    }
+    return blob_to_hex(digest_buf, sizeof digest_buf, "", ret);
+}
+
 int
 create_key_uid_info(struct keeto_keystore_records *keystore_records, char **ret)
 {
@@ -343,44 +371,202 @@ create_key_uid_info(struct keeto_keystore_records *keystore_records, char **ret)
         fatal("keystore_records is empty");
     }
 
+    int res = KEETO_UNKNOWN_ERR;
+
     char *env_name = PAM_ENV_NAME_KEY_UID_INFO;
-    size_t buffer_size = strlen(env_name) + 1;
+    size_t buffer_size = strlen(env_name);  // env_name
+    buffer_size += 1;                       // '='
+    const EVP_MD *digest = EVP_sha256();
+    int digest_len = EVP_MD_size(digest);
+
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
-        char *ssh_keytype = keystore_record->ssh_keytype;
-        if (ssh_keytype == NULL) {
+        if (keystore_record->ssh_keytype == NULL) {
             fatal("ssh_keytype == NULL");
         }
-        buffer_size += strlen(ssh_keytype);
-        char *ssh_key = keystore_record->ssh_key;
-        if (ssh_key == NULL) {
+        if (keystore_record->ssh_key == NULL) {
             fatal("ssh_key == NULL");
         }
-        buffer_size += strlen(ssh_key);
+        buffer_size += 2 * digest_len;      // hex(h(ssh_keytype||ssh_key))
+        buffer_size += 1;                   // ':'
+
         char *uid = keystore_record->uid;
         if (uid == NULL) {
             fatal("uid == NULL");
         }
-        buffer_size += strlen(uid);
-        buffer_size += 3;
+        buffer_size += strlen(uid);         // uid
+        buffer_size += 1;                   // ','
     }
     char *buffer = malloc(buffer_size + 1);
     if (buffer == NULL) {
         log_error("failed to allocate memory for key_uid_info buffer");
         return KEETO_NO_MEMORY;
     }
-
     char *buffer_ptr = buffer;
     buffer_ptr += sprintf(buffer_ptr, "%s=", env_name);
-    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
-        buffer_ptr += sprintf(buffer_ptr, "%s:%s:%s,",
-            keystore_record->ssh_keytype, keystore_record->ssh_key,
-            keystore_record->uid);
-    }
-    *(buffer_ptr - 1) = '\0';
-    *ret = buffer;
 
-    return KEETO_OK;
+    SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        char *hex_digest = NULL;
+        struct keeto_ssh_key ssh_key = {
+            .keytype = keystore_record->ssh_keytype,
+            .key = keystore_record->ssh_key
+        };
+        int rc = hex_digest_ssh_key(digest, &ssh_key, &hex_digest);
+        switch (rc) {
+        case KEETO_OK:
+            break;
+        case KEETO_NO_MEMORY:
+            res = rc;
+            goto cleanup;
+        default:
+            log_error("failed to obtain hex digest of ssh key (%s)",
+                keeto_strerror(rc));
+            res = rc;
+            goto cleanup;
+        }
+        buffer_ptr += sprintf(buffer_ptr, "%s:%s,", hex_digest,
+            keystore_record->uid);
+        free(hex_digest);
+    }
+    *ret = buffer;
+    buffer = NULL;
+    res = KEETO_OK;
+
+cleanup:
+    if (buffer != NULL) {
+        free(buffer);
+    }
+    return res;
+}
+
+int
+get_ssh_key_from_auth_info(const char *ssh_auth_info, struct keeto_ssh_key *ret)
+{
+    if (ssh_auth_info == NULL || ret == NULL) {
+        fatal("ssh_auth_info or ret == NULL");
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    char *pattern_ssh_auth_info = "publickey\\s(\\S+)\\s(\\S+)\n$";
+    regex_t regex_ssh_auth_info;
+    int rc = regcomp(&regex_ssh_auth_info, pattern_ssh_auth_info, REG_EXTENDED);
+    if (rc != 0) {
+        log_error("failed to compile regex (%d)", rc);
+        return KEETO_REGEX_ERR;
+    }
+    int num_captures = 1 + 2;
+    regmatch_t captures[num_captures];
+    rc = regexec(&regex_ssh_auth_info, ssh_auth_info, num_captures, captures, 0);
+    regfree(&regex_ssh_auth_info);
+    if (rc != 0) {
+        log_error("regex did not match");
+        return KEETO_REGEX_ERR;
+    }
+
+    int ssh_keytype_start = captures[1].rm_so;
+    int ssh_keytype_end = captures[1].rm_eo;
+    int ssh_keytype_len = ssh_keytype_end - ssh_keytype_start;
+    char *ssh_keytype = malloc(ssh_keytype_len + 1);
+    if (ssh_keytype == NULL) {
+        log_error("failed to allocate memory for ssh_keytype buffer");
+        return KEETO_NO_MEMORY;
+    }
+    strncpy(ssh_keytype, &ssh_auth_info[ssh_keytype_start], ssh_keytype_len);
+    ssh_keytype[ssh_keytype_len] = '\0';
+
+    int ssh_key_start = captures[2].rm_so;
+    int ssh_key_end = captures[2].rm_eo;
+    int ssh_key_len = ssh_key_end - ssh_key_start;
+    char *ssh_key = malloc(ssh_key_len + 1);
+    if (ssh_key == NULL) {
+        log_error("failed to allocate memory for ssh_key buffer");
+        res = KEETO_NO_MEMORY;
+        goto cleanup;
+    }
+    strncpy(ssh_key, &ssh_auth_info[ssh_key_start], ssh_key_len);
+    ssh_key[ssh_key_len] = '\0';
+
+    ret->keytype = ssh_keytype;
+    ssh_keytype = NULL;
+    ret->key = ssh_key;
+    ssh_key = NULL;
+    res = KEETO_OK;
+
+cleanup:
+    if (ssh_keytype != NULL) {
+        free(ssh_keytype);
+    }
+    return res;
+}
+
+int
+get_uid_from_key_uid_info(const char *key_uid_info, struct keeto_ssh_key *ssh_key,
+    char **ret)
+{
+    if (key_uid_info == NULL || ssh_key == NULL || ret == NULL) {
+        fatal("key_uid_info, ssh_key or ret == NULL");
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    const EVP_MD *digest = EVP_sha256();
+    char *hex_digest = NULL;
+    int rc = hex_digest_ssh_key(digest, ssh_key, &hex_digest);
+    switch (rc) {
+    case KEETO_OK:
+        break;
+    case KEETO_NO_MEMORY:
+        return rc;
+    default:
+        log_error("failed to obtain hex digest of ssh key (%s)",
+            keeto_strerror(rc));
+        return rc;
+    }
+    char *capture_pattern = ":([^,]+)";
+    size_t pattern_len = strlen(hex_digest) + strlen(capture_pattern);
+    char pattern[pattern_len + 1];
+    sprintf(pattern, "%s%s", hex_digest, capture_pattern);
+
+    regex_t regex_real_username;
+    rc = regcomp(&regex_real_username, pattern, REG_EXTENDED);
+    if (rc != 0) {
+        log_error("failed to compile regex (%d)", rc);
+        res = KEETO_REGEX_ERR;
+        goto cleanup;
+    }
+
+    int real_username_start;
+    int real_username_end;
+    {
+        int num_captures = 1 + 1;
+        regmatch_t captures[num_captures];
+        rc = regexec(&regex_real_username, key_uid_info, num_captures, captures, 0);
+        regfree(&regex_real_username);
+        if (rc != 0) {
+            log_error("regex did not match");
+            res = KEETO_REGEX_ERR;
+            goto cleanup;
+        }
+        real_username_start = captures[1].rm_so;
+        real_username_end = captures[1].rm_eo;
+    }
+    int real_username_len = real_username_end - real_username_start;
+    char *real_username = malloc(real_username_len + 1);
+    if (real_username == NULL) {
+        log_error("failed to allocate memory for real_username buffer");
+        res = KEETO_NO_MEMORY;
+        goto cleanup;
+    }
+    strncpy(real_username, &key_uid_info[real_username_start], real_username_len);
+    real_username[real_username_len] = '\0';
+
+    *ret = real_username;
+    res = KEETO_OK;
+
+cleanup:
+    free(hex_digest);
+    return res;
 }
 
 /* constructors */
@@ -463,6 +649,17 @@ new_keys()
     }
     TAILQ_INIT(keys);
     return keys;
+}
+
+struct keeto_ssh_key *
+new_ssh_key()
+{
+    struct keeto_ssh_key *ssh_key = malloc(sizeof *ssh_key);
+    if (ssh_key == NULL) {
+        return NULL;
+    }
+    memset(ssh_key, 0, sizeof *ssh_key);
+    return ssh_key;
 }
 
 struct keeto_key *
@@ -607,14 +804,24 @@ free_keys(struct keeto_keys *keys)
 }
 
 void
+free_ssh_key(struct keeto_ssh_key *ssh_key)
+{
+    if (ssh_key == NULL) {
+        return;
+    }
+    free(ssh_key->keytype);
+    free(ssh_key->key);
+    free(ssh_key);
+}
+
+void
 free_key(struct keeto_key *key)
 {
     if (key == NULL) {
         return;
     }
     free_x509(key->x509);
-    free(key->ssh_keytype);
-    free(key->ssh_key);
+    free_ssh_key(key->ssh_key);
     free(key->ssh_key_fp_md5);
     free(key->ssh_key_fp_sha256);
     free(key);
