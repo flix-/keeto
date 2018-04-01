@@ -111,7 +111,7 @@ FingerprintHash sha256
 #PrintLastLog yes
 #TCPKeepAlive yes
 #UseLogin no
-#PermitUserEnvironment no
+PermitUserEnvironment yes
 Compression no
 #ClientAliveInterval 0
 #ClientAliveCountMax 3

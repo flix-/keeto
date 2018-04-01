@@ -142,32 +142,24 @@ write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
 
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        fprintf(tmp_keystore_file, "environment=\"KEETO_REAL_USER=%s\"",
+            keystore_record->uid);
         bool command_option_set = keystore_record->command_option != NULL ?
             true : false;
+        if (command_option_set) {
+            fprintf(tmp_keystore_file, ",command=\"%s\"",
+                keystore_record->command_option);
+        }
         bool from_option_set = keystore_record->from_option != NULL ?
             true : false;
-        bool option_set = false;
-
-        if (command_option_set) {
-            fprintf(tmp_keystore_file, "command=\"%s\"",
-                keystore_record->command_option);
-            option_set = true;
-        }
         if (from_option_set) {
-            if (option_set) {
-                fprintf(tmp_keystore_file, ",");
-            }
-            fprintf(tmp_keystore_file, "from=\"%s\"",
+            fprintf(tmp_keystore_file, ",from=\"%s\"",
                 keystore_record->from_option);
-            option_set = true;
         }
-        if (option_set) {
-            fprintf(tmp_keystore_file, " ");
-        }
-        fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
-            keystore_record->ssh_key, keystore_record->uid);
-        fprintf(tmp_keystore_file, "\n");
+        fprintf(tmp_keystore_file, " %s %s\n\n", keystore_record->ssh_keytype,
+            keystore_record->ssh_key);
     }
+
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",
