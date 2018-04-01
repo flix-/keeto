@@ -66,6 +66,6 @@ AS_IF([test "x${debug}" = "xtrue"],
 
 # output files.
 #AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
 AC_OUTPUT
 
