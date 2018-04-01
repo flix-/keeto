@@ -36,8 +36,7 @@ static char *config_neg_lt[] = {
     CONFIGSDIR "/ldap_ssh_server_search_scope_neg.conf",
     CONFIGSDIR "/cert_store_dir_neg.conf",
     CONFIGSDIR "/check_crl_neg.conf",
-    CONFIGSDIR "/uid_regex_neg.conf",
-    CONFIGSDIR "/export_real_uid_neg.conf",
+    CONFIGSDIR "/uid_regex_neg.conf"
 };
 
 /*

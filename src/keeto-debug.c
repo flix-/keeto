@@ -320,8 +320,6 @@ log_config(cfg_t *cfg)
     log_bool("cfg->check_crl", cfg_getint(cfg, "check_crl"));
 
     log_string("cfg->uid_regex", cfg_getstr(cfg, "uid_regex"));
-
-    log_bool("cfg->export_real_uid", cfg_getint(cfg, "export_real_uid"));
 }
 
 static void

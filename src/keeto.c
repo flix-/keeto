@@ -29,9 +29,7 @@
 #include <confuse.h>
 
 #define PAM_SM_AUTH
-#define PAM_SM_SESSION
 #include <security/pam_modules.h>
-#include <security/pam_appl.h>
 
 #include "keeto-config.h"
 #include "keeto-error.h"
@@ -421,7 +419,6 @@ cleanup_a:
     return res;
 }
 
-/* PAM authentication management */
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
@@ -597,32 +594,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         return PAM_SERVICE_ERR;
     }
 
-    /* export key_uid_info to environment */
-    bool export_real_uid = cfg_getint(info->cfg, "export_real_uid");
-    if (!export_real_uid) {
-        return PAM_SUCCESS;
-    }
-    char *key_uid_info = NULL;
-    rc = create_key_uid_info(info->keystore_records, &key_uid_info);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        log_error("failed to create key_uid_info (%s)", keeto_strerror(rc));
-        return PAM_BUF_ERR;
-    default:
-        log_error("failed to create key_uid_info (%s)", keeto_strerror(rc));
-        return PAM_SERVICE_ERR;
-    }
-    log_debug("key_uid_info: %s", key_uid_info);
-    rc = pam_putenv(pamh, key_uid_info);
-    free(key_uid_info);
-    if (rc != PAM_SUCCESS) {
-        log_error("failed to put environment variable %s (%s)",
-            PAM_ENV_NAME_KEY_UID_INFO, pam_strerror(pamh, rc));
-        return PAM_SYSTEM_ERR;
-    }
-
     return PAM_SUCCESS;
 
 cleanup_keystore:
@@ -632,104 +603,6 @@ cleanup_keystore:
 
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
-{
-    return PAM_SUCCESS;
-}
-
-/* PAM session management */
-PAM_EXTERN int
-pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
-{
-    if (pamh == NULL) {
-        log_debug("pamh == NULL");
-        return PAM_SYSTEM_ERR;
-    }
-
-    int res = PAM_SERVICE_ERR;
-
-    const char *key_uid_info = pam_getenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
-    if (key_uid_info == NULL) {
-        log_debug("key_uid_info == NULL");
-        return PAM_SUCCESS;
-    }
-    const char *ssh_auth_info = pam_getenv(pamh, PAM_ENV_NAME_SSH_AUTH_INFO);
-    if (ssh_auth_info == NULL) {
-        log_debug("ssh_auth_info == NULL");
-        res = PAM_SUCCESS;
-        goto cleanup_a;
-    }
-
-    struct keeto_ssh_key *ssh_key = new_ssh_key();
-    if (ssh_key == NULL) {
-        log_debug("failed to allocate memory for ssh_key");
-        res = PAM_BUF_ERR;
-        goto cleanup_a;
-    }
-    int rc = get_ssh_key_from_auth_info(ssh_auth_info, ssh_key);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        log_error("failed to get ssh key from auth_info (%s)",
-            keeto_strerror(rc));
-        res = PAM_BUF_ERR;
-        goto cleanup_b;
-    default:
-        log_error("failed to get ssh key from auth_info (%s)",
-            keeto_strerror(rc));
-        res = PAM_SERVICE_ERR;
-        goto cleanup_b;
-    }
-
-    char *real_username = NULL;
-    rc = get_uid_from_key_uid_info(key_uid_info, ssh_key, &real_username);
-    switch (rc) {
-    case KEETO_OK:
-        break;
-    case KEETO_NO_MEMORY:
-        log_error("failed to get real username from key_uid_info");
-        res = PAM_BUF_ERR;
-        goto cleanup_b;
-    default:
-        log_error("failed to get real username from key_uid_info");
-        res = PAM_SERVICE_ERR;
-        goto cleanup_b;
-    }
-    size_t env_buffer_size = strlen(PAM_ENV_NAME_REAL_USERNAME);    // env_name
-    env_buffer_size += 1;                                           // '='
-    env_buffer_size += strlen(real_username);                       // real_username
-    {
-        char env_buffer[env_buffer_size + 1];
-        snprintf(env_buffer, sizeof env_buffer, "%s=%s", PAM_ENV_NAME_REAL_USERNAME,
-            real_username);
-        rc = pam_putenv(pamh, env_buffer);
-        free(real_username);
-        if (rc != PAM_SUCCESS) {
-            log_error("failed to put environment variable %s (%s)",
-                PAM_ENV_NAME_REAL_USERNAME, pam_strerror(pamh, rc));
-            return PAM_SYSTEM_ERR;
-        }
-    }
-
-    res = KEETO_OK;
-
-cleanup_b:
-    free_ssh_key(ssh_key);
-cleanup_a:
-    log_debug("removing %s from environment", PAM_ENV_NAME_KEY_UID_INFO);
-    rc = pam_putenv(pamh, PAM_ENV_NAME_KEY_UID_INFO);
-    if (rc == PAM_SUCCESS) {
-        log_debug("successfully removed %s from environment",
-            PAM_ENV_NAME_KEY_UID_INFO);
-    } else {
-        log_debug("failed to remove %s from environment (%s)",
-            PAM_ENV_NAME_KEY_UID_INFO, pam_strerror(pamh, rc));
-    }
-    return res;
-}
-
-PAM_EXTERN int
-pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
     return PAM_SUCCESS;
 }

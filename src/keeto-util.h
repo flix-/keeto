@@ -28,10 +28,6 @@
 #include <confuse.h>
 #include <openssl/x509.h>
 
-#define PAM_ENV_NAME_KEY_UID_INFO "KEETO_KEY_UID_INFO"
-#define PAM_ENV_NAME_SSH_AUTH_INFO "SSH_AUTH_INFO_0"
-#define PAM_ENV_NAME_REAL_USERNAME "KEETO_REAL_USERNAME"
-
 #define KEETO_DEBUG do { \
     int sleepy = 1; \
     while (sleepy) { \
@@ -127,13 +123,6 @@ struct timeval get_ldap_timeout(cfg_t *cfg);
 int blob_to_hex(unsigned char *src, size_t src_length, char *delimiter,
     char **ret);
 int blob_to_base64(unsigned char *src, size_t src_length, char **ret);
-int create_key_uid_info(struct keeto_keystore_records *keystore_records,
-    char **ret);
-int get_ssh_key_from_auth_info(const char *ssh_auth_info,
-    struct keeto_ssh_key *ret);
-int get_uid_from_key_uid_info(const char *key_uid_info,
-    struct keeto_ssh_key *ssh_key,
-    char **ret);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -21,8 +21,6 @@
 #define KEETO_CHECK_UTIL_H
 
 #include <stdbool.h>
-
-#include "../src/keeto-util.h"
 
 #include <check.h>
 
@@ -49,11 +47,6 @@ struct keeto_get_rdn_from_dn_entry {
     char *dn;
     int exp_res;
     char *exp_result;
-};
-
-struct keeto_get_ssh_key_from_auth_info_entry {
-    char *auth_info;
-    struct keeto_ssh_key exp_result;
 };
 
 Suite *make_util_suite(void);

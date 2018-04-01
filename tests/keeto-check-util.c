@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -88,23 +88,6 @@ static struct keeto_get_rdn_from_dn_entry get_rdn_from_dn_lt[] = {
     { "cn=foo,dc=keeto,dc=io", KEETO_OK, "foo" },
     { "xyzcn=bar,dc=keeto,dc=io", KEETO_OK, "bar" },
     { "www.xy.z", KEETO_LDAP_ERR, NULL }
-};
-
-static struct keeto_get_ssh_key_from_auth_info_entry
-    get_ssh_key_from_auth_info_lt[] = {
-
-    { "keyboard-interactive/pam\n"
-      "publickey ssh-rsa Ab0+/=\n", { "ssh-rsa", "Ab0+/=" }
-    },
-    { "keyboard-interactive/pam\n"
-      "publickey ssh-rsa Ab0+/=\n"
-      "publickey ssh-rsa Ba1+/=\n", { "ssh-rsa", "Ba1+/=" }
-    },
-    { "keyboard-interactive/pam\n"
-      "publickey ssh-rsa Ab0+/=\n"
-      "publickey ssh-rsa Ba1+/=\n"
-      "publickey ssh-rsa Cb2+/=\n", { "ssh-rsa", "Cb2+/=" }
-    }
 };
 
 /*
@@ -233,30 +216,6 @@ START_TEST
 }
 END_TEST
 
-/*
- * get_ssh_key_from_auth_info()
- */
-START_TEST
-(t_get_ssh_key_from_auth_info)
-{
-    char *auth_info = get_ssh_key_from_auth_info_lt[_i].auth_info;
-    struct keeto_ssh_key exp_result =
-        get_ssh_key_from_auth_info_lt[_i].exp_result;
-
-    struct keeto_ssh_key *ssh_key = new_ssh_key();
-    if (ssh_key == NULL) {
-        ck_abort_msg("failed to allocate memory for ssh_key");
-    }
-    int rc = get_ssh_key_from_auth_info(auth_info, ssh_key);
-    if (rc != KEETO_OK) {
-        free_ssh_key(ssh_key);
-        ck_abort_msg("failed to get ssh key from auth_info");
-    }
-    ck_assert_str_eq(exp_result.keytype, ssh_key->keytype);
-    ck_assert_str_eq(exp_result.key, ssh_key->key);
-}
-END_TEST
-
 Suite *
 make_util_suite(void)
 {
@@ -292,13 +251,6 @@ make_util_suite(void)
     int get_rdn_from_dn_lt_items = sizeof get_rdn_from_dn_lt /
         sizeof get_rdn_from_dn_lt[0];
     tcase_add_loop_test(tc_main, t_get_rdn_from_dn, 0, get_rdn_from_dn_lt_items);
-
-    /* get_ssh_key_from_auth_info */
-    int get_ssh_key_from_auth_info_lt_items =
-        sizeof get_ssh_key_from_auth_info_lt /
-        sizeof get_ssh_key_from_auth_info_lt[0];
-    tcase_add_loop_test(tc_main, t_get_ssh_key_from_auth_info, 0,
-        get_ssh_key_from_auth_info_lt_items);
 
     return s;
 }

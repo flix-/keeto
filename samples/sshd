@@ -1,5 +1,5 @@
 auth    required    pam_keeto.so        /etc/ssh/keeto.conf
 auth    optional    pam_keeto_audit.so
 account required    pam_permit.so
-session required    pam_keeto.so
+session required    pam_permit.so
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -268,8 +268,6 @@ parse_config(const char *cfg_file)
         CFG_INT("check_crl", 1, CFGF_NONE),
 
         CFG_STR("uid_regex", "^[a-z][-a-z0-9]{0,31}$", CFGF_NONE),
-
-        CFG_INT("export_real_uid", 1, CFGF_NONE),
         CFG_END()
     };
 
@@ -294,7 +292,6 @@ parse_config(const char *cfg_file)
     cfg_set_validate_func(cfg, "cert_store_dir", &cfg_validate_cert_store_dir);
     cfg_set_validate_func(cfg, "check_crl", &cfg_validate_boolean);
     cfg_set_validate_func(cfg, "uid_regex", &cfg_validate_regex);
-    cfg_set_validate_func(cfg, "export_real_uid", &cfg_validate_boolean);
 
     /* parse config */
     int rc = cfg_parse(cfg, cfg_file);
