@@ -64,9 +64,9 @@ cleanup(pam_handle_t *pamh, void *data, int error_status)
      * process terminates immediately and all memory is given back to
      * the operating system no further workarounds have been setup.
      *
-     * still an implementation follows for the brave people who enabled
-     * posix threads in OpenSSH and to be prepared for possible changes
-     * in OpenSSH.
+     * still an implementation follows for those that have enabled posix
+     * threads in OpenSSH and to be prepared for possible changes in
+     * OpenSSH.
      */
     if (pamh == NULL || data == NULL) {
         fatal("pamh or data == NULL");
