@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -53,6 +53,8 @@ struct keeto_keystore_record {
     char *uid;
     char *ssh_keytype;
     char *ssh_key;
+    char *ssh_key_fp_md5;
+    char *ssh_key_fp_sha256;
     char *command_option;
     char *from_option;
     SIMPLEQ_ENTRY(keeto_keystore_record) next;
@@ -65,10 +67,16 @@ struct keeto_keystore_options {
     char *from_option;
 };
 
+struct keeto_ssh_key {
+    char *keytype;
+    char *key;
+};
+
 struct keeto_key {
     X509 *x509;
-    char *ssh_keytype;
-    char *ssh_key;
+    struct keeto_ssh_key *ssh_key;
+    char *ssh_key_fp_md5;
+    char *ssh_key_fp_sha256;
     TAILQ_ENTRY(keeto_key) next;
 };
 
@@ -110,8 +118,11 @@ bool file_readable(const char *file);
 int check_uid(char *regex, const char *uid, bool *uid_valid);
 void substitute_token(char token, const char *subst, const char *src, char *dst,
     size_t dst_length);
-int get_rdn_from_dn(const char *, char **buffer);
+int get_rdn_from_dn(const char *dn, char **buffer);
 struct timeval get_ldap_timeout(cfg_t *cfg);
+int blob_to_hex(unsigned char *src, size_t src_length, char *delimiter,
+    char **ret);
+int blob_to_base64(unsigned char *src, size_t src_length, char **ret);
 /* constructors */
 struct keeto_info *new_info();
 struct keeto_ssh_server *new_ssh_server();
@@ -120,6 +131,7 @@ struct keeto_access_profile *new_access_profile();
 struct keeto_key_providers *new_key_providers();
 struct keeto_key_provider *new_key_provider();
 struct keeto_keys *new_keys();
+struct keeto_ssh_key *new_ssh_key();
 struct keeto_key *new_key();
 struct keeto_keystore_options *new_keystore_options();
 struct keeto_keystore_records *new_keystore_records();
@@ -132,6 +144,7 @@ void free_access_profile(struct keeto_access_profile *access_profile);
 void free_key_providers(struct keeto_key_providers *key_providers);
 void free_key_provider(struct keeto_key_provider *key_provider);
 void free_keys(struct keeto_keys *keys);
+void free_ssh_key(struct keeto_ssh_key *ssh_key);
 void free_key(struct keeto_key *key);
 void free_keystore_options(struct keeto_keystore_options *keystore_options);
 void free_keystore_records(struct keeto_keystore_records *keystore_records);

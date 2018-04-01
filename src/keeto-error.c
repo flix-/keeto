@@ -72,6 +72,8 @@ keeto_strerror(int errnum)
         return "openssl error";
     case KEETO_UNSUPPORTED_KEY_TYPE:
         return "unsupported key type";
+    case KEETO_UNKNOWN_DIGEST_ALGO:
+        return "unknown digest algo";
     case KEETO_NO_SSH_SERVER:
         return "no ssh server found";
 

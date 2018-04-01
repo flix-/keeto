@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -32,9 +32,10 @@
 
 void keeto_log_debug(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((format(printf, 4, 5)));
+void log_raw(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void log_warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void log_critical(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void keeto_fatal(const char *filename, const char *function, int line,
     const char *fmt, ...) __attribute__((noreturn))
     __attribute__((format(printf, 4, 5)));

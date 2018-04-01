@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -37,8 +37,8 @@ static int keeto_syslog_facility = LOG_LOCAL1;
 static void
 keeto_log(int level, char *prefix, const char *fmt, va_list ap)
 {
-    if (prefix == NULL || fmt == NULL) {
-        fatal("prefix or fmt == NULL");
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
     }
 
     static bool initialized = false;
@@ -48,7 +48,11 @@ keeto_log(int level, char *prefix, const char *fmt, va_list ap)
     }
     char buffer[LOG_BUFFER_SIZE];
     vsnprintf(buffer, LOG_BUFFER_SIZE, fmt, ap);
-    syslog(keeto_syslog_facility | level, "%s %s\n", prefix, buffer);
+    if (prefix == NULL) {
+        syslog(keeto_syslog_facility | level, "%s\n", buffer);
+    } else {
+        syslog(keeto_syslog_facility | level, "%s %s\n", prefix, buffer);
+    }
 }
 
 void
@@ -69,6 +73,19 @@ keeto_log_debug(const char *filename, const char *function, int line,
 }
 
 void
+log_raw(const char *fmt, ...)
+{
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
+    va_list ap;
+    va_start(ap, fmt);
+    keeto_log(LOG_INFO, NULL, fmt, ap);
+    va_end(ap);
+}
+
+void
 log_info(const char *fmt, ...)
 {
     if (fmt == NULL) {
@@ -82,6 +99,19 @@ log_info(const char *fmt, ...)
 }
 
 void
+log_warn(const char *fmt, ...)
+{
+    if (fmt == NULL) {
+        fatal("fmt == NULL");
+    }
+
+    va_list ap;
+    va_start(ap, fmt);
+    keeto_log(LOG_WARNING, "[W]", fmt, ap);
+    va_end(ap);
+}
+
+void
 log_error(const char *fmt, ...)
 {
     if (fmt == NULL) {
@@ -91,19 +121,6 @@ log_error(const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
     keeto_log(LOG_ERR, "[E]", fmt, ap);
-    va_end(ap);
-}
-
-void
-log_critical(const char *fmt, ...)
-{
-    if (fmt == NULL) {
-        fatal("fmt == NULL");
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    keeto_log(LOG_CRIT, "[C]", fmt, ap);
     va_end(ap);
 }
 

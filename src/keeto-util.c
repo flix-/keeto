@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -151,7 +151,6 @@ check_uid(char *regex, const char *uid, bool *uid_valid)
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
-
     if (rc == 0) {
         *uid_valid = true;
     } else {
@@ -248,6 +247,98 @@ get_ldap_timeout(cfg_t *cfg)
     return ldap_timeout;
 }
 
+int
+blob_to_hex(unsigned char *src, size_t src_len, char *delimiter, char **ret)
+{
+    if (src == NULL || delimiter == NULL || ret == NULL) {
+        fatal("src, delimiter or ret == NULL");
+    }
+    if (src_len == 0) {
+        return KEETO_OK;
+    }
+
+    size_t delimiter_len = strlen(delimiter);
+    size_t dst_len = ((src_len - 1) * (2 + delimiter_len)) + 3;
+    char *dst = malloc(dst_len);
+    if (dst == NULL) {
+        log_error("failed to allocate memory for hex buffer");
+        return KEETO_NO_MEMORY;
+    }
+
+    char *dst_ptr = dst;
+    for (int i = 0; i < src_len; i++) {
+        dst_ptr += sprintf(dst_ptr, "%02x%s", src[i], i < (src_len - 1) ?
+            delimiter : "");
+    }
+    *ret = dst;
+
+    return KEETO_OK;
+}
+
+int
+blob_to_base64(unsigned char *src, size_t src_length, char **ret)
+{
+    if (src == NULL || ret == NULL) {
+        fatal("src or ret == NULL");
+    }
+    if (src_length == 0) {
+        return KEETO_OK;
+    }
+
+    int res = KEETO_UNKNOWN_ERR;
+
+    /* base64 encode blob */
+
+    /* create base64 bio */
+    BIO *bio_base64 = BIO_new(BIO_f_base64());
+    if (bio_base64 == NULL) {
+        log_error("failed to create base64 bio");
+        return KEETO_OPENSSL_ERR;
+    }
+    BIO_set_flags(bio_base64, BIO_FLAGS_BASE64_NO_NL);
+
+    /* create memory bio */
+    BIO *bio_mem = BIO_new(BIO_s_mem());
+    if (bio_mem == NULL) {
+        log_error("failed to create mem bio");
+        res = KEETO_OPENSSL_ERR;
+        goto cleanup_a;
+    }
+    /* create bio chain base64->mem */
+    BIO *bio_base64_mem = BIO_push(bio_base64, bio_mem);
+
+    /* write */
+    BIO_write(bio_base64_mem, src, src_length);
+    int rc = BIO_flush(bio_base64_mem);
+    if (rc != 1) {
+        log_error("failed to flush bio");
+        res = KEETO_OPENSSL_ERR;
+        goto cleanup_b;
+    }
+
+    /* store base64 encoded string in var and put null terminator */
+    unsigned char *bio_buffer = NULL;
+    long data_out = BIO_get_mem_data(bio_mem, &bio_buffer);
+
+    char *result = malloc(data_out + 1);
+    if (result == NULL) {
+        log_error("failed to allocate memory for base64 buffer");
+        res = KEETO_NO_MEMORY;
+        goto cleanup_b;
+    }
+    memcpy(result, bio_buffer, data_out);
+    result[data_out] = '\0';
+
+    *ret = result;
+    res = KEETO_OK;
+
+cleanup_b:
+    BIO_vfree(bio_mem);
+cleanup_a:
+    BIO_vfree(bio_base64);
+    return res;
+}
+
 /* constructors */
 struct keeto_info *
 new_info()
@@ -328,6 +419,17 @@ new_keys()
     }
     TAILQ_INIT(keys);
     return keys;
+}
+
+struct keeto_ssh_key *
+new_ssh_key()
+{
+    struct keeto_ssh_key *ssh_key = malloc(sizeof *ssh_key);
+    if (ssh_key == NULL) {
+        return NULL;
+    }
+    memset(ssh_key, 0, sizeof *ssh_key);
+    return ssh_key;
 }
 
 struct keeto_key *
@@ -472,14 +574,26 @@ free_keys(struct keeto_keys *keys)
 }
 
 void
+free_ssh_key(struct keeto_ssh_key *ssh_key)
+{
+    if (ssh_key == NULL) {
+        return;
+    }
+    free(ssh_key->keytype);
+    free(ssh_key->key);
+    free(ssh_key);
+}
+
+void
 free_key(struct keeto_key *key)
 {
     if (key == NULL) {
         return;
     }
     free_x509(key->x509);
-    free(key->ssh_keytype);
-    free(key->ssh_key);
+    free_ssh_key(key->ssh_key);
+    free(key->ssh_key_fp_md5);
+    free(key->ssh_key_fp_sha256);
     free(key);
 }
 

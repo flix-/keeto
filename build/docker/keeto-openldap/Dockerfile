@@ -1,20 +1,13 @@
 FROM centos:latest
 
-ARG NAME
-ARG VERSION
-
-# metadata
-LABEL org.label-schema.schema-version="1.0" \
-    org.label-schema.name=${NAME} \
-    org.label-schema.version=${VERSION} \
-    org.label-schema.vendor="Sebastian Roland <seroland86@gmail.com>" \
-    org.label-schema.url="https://keeto.io"
-
 # install packages
 RUN yum -y update && yum -y install \
     openldap-clients \
     openldap-servers \
     && yum clean all
+
+# set timezone
+RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 # setup openldap
 WORKDIR /etc/openldap/

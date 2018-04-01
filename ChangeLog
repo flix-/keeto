@@ -1,3 +1,13 @@
+[0.4.0-beta] - 2018-04-01
+-------------------------
+
+* Added logging of SSH key fingerprints.
+
+* Added export of real user to environment.
+
+* Added SSH session logging to Docker environment.
+
+
 [0.3.0-beta] - 2017-04-15
 -------------------------
 
