@@ -22,5 +22,5 @@ script:
   - ./configure
   - make
   - make check
-  - cat tests/test-suite.log
+  - cat test/test-suite.log
 
