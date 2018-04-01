@@ -7,8 +7,6 @@
 
 * Added SSH session logging to Docker environment.
 
-* Added matching rules to LDAP schema.
-
 
 [0.3.0-beta] - 2017-04-15
 -------------------------
