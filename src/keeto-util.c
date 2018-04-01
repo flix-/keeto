@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -151,7 +151,6 @@ check_uid(char *regex, const char *uid, bool *uid_valid)
     }
     rc = regexec(&regex_uid, uid, 0, NULL, 0);
     regfree(&regex_uid);
-
     if (rc == 0) {
         *uid_valid = true;
     } else {
@@ -249,25 +248,29 @@ get_ldap_timeout(cfg_t *cfg)
 }
 
 int
-blob_to_hex(unsigned char *src, size_t src_length, char **ret)
+blob_to_hex(unsigned char *src, size_t src_len, char *delimiter, char **ret)
 {
-    if (src == NULL || ret == NULL) {
-        fatal("src or ret == NULL");
+    if (src == NULL || delimiter == NULL || ret == NULL) {
+        fatal("src, delimiter or ret == NULL");
+    }
+    if (src_len == 0) {
+        return KEETO_OK;
     }
 
-    size_t fp_buffer_length = src_length * 3;
-    char *fp = malloc(fp_buffer_length);
-    if (fp == NULL) {
+    size_t delimiter_len = strlen(delimiter);
+    size_t dst_len = ((src_len - 1) * (2 + delimiter_len)) + 3;
+    char *dst = malloc(dst_len);
+    if (dst == NULL) {
         log_error("failed to allocate memory for hex buffer");
         return KEETO_NO_MEMORY;
     }
 
-    char *fp_ptr = fp;
-    for (int i = 0; i < src_length; i++) {
-        fp_ptr += snprintf(fp_ptr, 4, "%02x%s", src[i], i < (src_length - 1) ?
-            ":" : "");
+    char *dst_ptr = dst;
+    for (int i = 0; i < src_len; i++) {
+        dst_ptr += sprintf(dst_ptr, "%02x%s", src[i], i < (src_len - 1) ?
+            delimiter : "");
     }
-    *ret = fp;
+    *ret = dst;
 
     return KEETO_OK;
 }
@@ -277,6 +280,9 @@ blob_to_base64(unsigned char *src, size_t src_length, char **ret)
 {
     if (src == NULL || ret == NULL) {
         fatal("src or ret == NULL");
+    }
+    if (src_length == 0) {
+        return KEETO_OK;
     }
 
     int res = KEETO_UNKNOWN_ERR;
@@ -413,6 +419,17 @@ new_keys()
     }
     TAILQ_INIT(keys);
     return keys;
+}
+
+struct keeto_ssh_key *
+new_ssh_key()
+{
+    struct keeto_ssh_key *ssh_key = malloc(sizeof *ssh_key);
+    if (ssh_key == NULL) {
+        return NULL;
+    }
+    memset(ssh_key, 0, sizeof *ssh_key);
+    return ssh_key;
 }
 
 struct keeto_key *
@@ -557,14 +574,24 @@ free_keys(struct keeto_keys *keys)
 }
 
 void
+free_ssh_key(struct keeto_ssh_key *ssh_key)
+{
+    if (ssh_key == NULL) {
+        return;
+    }
+    free(ssh_key->keytype);
+    free(ssh_key->key);
+    free(ssh_key);
+}
+
+void
 free_key(struct keeto_key *key)
 {
     if (key == NULL) {
         return;
     }
     free_x509(key->x509);
-    free(key->ssh_keytype);
-    free(key->ssh_key);
+    free_ssh_key(key->ssh_key);
     free(key->ssh_key_fp_md5);
     free(key->ssh_key_fp_sha256);
     free(key);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -171,6 +171,17 @@ log_x509(X509 *x509)
 }
 
 static void
+log_ssh_key(struct keeto_ssh_key *ssh_key)
+{
+    if (ssh_key == NULL) {
+        log_info("ssh_key empty");
+        return;
+    }
+    log_string("ssh_key->keytype", ssh_key->keytype);
+    log_string("ssh_key->key", ssh_key->key);
+}
+
+static void
 log_key(struct keeto_key *key)
 {
     if (key == NULL) {
@@ -178,8 +189,7 @@ log_key(struct keeto_key *key)
         return;
     }
 
-    log_string("key->ssh_keytype", key->ssh_keytype);
-    log_string("key->ssh_key", key->ssh_key);
+    log_ssh_key(key->ssh_key);
     log_string("key->ssh_key_fp_md5", key->ssh_key_fp_md5);
     log_string("key->ssh_key_fp_sha256", key->ssh_key_fp_sha256);
     log_x509(key->x509);

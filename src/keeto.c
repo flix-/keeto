@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -142,32 +142,24 @@ write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
 
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
+        fprintf(tmp_keystore_file, "environment=\"KEETO_REAL_USER=%s\"",
+            keystore_record->uid);
         bool command_option_set = keystore_record->command_option != NULL ?
             true : false;
+        if (command_option_set) {
+            fprintf(tmp_keystore_file, ",command=\"%s\"",
+                keystore_record->command_option);
+        }
         bool from_option_set = keystore_record->from_option != NULL ?
             true : false;
-        bool option_set = false;
-
-        if (command_option_set) {
-            fprintf(tmp_keystore_file, "command=\"%s\"",
-                keystore_record->command_option);
-            option_set = true;
-        }
         if (from_option_set) {
-            if (option_set) {
-                fprintf(tmp_keystore_file, ",");
-            }
-            fprintf(tmp_keystore_file, "from=\"%s\"",
+            fprintf(tmp_keystore_file, ",from=\"%s\"",
                 keystore_record->from_option);
-            option_set = true;
         }
-        if (option_set) {
-            fprintf(tmp_keystore_file, " ");
-        }
-        fprintf(tmp_keystore_file, "%s %s %s\n", keystore_record->ssh_keytype,
-            keystore_record->ssh_key, keystore_record->uid);
-        fprintf(tmp_keystore_file, "\n");
+        fprintf(tmp_keystore_file, " %s %s\n\n", keystore_record->ssh_keytype,
+            keystore_record->ssh_key);
     }
+
     int rc = fchmod(tmp_keystore_fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (rc == -1) {
         log_error("failed to set permissions for temp keystore file '%s' (%s)",
@@ -210,8 +202,8 @@ add_keystore_record(struct keeto_key_provider *key_provider,
     }
 
     keystore_record->uid = key_provider->uid;
-    keystore_record->ssh_keytype = key->ssh_keytype;
-    keystore_record->ssh_key = key->ssh_key;
+    keystore_record->ssh_keytype = key->ssh_key->keytype;
+    keystore_record->ssh_key = key->ssh_key->key;
     keystore_record->ssh_key_fp_md5 = key->ssh_key_fp_md5;
     keystore_record->ssh_key_fp_sha256 = key->ssh_key_fp_sha256;
     if (keystore_options != NULL) {
@@ -242,7 +234,7 @@ post_process_key(struct keeto_key *key)
     }
 
     /* add ssh key data */
-    rc = add_ssh_key_data_from_x509(key->x509, key);
+    rc = add_key_data_from_x509(key->x509, key);
     switch (rc) {
     case KEETO_OK:
         break;
@@ -304,7 +296,7 @@ post_process_key_provider(struct keeto_key_provider *key_provider,
         case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key (%s)", keeto_strerror(rc));
+            log_info("removing key (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(key_provider->keys, key, next);
             free_key(key);
         }
@@ -341,7 +333,7 @@ post_process_access_profile(struct keeto_access_profile *access_profile,
         case KEETO_NO_MEMORY:
             return rc;
         default:
-            log_error("removing key provider (%s)", keeto_strerror(rc));
+            log_info("removing key provider (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(access_profile->key_providers, key_provider, next);
             free_key_provider(key_provider);
         }
@@ -395,7 +387,7 @@ post_process_access_profiles(struct keeto_info *info)
             res = rc;
             goto cleanup_b;
         default:
-            log_error("removing access profile (%s)", keeto_strerror(rc));
+            log_info("removing access profile (%s)", keeto_strerror(rc));
             TAILQ_REMOVE(info->access_profiles, access_profile, next);
             free_access_profile(access_profile);
         }
@@ -593,6 +585,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv)
         log_error("failed to write keystore file (%s)", keeto_strerror(rc));
         return PAM_SERVICE_ERR;
     }
+
     return PAM_SUCCESS;
 
 cleanup_keystore:
