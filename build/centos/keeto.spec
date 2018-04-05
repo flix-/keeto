@@ -2,7 +2,7 @@
 %global top_level_directory %{name}-%{version}-%{beta_tag}
 
 Name: keeto
-Version: 0.4.0
+Version: 0.4.1
 Release: 0.1.%{beta_tag}%{?dist}
 Summary: Key and Access Management for OpenSSH
 License: GPLv3+
@@ -58,6 +58,9 @@ make check
 %license COPYING
 
 %changelog
+* Thu Apr 05 2018 Sebastian Roland <seroland86@gmail.com> - 0.4.1-0.1.beta
+- Bump version.
+
 * Sun Apr 01 2018 Sebastian Roland <seroland86@gmail.com> - 0.4.0-0.1.beta
 - Bump version.
 

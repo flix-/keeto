@@ -1,3 +1,10 @@
+[0.4.1-beta] - 2018-04-05
+-------------------------
+
+* Removed underscores from environment variable in authorized_keys file
+  to fulfil checks introduced by OpenSSH 7.7
+
+
 [0.4.0-beta] - 2018-04-01
 -------------------------
 
