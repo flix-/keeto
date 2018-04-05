@@ -142,7 +142,7 @@ write_keystore(char *keystore, struct keeto_keystore_records *keystore_records)
 
     struct keeto_keystore_record *keystore_record = NULL;
     SIMPLEQ_FOREACH(keystore_record, keystore_records, next) {
-        fprintf(tmp_keystore_file, "environment=\"KEETO_REAL_USER=%s\"",
+        fprintf(tmp_keystore_file, "environment=\"KEETOREALUSER=%s\"",
             keystore_record->uid);
         bool command_option_set = keystore_record->command_option != NULL ?
             true : false;
