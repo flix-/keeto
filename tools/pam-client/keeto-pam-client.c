@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Sebastian Roland <seroland86@gmail.com>
+ * Copyright (C) 2014-2018 Sebastian Roland <seroland86@gmail.com>
  *
  * This file is part of Keeto.
  *
@@ -39,7 +39,6 @@ main(int argc, char **argv)
 
     char *service_name = "sshd";
     char *user = argv[1];
-    user = argv[1];
 
     pam_handle_t *pamh = NULL;
     struct pam_conv pam_conversation = { pam_conv, NULL };
