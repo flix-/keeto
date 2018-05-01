@@ -54,8 +54,8 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
 
 # set compiler flags
 AS_IF([test "x${debug}" = "xtrue"],
-    AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors -ggdb -O0"]),
-    AC_SUBST([CFLAGS], ["-Wall -std=gnu99 -pedantic-errors"])
+    AC_SUBST([CFLAGS], ["-Wall -pedantic-errors -std=gnu99 -ggdb -O0"]),
+    AC_SUBST([CFLAGS], ["-Wall -pedantic-errors -std=gnu99"])
 )
 
 # checks for header files.
