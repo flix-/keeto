@@ -139,7 +139,7 @@ keeto_fatal(const char *filename, const char *function, int line,
     va_start(ap, fmt);
     keeto_log(LOG_EMERG, prefix, fmt, ap);
     va_end(ap);
-    exit(EXIT_FAILURE);
+    abort();
 }
 
 int
