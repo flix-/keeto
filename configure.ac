@@ -2,7 +2,7 @@
 AC_PREREQ([2.69])
 AC_INIT([keeto], [0.4.1-beta], [seroland86@gmail.com], [], [https://keeto.io])
 AC_LANG([C])
-AC_CONFIG_SRCDIR([src/keeto.c])
+AC_CONFIG_SRCDIR([src/keeto-pam.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([gnu subdir-objects -Wall -Werror])
@@ -54,8 +54,7 @@ AC_SUBST([LDADD_CHECK], ["-lpam ${libcheck_LIBS} ${libconfuse_LIBS} -lldap \
 
 # set compiler flags
 AS_IF([test "x${debug}" = "xtrue"],
-    AC_SUBST([CFLAGS], ["-Wall -pedantic-errors -std=gnu99 -ggdb -O0 \
-        -fno-omit-frame-pointer -fsanitize=address"]),
+    AC_SUBST([CFLAGS], ["-Wall -pedantic-errors -std=gnu99 -ggdb -O0"]),
     AC_SUBST([CFLAGS], ["-Wall -pedantic-errors -std=gnu99"])
 )
 
