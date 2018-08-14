@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <security/pam_appl.h>
 
@@ -29,16 +30,39 @@ pam_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
     return PAM_SUCCESS;
 }
 
+static const char *
+get_user_from_oracle()
+{
+    const char *user_oracle[] = {
+        "keeto",
+        "birgit",
+        "foo",
+        "_%_XX§",
+        "sebastian"
+    };
+
+    srand(time(NULL));
+    int random = rand() % 5;
+
+    return user_oracle[random];
+}
+
 int
 main(int argc, char **argv)
 {
-    if (argc != 2) {
-        printf("argc != 2\n");
+    if (argc != 1 && argc != 2) {
+        printf("argc must be 1 or 2\n");
         return -1;
     }
 
-    char *service_name = "sshd";
-    char *user = argv[1];
+    const char *service_name = "sshd";
+    const char *user;
+    if (argc == 1) {
+        user = get_user_from_oracle();
+    } else {
+        user = argv[1];
+    }
+    printf("user: %s\n", user);
 
     pam_handle_t *pamh = NULL;
     struct pam_conv pam_conversation = { pam_conv, NULL };
@@ -51,10 +75,10 @@ main(int argc, char **argv)
     rc = pam_authenticate(pamh, 0);
     switch (rc) {
     case PAM_SUCCESS:
-        printf("PAM_SUCCESS\n");
+        printf("success\n");
         break;
     default:
-        printf("authentication error (%s)\n", pam_strerror(pamh,rc));
+        printf("failure (%s)\n", pam_strerror(pamh,rc));
     }
     /* cleanup */
     rc = pam_end(pamh, 1);
@@ -62,6 +86,7 @@ main(int argc, char **argv)
         printf("failed to destroy pam (%s)\n", pam_strerror(pamh,rc));
         return -1;
     }
+
     return 0;
 }
 
