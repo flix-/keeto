@@ -42,7 +42,7 @@ get_user_from_oracle()
     };
 
     srand(time(NULL));
-    int random = rand() % 5;
+    int random = rand() % (sizeof user_oracle / sizeof user_oracle[0]);
 
     return user_oracle[random];
 }
@@ -71,6 +71,7 @@ main(int argc, char **argv)
         printf("failed to initialize pam (%s)\n", pam_strerror(pamh, rc));
         return -1;
     }
+
     /* do authentication */
     rc = pam_authenticate(pamh, 0);
     switch (rc) {
@@ -80,6 +81,7 @@ main(int argc, char **argv)
     default:
         printf("failure (%s)\n", pam_strerror(pamh,rc));
     }
+
     /* cleanup */
     rc = pam_end(pamh, 1);
     if (rc != PAM_SUCCESS) {
