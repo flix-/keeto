@@ -6,8 +6,8 @@ Version: 0.4.1
 Release: 0.1.%{beta_tag}%{?dist}
 Summary: Key and Access Management for OpenSSH
 License: GPLv3+
-URL: https://keeto.io
-Source0: https://keeto.io/static/downloads/%{name}-%{version}-%{beta_tag}/%{name}-%{version}-%{beta_tag}.tar.gz
+URL: https://github.com/flix-/keeto
+Source0: https://github.com/flix-/keeto/releases/download/%{version}-%{beta_tag}/%{name}-%{version}-%{beta_tag}.tar.gz
 BuildRequires: gcc
 BuildRequires: make
 BuildRequires: pkgconfig
@@ -58,6 +58,9 @@ make check
 %license COPYING
 
 %changelog
+* Sun Aug 11 2019 Sebastian Roland <seroland86@gmail.com> - 0.4.1-0.2.beta
+- Adjusted links.
+
 * Thu Apr 05 2018 Sebastian Roland <seroland86@gmail.com> - 0.4.1-0.1.beta
 - Bump version.
 

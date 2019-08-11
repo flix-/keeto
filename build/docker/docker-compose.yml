@@ -14,7 +14,7 @@ services:
         org.label-schema.name: "seroland86/keeto-openssh"
         org.label-schema.version: "${VERSION}"
         org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
-        org.label-schema.url: "https://keeto.io"
+        org.label-schema.url: "https://github.com/flix-/keeto"
   keeto-openldap:
     image: seroland86/keeto-openldap:${VERSION}
     build:
@@ -25,7 +25,7 @@ services:
         org.label-schema.name: "seroland86/keeto-openldap"
         org.label-schema.version: "${VERSION}"
         org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
-        org.label-schema.url: "https://keeto.io"
+        org.label-schema.url: "https://github.com/flix-/keeto"
   keeto-syslog-ng:
     image: seroland86/keeto-syslog-ng:${VERSION}
     build:
@@ -38,7 +38,7 @@ services:
         org.label-schema.name: "seroland86/keeto-syslog-ng"
         org.label-schema.version: "${VERSION}"
         org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
-        org.label-schema.url: "https://keeto.io"
+        org.label-schema.url: "https://github.com/flix-/keeto"
   keeto-mariadb:
     image: seroland86/keeto-mariadb:${VERSION}
     build:
@@ -49,5 +49,5 @@ services:
         org.label-schema.name: "seroland86/keeto-mariadb"
         org.label-schema.version: "${VERSION}"
         org.label-schema.vendor: "Sebastian Roland <seroland86@gmail.com>"
-        org.label-schema.url: "https://keeto.io"
+        org.label-schema.url: "https://github.com/flix-/keeto"
 

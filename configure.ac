@@ -1,6 +1,6 @@
 # prelude.
 AC_PREREQ([2.69])
-AC_INIT([keeto], [0.4.1-beta], [seroland86@gmail.com], [], [https://keeto.io])
+AC_INIT([keeto], [0.4.1-beta], [seroland86@gmail.com], [], [https://github.com/flix-/keeto])
 AC_LANG([C])
 AC_CONFIG_SRCDIR([src/keeto-pam.c])
 AC_CONFIG_AUX_DIR([build-aux])
