@@ -3,7 +3,7 @@
 
 Name: keeto
 Version: 0.4.1
-Release: 0.1.%{beta_tag}%{?dist}
+Release: 0.2.%{beta_tag}%{?dist}
 Summary: Key and Access Management for OpenSSH
 License: GPLv3+
 URL: https://github.com/flix-/keeto
