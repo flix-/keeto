@@ -8,6 +8,7 @@ ARG SYSLOG_NG_REPO_URL
 RUN yum -y update && yum -y install \
     epel-release \
     gcc \
+    less \
     make \
     openssl-devel \
     pam-devel \
